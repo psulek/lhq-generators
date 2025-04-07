@@ -1,0 +1,19 @@
+{
+  "npm.packageManager": "pnpm",
+  "liveServer.settings.multiRootWorkspaceName": "test",
+  "dotnet.automaticallyCreateSolutionInWorkspace": false,
+  "csharp.suppressDotnetRestoreNotification": true,
+  "dotnet.testWindow.disableAutoDiscovery": true,
+  "omnisharp.enableMsBuildLoadProjectsOnDemand": true,
+  "omnisharp.enableRoslynAnalyzers": false,
+  "omnisharp.projectFilesExcludePattern": "**/*.csproj",
+  "dotnet.preferCSharpExtension": true,
+  "omnisharp.useModernNet": false,
+  "dotnet.defaultSolution": "disable",
+  "dotnet.projects.enableAutomaticRestore": false,
+  "csharp.suppressBuildAssetsNotification": true,
+  "csharp.suppressDotnetInstallWarning": true,
+  "csharp.suppressProjectJsonWarning": true,
+  "omnisharp.autoStart": false,
+  "dotnet.testWindow.disableBuildOnRefresh": true
+}

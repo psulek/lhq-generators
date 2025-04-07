@@ -1,0 +1,80 @@
+{
+  "name": "@lhq/lhq-generators",
+  "version": "1.0.0-rc.0",
+  "author": "Peter Šulek",
+  "description": "LHQ generators library",
+  "keywords": [],
+  "license": "ISC",
+  "scripts": {
+    "cli-help": "tsx ./src/cli.ts",
+    "cli-help2": "tsx ./src/cli.ts --no-color",
+    "cli-help3": "tsx ./src/cli.ts /?",
+    "cli-version": "tsx ./src/cli.ts -v",
+    "cli-validate1": "tsx ./src/cli.ts ./tests/data/InvalidModel.lhq validate --verbose",
+    "cli-validate2": "tsx ./src/cli.ts ./tests/data/NetCoreResxCsharp01.lhq validate",
+    "cli-wrong1": "tsx ./src/cli.ts generate validate file.lhq",
+    "cli-1": "tsx ./src/cli.ts ./tests/data/NetCoreResxCsharp01.lhq --project MyProj.csproj -d key1=value1 --data k2=v2",
+    "cli-2": "tsx ./src/cli.ts ./tests/data/NetCoreResxCsharp01.lhq -o temp/cli --verbose",
+    "cli-3": "tsx ./src/cli.ts c:/Temp/neo_online/Neo.Localization/Strings.lhq -o temp/cli",
+    "cli-4": "tsx ./src/cli.ts c:/dev/github/psulek/lhqeditor/src/Gen.Lib.Tests/TestData/NetCoreResxCsharp01/Strings.lhq",
+    "cli-5": "tsx ./src/cli.ts ./tests/data/NetCoreResxCsharp01.lhq -o temp/cli -d namespace=Root a=2 xyz=Peter --no-colors",
+    "publish-local": "pnpm run build-all --version0 && cd dist && pnpm publish --registry http://localhost:4873/ --no-git-checks && rimraf dist",
+    "unpublish-local": "pnpm unpublish @lhq/lhq-generators --registry http://localhost:4873/ --force",
+    "build-all": "rimraf dist && tsx ./build.ts",
+    "eslint": "eslint",
+    "test": "mocha --delay ./tests/index.spec.ts"
+  },
+  "dependencies": {
+    "@commander-js/extra-typings": "13.1.0",
+    "@xmldom/xmldom": "^0.9.8",
+    "commander": "^13.1.0",
+    "fs-extra": "11.3.0",
+    "glob": "^11.0.1",
+    "handlebars": "^4.7.8",
+    "jmespath": "^0.16.0",
+    "picocolors": "^1.1.1",
+    "xpath": "^0.0.34",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.5",
+    "zod-validation-error": "3.4.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.2"
+  },
+  "devDependencies": {
+    "@duplojs/zod-to-typescript": "0.4.0",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.24.0",
+    "@total-typescript/ts-reset": "^0.6.1",
+    "@types/chai": "^5.2.1",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jmespath": "0.15.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^18.18.0",
+    "@typescript-eslint/eslint-plugin": "8.29.0",
+    "@typescript-eslint/parser": "8.29.0",
+    "chai": "^4.3.7",
+    "chai-bytes": "^0.1.2",
+    "cpx": "1.5.0",
+    "eslint": "9.24.0",
+    "eslint-config-prettier": "10.1.1",
+    "eslint-plugin-eslint-comments": "3.2.0",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-jsdoc": "50.6.9",
+    "eslint-plugin-prefer-arrow": "1.2.3",
+    "eslint-plugin-tsdoc": "0.4.0",
+    "mocha": "^11.1.0",
+    "package-json-type": "^1.0.3",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "core-js",
+      "esbuild"
+    ]
+  },
+  "packageManager": "pnpm@10.7.0"
+}

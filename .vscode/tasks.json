@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "eslint",
+      "problemMatcher": ["$eslint-stylish"],
+      "label": "npm: eslint"
+    },
+    {
+      "type": "npm",
+      "script": "build-all",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$esbuild"],
+      "label": "npm: build-all"
+    },
+    {
+      "type": "npm",
+      "script": "publish-local",
+      "problemMatcher": ["$esbuild"],
+      "label": "npm: publish-local"
+    }
+  ]
+}
