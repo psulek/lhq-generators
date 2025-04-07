@@ -24,12 +24,24 @@ export class ResourceValueElement implements IResourceValueElement {
         return this._value;
     }
 
+    set value(value: string | undefined) {
+        this._value = value;
+    }
+
     get locked(): boolean | undefined {
         return this._locked;
     }
 
+    set locked(locked: boolean) {
+        this._locked = locked;
+    }
+
     get auto(): boolean | undefined {
         return this._auto;
+    }
+
+    set auto(value: boolean) {
+        this._auto = value;
     }
 
     get parent(): Readonly<IResourceElement> {

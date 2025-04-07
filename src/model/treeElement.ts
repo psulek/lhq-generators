@@ -53,6 +53,10 @@ export abstract class TreeElement implements ITreeElement {
         return this._name;
     }
 
+    public set name(name: string) {
+        this._name = name;
+    }
+
     public get elementType(): TreeElementType {
         return this._elementType;
     }
@@ -61,6 +65,10 @@ export abstract class TreeElement implements ITreeElement {
         return this._description;
     }
 
+    public set description(description: string) {
+        this._description = description;
+    }
+    
     public get paths(): Readonly<ITreeElementPaths> {
         return this._paths;
     }

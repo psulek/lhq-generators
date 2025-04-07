@@ -67,4 +67,38 @@ export abstract class CategoryLikeTreeElement extends TreeElement implements ICa
     public get hasResources(): boolean {
         return this._hasResources;
     }
+
+    public addCategory(category: ICategoryElement): void {
+        if (category) {
+            this._categories.push(category);
+            this._hasCategories = true;
+        }
+    }
+
+    public removeCategory(name: string): void {
+        if (!isNullOrEmpty(name)) {
+            const index = this._categories.findIndex(category => category.name === name);
+            if (index !== -1) {
+                this._categories.splice(index, 1);
+                this._hasCategories = this._categories.length > 0;
+            }
+        }
+    }
+
+    public addResource(resource: IResourceElement): void {
+        if (resource) {
+            this._resources.push(resource);
+            this._hasResources = true;
+        }
+    }
+
+    public removeResource(name: string): void {
+        if (!isNullOrEmpty(name)) {
+            const index = this._resources.findIndex(resource => resource.name === name);
+            if (index !== -1) {
+                this._resources.splice(index, 1);
+                this._hasResources = this._resources.length > 0;
+            }
+        }
+    }
 }

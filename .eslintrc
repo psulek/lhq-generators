@@ -23,7 +23,8 @@
         "tests",
         "webpack.config.js",
         "tsconfig.json",
-        "tsconfig.*.json"
+        "tsconfig.*.json",
+        "testapp"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {

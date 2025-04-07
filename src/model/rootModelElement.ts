@@ -1,5 +1,5 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
-import type { LhqCodeGenVersion, LhqModel, LhqModelCategory, LhqModelMetadata, LhqModelResource, LhqModelUid, LhqModelVersion } from '../api/schemas';
+import type { LhqCodeGenVersion, LhqModel, LhqModelCategory, LhqModelMetadata, LhqModelOptions, LhqModelResource, LhqModelUid, LhqModelVersion } from '../api/schemas';
 import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IResourceElement, IRootModelElement } from '../api/modelTypes';
 import { isNullOrEmpty } from '../utils';
 import { ModelVersions } from './modelConst';
@@ -33,6 +33,8 @@ export class RootModelElement extends CategoryLikeTreeElement implements IRootMo
         this.populate(model.categories, model.resources);
     }
 
+    //public populate()
+
     protected createCategory(root: IRootModelElement, name: string, source: LhqModelCategory,
         parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement {
         return new CategoryElement(root, name, source, parent);
@@ -62,7 +64,7 @@ export class RootModelElement extends CategoryLikeTreeElement implements IRootMo
         }
 
         if (!isNullOrEmpty(templateId) && !isNullOrEmpty(node)) {
-            
+
 
             return { templateId, settings: node, version: codeGenVersion };
         }
@@ -76,16 +78,28 @@ export class RootModelElement extends CategoryLikeTreeElement implements IRootMo
         return this._version;
     }
 
-    get options(): Readonly<{ categories: boolean; resources: 'All' | 'Categories'; }> {
+    get options(): Readonly<LhqModelOptions> {
         return this._options;
+    }
+
+    set options(options: LhqModelOptions) {
+        this._options = options;
     }
 
     get primaryLanguage(): string {
         return this._primaryLanguage;
     }
 
+    set primaryLanguage(primaryLanguage: string) {
+        this._primaryLanguage = primaryLanguage;
+    }
+
     get languages(): readonly string[] {
         return this._languages;
+    }
+
+    set languages(languages: string[]) {
+        this._languages = Object.freeze([...languages]);
     }
 
     get hasLanguages(): boolean {
@@ -96,7 +110,15 @@ export class RootModelElement extends CategoryLikeTreeElement implements IRootMo
         return this._metadatas;
     }
 
+    set metadatas(metadatas: LhqModelMetadata) {
+        this._metadatas = Object.freeze({ ...metadatas });
+    }
+
     get codeGenerator(): ICodeGeneratorElement | undefined {
         return this._codeGenerator;
+    }
+
+    set codeGenerator(codeGenerator: ICodeGeneratorElement) {
+        this._codeGenerator = codeGenerator;
     }
 }

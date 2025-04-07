@@ -48,6 +48,10 @@ export class ResourceElement extends TreeElement implements IResourceElement {
         return this._comment;
     }
 
+    public set comment(value: string) {
+        this._comment = value;
+    }
+
     private getComment = (): string => {
         const root = this.root;
         const primaryLanguage = root.primaryLanguage ?? '';
@@ -117,11 +121,57 @@ export class ResourceElement extends TreeElement implements IResourceElement {
         return this._state;
     }
 
+    public set state(state: LhqModelResourceTranslationState) {
+        this._state = state;
+    }
+
     public get parameters(): Readonly<IResourceParameterElement[]> {
         return this._parameters;
     }
 
+    public set parameters(parameters: IResourceParameterElement[]) {
+        this._parameters = parameters;
+    }
+
     public get values(): Readonly<IResourceValueElement[]> {
         return this._values;
+    }
+
+    public set values(values: IResourceValueElement[]) {
+        this._values = values;
+    }
+
+    public addParameter(parameter: IResourceParameterElement): void {
+        if (parameter) {
+            this._parameters.push(parameter);
+            this._hasParameters = true;
+        }
+    }
+
+    public removeParameter(name: string): void {
+        if (!isNullOrEmpty(name)) {
+            const index = this._parameters.findIndex(parameter => parameter.name === name);
+            if (index !== -1) {
+                this._parameters.splice(index, 1);
+                this._hasParameters = this._parameters.length > 0;
+            }
+        }
+    }
+
+    public addValue(value: IResourceValueElement): void {
+        if (value) {
+            this._values.push(value);
+            this._hasValues = true;
+        }
+    }
+
+    public removeValue(language: string): void {
+        if (!isNullOrEmpty(language)) {
+            const index = this._values.findIndex(value => value.languageName === language);
+            if (index !== -1) {
+                this._values.splice(index, 1);
+                this._hasValues = this._values.length > 0;
+            }
+        }
     }
 }

@@ -18,6 +18,10 @@ export class ResourceParameterElement implements IResourceParameterElement {
         return this._name;
     }
 
+    public set name(name: string) {
+        this._name = name;
+    }
+
     public get parent(): Readonly<IResourceElement> {
         return this._parent;
     }
@@ -26,8 +30,16 @@ export class ResourceParameterElement implements IResourceParameterElement {
         return this._description;
     }
 
+    public set description(description: string | undefined) {
+        this._description = description;
+    }
+
     public get order(): number {
         return this._order;
+    }
+
+    public set order(order: number) {
+        this._order = order;
     }
 }
 
