@@ -95,9 +95,10 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
 
     /**
      * Add new category to categories list.
-     * @param category - The category to add.
+     * @param name - The name of the category to add.
+     * @returns The created category element.
      */
-    addCategory(category: ICategoryElement): void;
+    addCategory(name: string): ICategoryElement;
 
     /**
      * Removes a category from the categories list.
@@ -107,9 +108,9 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
 
     /**
      * Add new resource to resources list.
-     * @param resource - The resource to add.
+     * @param name - The name of the resource to add.
      */
-    addResource(resource: IResourceElement): void;
+    addResource(name: string): IResourceElement;
 
     /**
      * Removes a resource from the resources list.
@@ -189,7 +190,7 @@ export interface IRootModelElement extends ICategoryLikeTreeElement {
     /**
      * Sets the description of the root model element.
      */
-    set description(value: string); 
+    set description(value: string);
 
     /**
      * Gets the options for the root model element.
@@ -272,19 +273,9 @@ export interface IResourceElement extends ITreeElement {
     get parameters(): Readonly<IResourceParameterElement[]>;
 
     /**
-     * Sets the list of parameters for the resource element.
-     */
-    set parameters(value: IResourceParameterElement[]);
-
-    /**
      * Gets the list of values for the resource element.
      */
     get values(): Readonly<IResourceValueElement[]>;
-
-    /**
-     * Sets the list of values for the resource element.
-     */
-    set values(value: IResourceValueElement[]);
 
     /**
      * Gets the comment associated with the resource element.
@@ -323,9 +314,10 @@ export interface IResourceElement extends ITreeElement {
 
     /**
      * Adds new parameter to the resource element.
-     * @param parameter - The resource parameter to add.
+     * @param name - The name of the parameter to add.
+     * @returns The created resource parameter element.
      */
-    addParameter(parameter: IResourceParameterElement): void;
+    addParameter(name: string): IResourceParameterElement;
 
     /**
      * Removes a parameter from the resource element.
@@ -335,9 +327,11 @@ export interface IResourceElement extends ITreeElement {
 
     /**
      * Adds new resource value to the resource element.
-     * @param value - The resource value to add.
+     * @param languageName - The name of the language for the resource value.
+     * @param value - The value of the resource.
+     * @returns The created resource value element.
      */
-    addValue(value: IResourceValueElement): void;
+    addValue(languageName: string, value: string): IResourceValueElement;
 
     /**
      * Removes a resource value specified by `language` from the resource element.

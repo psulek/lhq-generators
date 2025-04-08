@@ -1,55 +1,120 @@
 import { isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue } from '../utils';
 import { ResourceParameterElement } from './resourceParameterElement';
 import { ResourceValueElement } from './resourceValueElement';
-import type { LhqModelResource, LhqModelResourceTranslationState } from '../api/schemas';
+import { type LhqModelResource, type LhqModelResourceTranslationState } from '../api/schemas';
 import type { IResourceElement, IResourceParameterElement, IResourceValueElement, IRootModelElement, ICategoryLikeTreeElement } from '../api/modelTypes';
 import { TreeElement } from './treeElement';
 
-export class ResourceElement extends TreeElement implements IResourceElement {
-    private _state: LhqModelResourceTranslationState;
-    private _parameters: IResourceParameterElement[];
-    private _values: IResourceValueElement[];
-    private _comment: string;
-    private _hasParameters: boolean;
-    private _hasValues: boolean;
+export class ResourceElement extends TreeElement<LhqModelResource> implements IResourceElement {
+    private _state: LhqModelResourceTranslationState = 'New';
+    private _parameters: ResourceParameterElement[] | undefined;
+    private _values: ResourceValueElement[] | undefined;
+    private _comment = '';
+    private _hasParameters = false;
+    private _hasValues = false;
 
-    constructor(root: IRootModelElement, name: string, source: LhqModelResource, parent: ICategoryLikeTreeElement) {
-        super(root, 'resource', name, source.description, parent);
+    constructor(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement) {
+        super(root, 'resource', name, parent);
+    }
 
-        this._state = source.state;
+    public populate(source: LhqModelResource | undefined): void {
+        if (source) {
+            this._state = source.state;
+            this._description = source.description;
 
-        this._parameters = [];
-        if (!isNullOrEmpty(source.parameters)) {
-            iterateObject(sortObjectByValue(source.parameters, x => x.order), (parameter, name) => {
-                this._parameters.push(new ResourceParameterElement(name, parameter, this));
-            });
+            if (!isNullOrEmpty(source.parameters)) {
+                iterateObject(sortObjectByValue(source.parameters, x => x.order), (parameter, name) => {
+                    this._parameters ??= [];
+                    this._parameters.push(new ResourceParameterElement(name, parameter, this));
+                });
+            }
+
+            if (!isNullOrEmpty(source.values)) {
+                iterateObject(sortObjectByKey(source.values), (resValue, name) => {
+                    this._values ??= [];
+                    this._values.push(new ResourceValueElement(name, resValue, this));
+                });
+            }
+        } else {
+            this._state = 'New'
         }
+
         this._hasParameters = this.parameters.length > 0;
-
-        this._values = [];
-        if (!isNullOrEmpty(source.values)) {
-            iterateObject(sortObjectByKey(source.values), (resValue, name) => {
-                this._values.push(new ResourceValueElement(name, resValue, this));
-            });
-        }
         this._hasValues = this.values.length > 0;
         this._comment = this.getComment();
     }
 
-    public get hasParameters(): boolean {
-        return this._hasParameters;
+    public mapToModel(): LhqModelResource {
+        return {
+            state: this._state,
+            description: this._description,
+            parameters: (this._parameters === undefined) || this._parameters.length === 0
+                ? undefined
+                : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()])),
+
+            values: (this._values === undefined) || this._values.length === 0
+                ? undefined
+                : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]))
+        };
     }
 
-    public get hasValues(): boolean {
-        return this._hasValues;
+    public addParameter(name: string): IResourceParameterElement {
+        if (isNullOrEmpty(name)) {
+            throw new Error('Parameter name cannot be null or empty.');
+        }
+
+        let maxOrder = 0;
+
+        if (this._parameters && this._parameters.length > 0) {
+            if (this._parameters.some(param => param.name === name)) {
+                throw new Error(`Parameter name "${name}" already exists.`);
+            }
+
+            maxOrder = this._parameters.reduce((max, param) => Math.max(max, param.order), 0) + 1;
+        }
+
+        const parameter = new ResourceParameterElement(name, { order: maxOrder }, this);
+        this._parameters ??= [];
+        this._parameters.push(parameter);
+        this._hasParameters = true;
+        return parameter;
     }
 
-    public get comment(): string {
-        return this._comment;
+    public removeParameter(name: string): void {
+        if (this._parameters && !isNullOrEmpty(name)) {
+            const index = this._parameters.findIndex(parameter => parameter.name === name);
+            if (index !== -1) {
+                this._parameters.splice(index, 1);
+                this._hasParameters = this._parameters.length > 0;
+            }
+        }
     }
 
-    public set comment(value: string) {
-        this._comment = value;
+    public addValue(languageName: string, value: string): IResourceValueElement {
+        if (isNullOrEmpty(languageName)) {
+            throw new Error('Language name cannot be null or empty.');
+        }
+
+        if (this._values && this._values.some(x => x.languageName === languageName)) {
+            throw new Error(`Language name "${languageName}" already exists.`);
+        }
+
+        const resourceValue = new ResourceValueElement(languageName, undefined, this);
+        resourceValue.value = value;
+        this._values ??= [];
+        this._values.push(resourceValue);
+        this._hasValues = true;
+        return resourceValue;
+    }
+
+    public removeValue(language: string): void {
+        if (this._values && !isNullOrEmpty(language)) {
+            const index = this._values.findIndex(value => value.languageName === language);
+            if (index !== -1) {
+                this._values.splice(index, 1);
+                this._hasValues = this._values.length > 0;
+            }
+        }
     }
 
     private getComment = (): string => {
@@ -117,6 +182,22 @@ export class ResourceElement extends TreeElement implements IResourceElement {
         return false;
     }
 
+    public get hasParameters(): boolean {
+        return this._hasParameters;
+    }
+
+    public get hasValues(): boolean {
+        return this._hasValues;
+    }
+
+    public get comment(): string {
+        return this._comment;
+    }
+
+    public set comment(value: string) {
+        this._comment = value;
+    }
+
     public get state(): LhqModelResourceTranslationState {
         return this._state;
     }
@@ -126,52 +207,10 @@ export class ResourceElement extends TreeElement implements IResourceElement {
     }
 
     public get parameters(): Readonly<IResourceParameterElement[]> {
-        return this._parameters;
-    }
-
-    public set parameters(parameters: IResourceParameterElement[]) {
-        this._parameters = parameters;
+        return this._parameters ?? [];
     }
 
     public get values(): Readonly<IResourceValueElement[]> {
-        return this._values;
-    }
-
-    public set values(values: IResourceValueElement[]) {
-        this._values = values;
-    }
-
-    public addParameter(parameter: IResourceParameterElement): void {
-        if (parameter) {
-            this._parameters.push(parameter);
-            this._hasParameters = true;
-        }
-    }
-
-    public removeParameter(name: string): void {
-        if (!isNullOrEmpty(name)) {
-            const index = this._parameters.findIndex(parameter => parameter.name === name);
-            if (index !== -1) {
-                this._parameters.splice(index, 1);
-                this._hasParameters = this._parameters.length > 0;
-            }
-        }
-    }
-
-    public addValue(value: IResourceValueElement): void {
-        if (value) {
-            this._values.push(value);
-            this._hasValues = true;
-        }
-    }
-
-    public removeValue(language: string): void {
-        if (!isNullOrEmpty(language)) {
-            const index = this._values.findIndex(value => value.languageName === language);
-            if (index !== -1) {
-                this._values.splice(index, 1);
-                this._hasValues = this._values.length > 0;
-            }
-        }
+        return this._values ?? [];
     }
 }

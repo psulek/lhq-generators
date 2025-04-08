@@ -1,0 +1,32 @@
+{
+  "categories": {
+    "TestCategory1": {
+      "resources": {
+        "TestResource1": {
+          "state": "New",
+          "description": "Test resource 1 description",
+          "values": {
+            "sk": {
+              "value": "Test hodnota 1"
+            }
+          }
+        }
+      },
+      "description": "Test category 1 description"
+    }
+  },
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 2,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "TestRootElement",
+    "description": "Test description",
+    "primaryLanguage": "sk"
+  },
+  "languages": [
+    "en"
+  ]
+}

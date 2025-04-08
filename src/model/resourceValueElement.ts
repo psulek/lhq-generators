@@ -8,12 +8,20 @@ export class ResourceValueElement implements IResourceValueElement {
     private _auto: boolean | undefined;
     private _parent: Readonly<IResourceElement>;
 
-    constructor(languageName: string, source: LhqModelResourceValue, parent: Readonly<IResourceElement>) {
+    constructor(languageName: string, source: LhqModelResourceValue | undefined, parent: Readonly<IResourceElement>) {
         this._languageName = languageName;
-        this._value = source.value;
-        this._locked = source.locked;
-        this._auto = source.auto;
         this._parent = parent;
+        this._value = source?.value;
+        this._locked = source?.locked;
+        this._auto = source?.auto;
+    }
+
+    public mapToModel(): LhqModelResourceValue {
+        return {
+            value: this._value,
+            locked: this._locked,
+            auto: this._auto
+        };
     }
 
     get languageName(): string {

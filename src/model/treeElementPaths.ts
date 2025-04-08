@@ -18,7 +18,6 @@ export class TreeElementPaths implements ITreeElementPaths {
     public getParentPath = (separator: string, includeRoot?: boolean): string => {
         separator ??= '';
         includeRoot ??= false;
-        // return this.paths.join(separator);
         return (includeRoot || this.paths.length === 1)
             ? this.paths.join(separator)
             : this.paths.slice(1).join(separator);

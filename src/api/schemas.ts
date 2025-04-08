@@ -32,8 +32,6 @@ type Resource = z.infer<typeof LhqModelResourceSchemaBase> & {};
 
 export const LhqModelResourceSchema: z.ZodType<Resource> = LhqModelResourceSchemaBase;
 
-//export const LhqDataNodeAttrsSchema = z.record(z.string());
-
 export const baseDataNodeSchema = z.object({
     name: z.string(),
     attrs: z.record(z.string().nullable().optional()).optional()
@@ -79,16 +77,6 @@ export const LhqModelMetadataSchema = z.object({
     childs: z.array(LhqModelDataNodeSchema).optional(),
 });
 
-// const BooleanSchema = z.union([z.literal('true'), z.literal('false')]);
-
-// export const LhqModelCodeGeneratorBasicSettingsSchema = z.object({
-//     OutputFolder: z.string(),
-//     OutputProjectName: z.string().optional(),
-//     EncodingWithBOM: BooleanSchema.optional(),
-//     LineEndings: LhqModelLineEndingsSchema.optional().default('lf'),
-//     Enabled: BooleanSchema.optional().default('true')
-// });
-
 export const LhqModelSchema = z.object({
     model: z.object({
         uid: LhqModelUidSchema,
@@ -104,6 +92,18 @@ export const LhqModelSchema = z.object({
     categories: z.lazy(() => LhqModelCategoriesCollectionSchema).optional()
 });
 
+/**
+ * Marker interface for some LHQ model types, used for:
+ * root, category, and resource element, resource parameter, and resource value.
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ILhqModelType {}
+
+export interface ILhqCategoryLikeModelType extends ILhqModelType {
+    categories?: LhqModelCategoriesCollection;
+    resources?: LhqModelResourcesCollection;
+}
+
 export type LhqModelUid = z.infer<typeof LhqModelUidSchema>;
 
 export type LhqModelVersion = z.infer<typeof LhqModelVersionSchema>;
@@ -114,15 +114,15 @@ export type LhqModelOptions = z.infer<typeof LhqModelOptionsSchema>;
 
 export type LhqModelOptionsResources = z.infer<typeof LhqModelOptionsResourcesSchema>;
 
-export type LhqModelResourceParameter = z.infer<typeof LhqModelResourceParameterSchema>;
+export type LhqModelResourceParameter = z.infer<typeof LhqModelResourceParameterSchema> & ILhqModelType;
 
 export type LhqModelResourceTranslationState = z.infer<typeof LhqModelResourceTranslationStateSchema>;
 
-export type LhqModelResourceValue = z.infer<typeof LhqModelResourceValueSchema>;
+export type LhqModelResourceValue = z.infer<typeof LhqModelResourceValueSchema> & ILhqModelType;
 
-export type LhqModelResource = z.infer<typeof LhqModelResourceSchema>;
+export type LhqModelResource = z.infer<typeof LhqModelResourceSchema> & ILhqModelType;
 
-export type LhqModelCategory = z.infer<typeof LhqModelCategorySchema>;
+export type LhqModelCategory = z.infer<typeof LhqModelCategorySchema> & ILhqCategoryLikeModelType;
 
 export type LhqModelCategoriesCollection = z.infer<typeof LhqModelCategoriesCollectionSchema>;
 
@@ -132,10 +132,6 @@ export type LhqModelDataNode = z.infer<typeof LhqModelDataNodeSchema>;
 
 export type LhqModelMetadata = z.infer<typeof LhqModelMetadataSchema>;
 
-//export type LhqDataNodeAttrs = z.infer<typeof LhqDataNodeAttrsSchema>;
-
-//export type LhqModelCodeGeneratorBasicSettings = z.infer<typeof LhqModelCodeGeneratorBasicSettingsSchema>;
-
 export type LhqModelLineEndings = z.infer<typeof LhqModelLineEndingsSchema>;
 
-export type LhqModel = z.infer<typeof LhqModelSchema>;
+export type LhqModel = z.infer<typeof LhqModelSchema> & ILhqCategoryLikeModelType;

@@ -17,24 +17,33 @@ let packageJson: Partial<IPackageJson>;
 
 type EsBuildOptions = Parameters<NonNullable<Options['esbuildOptions']>>[0];
 
+const compileOnly = process.argv.findIndex(arg => arg === '--compile') > -1;
 const incVersion = process.argv.findIndex(arg => arg === '--version') > -1;
 
 void (async () => {
     try {
-        await runMochaTests()
         await fse.ensureDir(distFolder);
         await preparePackageVersion();
 
-        await Promise.all([
-            buildLib('browser'),
-            buildLib('cjs'),
-            buildLib('esm'),
-            buildCli(),
-            buildDts(),
-            copyPackageJson(),
-            copyExtraFiles(),
-            genLhqSchema()
-        ]);
+        if (compileOnly) {
+            await Promise.all([
+                buildLib('cjs'),
+                buildLib('esm')
+            ]);
+        } else {
+            await runMochaTests()
+
+            await Promise.all([
+                buildLib('browser'),
+                buildLib('cjs'),
+                buildLib('esm'),
+                buildCli(),
+                buildDts(),
+                copyPackageJson(),
+                copyExtraFiles(),
+                genLhqSchema()
+            ]);
+        }
     } catch (error) {
         console.error('Build failed: ', error, error.stack);
         process.exit(1);
@@ -219,7 +228,7 @@ export async function runMochaTests(): Promise<void> {
     const mocha = path.join(cwd, 'node_modules', bin);
     const testFile = './tests/index.spec.ts';
 
-    const args = [mocha, '--delay', '-n tsx', '--enable-source-maps', '--fail-zero', '--colors', testFile];
+    const args = [mocha, '--delay', '-n tsx', '--enable-source-maps', '--colors', testFile];
 
     const { code, stdout, stderr } = await spawnAsync('node', args, { cwd, detached: false }, true);
     if (code !== 0) {

@@ -21,6 +21,7 @@
     "publish-local": "pnpm run build-all --version0 && cd dist && pnpm publish --registry http://localhost:4873/ --no-git-checks && rimraf dist",
     "unpublish-local": "pnpm unpublish @lhq/lhq-generators --registry http://localhost:4873/ --force",
     "build-all": "rimraf dist && tsx ./build.ts",
+    "compile": "pnpm run build-all --compile",
     "eslint": "eslint",
     "test": "mocha --delay ./tests/index.spec.ts"
   },

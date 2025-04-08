@@ -1,47 +1,68 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
-import type { LhqCodeGenVersion, LhqModel, LhqModelCategory, LhqModelMetadata, LhqModelOptions, LhqModelResource, LhqModelUid, LhqModelVersion } from '../api/schemas';
-import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IResourceElement, IRootModelElement } from '../api/modelTypes';
+import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
+import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement } from '../api/modelTypes';
 import { isNullOrEmpty } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
-import { ResourceElement } from './resourceElement';
 
 const CodeGenUID = 'b40c8a1d-23b7-4f78-991b-c24898596dd2';
 
-export class RootModelElement extends CategoryLikeTreeElement implements IRootModelElement {
-    private _uid: LhqModelUid;
-    private _version: LhqModelVersion;
-    private _options: Readonly<{ categories: boolean; resources: 'All' | 'Categories'; }>;
-    private _primaryLanguage: string;
-    private _languages: readonly string[];
+export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implements IRootModelElement {
+    private _uid: LhqModelUid = LhqModelUidSchema.value;
+    private _version: LhqModelVersion = ModelVersions.model;
+    private _options: LhqModelOptions = { categories: true, resources: 'All' };
+    private _primaryLanguage = 'en';
+    private _languages: string[] = ['en'];
     private _metadatas: Readonly<LhqModelMetadata> | undefined;
     private _codeGenerator: ICodeGeneratorElement | undefined;
-    private _hasLanguages: boolean;
+    private _hasLanguages = true;
 
-    constructor(model: LhqModel) {
+    constructor(model: LhqModel | undefined) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        super(undefined, 'model', model.model.name ?? '', model.model.description ?? '', undefined);
-        this._uid = model.model.uid;
-        this._version = model.model.version;
-        this._options = { categories: model.model.options.categories, resources: model.model.options.resources };
-        this._primaryLanguage = model.model.primaryLanguage;
-        this._languages = Object.freeze([...model.languages]);
-        this._hasLanguages = this._languages.length > 0;
-        this._metadatas = model.metadatas ? Object.freeze({ ...model.metadatas }) : undefined;
-        this._codeGenerator = this.getCodeGenerator(model);
-        this.populate(model.categories, model.resources);
+        super(undefined, 'model', model?.model?.name ?? '', model?.model?.description ?? '', undefined);
+        this.populate(model);
     }
 
-    //public populate()
+    public populate(model: LhqModel | undefined): void {
+        if (model) {
+            this._uid = model.model.uid;
+            this._version = model.model.version;
+            this._options = { categories: model.model.options.categories, resources: model.model.options.resources };
+            this._primaryLanguage = model.model.primaryLanguage;
+            this._languages = [...model.languages];
+            this._hasLanguages = this._languages.length > 0;
+            this._metadatas = model.metadatas ? Object.freeze({ ...model.metadatas }) : undefined;
+            this._codeGenerator = this.getCodeGenerator(model);
+            //this.populate(model.categories, model.resources);
+        } else {
+            this._uid = LhqModelUidSchema.value;
+            this._version = ModelVersions.model;
+            this._options = { categories: true, resources: 'All' };
+            this._primaryLanguage = 'en';
+            this._languages = ['en'];
+            this._hasLanguages = true;
+        }
 
-    protected createCategory(root: IRootModelElement, name: string, source: LhqModelCategory,
-        parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement {
-        return new CategoryElement(root, name, source, parent);
+        super.populate(model);
     }
 
-    protected createResource(root: IRootModelElement, name: string, source: LhqModelResource, parent: ICategoryLikeTreeElement): IResourceElement {
-        return new ResourceElement(root, name, source, parent);
+    protected bindToModel(model: Partial<LhqModel>): void {
+        super.bindToModel(model);
+        model.model = {
+            uid: this._uid,
+            version: this._version,
+            options: this._options,
+            name: this.name,
+            description: this._description,
+            primaryLanguage: this._primaryLanguage
+        };
+        model.languages = this._languages;
+        model.metadatas = this._metadatas;
+    }
+
+    protected createCategory(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement {
+        return new CategoryElement(root, name, parent);
     }
 
     private getCodeGenerator(model: LhqModel): ICodeGeneratorElement | undefined {
@@ -99,7 +120,7 @@ export class RootModelElement extends CategoryLikeTreeElement implements IRootMo
     }
 
     set languages(languages: string[]) {
-        this._languages = Object.freeze([...languages]);
+        this._languages = [...languages];
     }
 
     get hasLanguages(): boolean {

@@ -30,6 +30,9 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
 
 packages:
 
@@ -193,7 +196,7 @@ packages:
     engines: {node: '>=12'}
 
   '@lhq/lhq-generators@1.0.0-rc.0':
-    resolution: {integrity: sha512-MM/sXjE88V3mOUcK/T6m32GOr0ISQT83nmgJB9ura/JkjvZnB5JyknqSlmn4BMuf58krprNlr4OVD3+6hemq0w==}
+    resolution: {integrity: sha512-EphNKkbFf1x/67Thl2HBpjaUedwSxH9jZbgtYP5Mb5+t13F2zyH5TRsc5tWwDAELoOe5VmmAaVsM28A2gnWHew==}
     hasBin: true
     peerDependencies:
       typescript: ^5.0.2

@@ -1,29 +1,33 @@
 import { isNullOrEmpty } from '../utils';
 import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths } from '../api/modelTypes';
 import { TreeElementPaths } from './treeElementPaths';
+import type { ILhqModelType } from '../api/schemas';
 
-export abstract class TreeElement implements ITreeElement {
-    private _parent: ICategoryLikeTreeElement | undefined;
-    private _root: IRootModelElement;
-    private _name: string;
-    private _elementType: TreeElementType;
-    private _description: string | undefined;
-    private _paths: ITreeElementPaths;
-    private _isRoot: boolean;
-    private _data: Record<string, unknown>;
+export abstract class TreeElement<TModel extends ILhqModelType> implements ITreeElement {
+    protected _parent: ICategoryLikeTreeElement | undefined;
+    protected _root: IRootModelElement;
+    protected _name: string;
+    protected _elementType: TreeElementType;
+    protected _description: string | undefined;
+    protected _paths: ITreeElementPaths;
+    protected _isRoot: boolean;
+    protected _data: Record<string, unknown>;
 
-    constructor(root: IRootModelElement, elementType: TreeElementType, name: string, description: string | undefined,
+    constructor(root: IRootModelElement, elementType: TreeElementType, name: string,
         parent: ICategoryLikeTreeElement | undefined) {
 
         this._name = name ?? '';
         this._elementType = elementType;
-        this._description = description ?? '';
         this._root = isNullOrEmpty(root) && isNullOrEmpty(parent) ? this as unknown as IRootModelElement : root;
         this._parent = parent;
         this._paths = new TreeElementPaths(this);
         this._isRoot = isNullOrEmpty(this.parent);
         this._data = {};
     }
+
+    public abstract populate(source: TModel | undefined): void;
+
+    public abstract mapToModel(): TModel;
 
     public addToTempData = (key: string, value: unknown): void => {
         this._data[key] = value;

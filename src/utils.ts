@@ -1,6 +1,10 @@
 import { search as jmespath } from 'jmespath';
 import type { KeysMatching, TextEncodeOptions } from './types';
 
+const regexLF = new RegExp('\\r\\n|\\r', 'g');
+const regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
+
+
 const encodingCharMaps = {
     html: {
         '>': '&gt;',
@@ -31,6 +35,13 @@ const encodingCharMaps = {
         '\t': '\\t'
     }
 };
+
+export function replaceLineEndings(value: string, lineEndings: 'CRLF' | 'LF'): string {
+    return lineEndings === 'LF'
+        ? value.replace(regexLF, '\n')
+        : value.replace(regexCRLF, '\r\n');
+}
+
 
 /**
  * Removes the Byte Order Mark (BOM) from a string if it exists.

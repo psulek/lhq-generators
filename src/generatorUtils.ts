@@ -4,7 +4,7 @@ import * as zodToJsonSchema from 'zod-to-json-schema';
 import { fromZodError, createMessageBuilder } from 'zod-validation-error';
 
 import { type LhqModel, LhqModelSchema } from './api/schemas';
-import { isNullOrEmpty, tryJsonParse, tryRemoveBOM } from './utils';
+import { isNullOrEmpty, replaceLineEndings, tryJsonParse, tryRemoveBOM } from './utils';
 import type { CSharpNamespaceInfo, LhqValidationResult } from './types';
 import type { GeneratedFile } from './api/types';
 import type { IRootModelElement } from './api';
@@ -12,17 +12,22 @@ import { RootModelElement } from './model/rootModelElement';
 
 let DOMParser: typeof globalThis.DOMParser;
 
-const regexLF = new RegExp('\\r\\n|\\r', 'g');
-const regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
-
-
 /**
  * Creates a new root element for the specified LHQ model data.
  * @param data - The LHQ model data to be used for creating the root element.
  * @returns  The created root element.
  */
-export function createRootElement(data: LhqModel): IRootModelElement {
+export function createRootElement(data?: LhqModel): IRootModelElement {
     return new RootModelElement(data);
+}
+
+export function serializeRootElement(root: IRootModelElement): LhqModel {
+    if (!(root instanceof RootModelElement)) {
+        throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
+    }
+
+    const str = JSON.stringify(root.mapToModel());
+    return JSON.parse(str) as LhqModel;
 }
 
 /**
@@ -74,9 +79,7 @@ export function getGeneratedFileContent(generatedFile: GeneratedFile, applyLineE
         return generatedFile.content;
     }
 
-    return generatedFile.lineEndings === 'LF'
-        ? generatedFile.content.replace(regexLF, '\n')
-        : generatedFile.content.replace(regexCRLF, '\r\n');
+    return replaceLineEndings(generatedFile.content, generatedFile.lineEndings);
 }
 
 /**

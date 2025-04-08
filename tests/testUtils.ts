@@ -86,30 +86,28 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
 
         try {
             expect(buffer).to.equalBytes(snapshot);
-
-            // if (isBuffer) {
-            //     expect(value).to.equalBytes(snapshot);
-            // } else if (isString) {
-            //     expect(value).to.equal(snapshot.toString('utf-8'));
-            // } else {
-            //     expect(value).to.deep.eq(snapshot);
-            // }
         }
         catch (e) {
             await writeSnapshot();
 
             if (e.name === 'AssertionError') {
-                const buffer_lf = buffer.reduce((count, byte) => byte === 10 ? count + 1 : count, 0);
-                const buffer_cr = buffer.reduce((count, byte) => byte === 13 ? count + 1 : count, 0);
-                const snapshot_lf = snapshot.reduce((count, byte) => byte === 10 ? count + 1 : count, 0);
-                const snapshot_cr = snapshot.reduce((count, byte) => byte === 13 ? count + 1 : count, 0);
 
-                expect(buffer_lf).to.equal(snapshot_lf, `Count of LF chars do not match!`);
-                expect(buffer_cr).to.equal(snapshot_cr, `Count of CR chars do not match!`);
+                const compareLineEndings = () => {
+                    const buffer_lf = buffer.reduce((count, byte) => byte === 10 ? count + 1 : count, 0);
+                    const buffer_cr = buffer.reduce((count, byte) => byte === 13 ? count + 1 : count, 0);
+                    const snapshot_lf = snapshot.reduce((count, byte) => byte === 10 ? count + 1 : count, 0);
+                    const snapshot_cr = snapshot.reduce((count, byte) => byte === 13 ? count + 1 : count, 0);
+    
+                    expect(buffer_lf).to.equal(snapshot_lf, `Count of LF chars do not match!`);
+                    expect(buffer_cr).to.equal(snapshot_cr, `Count of CR chars do not match!`);    
+                }
+
+                let compareLE = false;
                 
                 const str = snapshot.toString('utf-8');
                 if (isString) {
                     expect(value).to.equal(str);
+                    compareLE = true;
                 } else if (isObject) {
                     const parsed = tryJsonParse(str, true);
                     let compareAsString = !parsed.success;
@@ -120,9 +118,14 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
                     
                     if (compareAsString) {
                         expect(JSON.stringify(value, null, 2)).to.equal(str);
+                        compareLE = true;
                     }
                 } else {
                     throw e;
+                }
+
+                if (compareLE) {
+                    compareLineEndings();
                 }
             }
         }
