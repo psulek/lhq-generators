@@ -91,6 +91,13 @@ async function findOwnerCsProjectFile(lhqModelFileName: string): Promise<CsProje
         }
     }
 
+    if (namespaceInfo?.namespaceDynamicExpression) {                            
+        namespaceInfo.namespace = '';
+        console.log(pc.redBright(`Warning: \nValue in 'RootNamespace' or 'AssemblyName' element contains dynamic expression which is not supported.\n` +
+            `This value will not be used for 'Namespace' in generator.\n`+
+            `Set namespace directly in the lhq file in C# template setting 'Namespace' or provide namespace via cmd '--data namespace=<value>'.`));
+    }
+
     const csProjFileName = namespaceInfo?.csProjectFileName ?? '';
     const t4FileName = namespaceInfo?.t4FileName ?? '';
     let namespace = namespaceInfo?.namespace ?? '';

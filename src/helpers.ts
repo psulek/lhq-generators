@@ -37,6 +37,7 @@ const helpersList: Record<string, HelperDelegate> = {
     'char-tab': charHelper,
     'char-quote': charHelper,
     'x-value': valueHelper,
+    'x-select': selectValueHelper,
     'x-join': joinHelper,
     'x-split': splitHelper,
     'x-concat': concatHelper,
@@ -215,6 +216,23 @@ function valueHelper() {
     const defaultOnEmpty = options.hash?.defaultOnEmpty ?? false;
     const result = queryObjValue(context, options);
     return valueOrDefault(result, defaultValue, defaultOnEmpty);
+}
+
+// function selectValueHelper(items: unknown[]) {
+function selectValueHelper() {
+    // eslint-disable-next-line prefer-rest-params
+    const items: unknown[] = [...arguments];
+    while (items.length > 0) {
+        const item = items.shift();
+        if (typeof item === 'string' && !isNullOrEmpty(item)) {
+            return item;
+        } else if (typeof item === 'number' && !isNaN(item)) {
+            return item;
+        } else if (typeof item === 'boolean') {
+            return item;
+        }
+    }
+    return '';
 }
 
 type splitHelperArgs = { sep?: string };

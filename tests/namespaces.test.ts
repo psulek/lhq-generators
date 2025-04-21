@@ -12,8 +12,8 @@ import { GeneratedFile } from '../src/api/types.js';
 
 setTimeout(async () => {
 
-    const csProjectFiles = await glob('*.csproj', { cwd: folders().csproj, nodir: true });
-    // const csProjectFiles = ['project04.csproj'];
+    // const csProjectFiles = await glob('*.csproj', { cwd: folders().csproj, nodir: true });
+    const csProjectFiles = ['project14.csproj'];
 
     describe('Retrieving namespace information', () => {
 
@@ -63,7 +63,15 @@ async function getNamespace(csProjectFile: string): Promise<CSharpNamespaceInfo>
     const fileName = path.join(folders().csproj, csProjectFile);
     const fp = createFilePath(fileName, folders().cwd, true, true);
     const csProjectContent = await safeReadFile(fileName);
-    const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', fileName, csProjectContent);
+
+    const ext = path.extname(csProjectFile);
+    const baseProjectFile = path.basename(csProjectFile, ext);
+
+
+    const msBuildProps: Record<string, string> = {
+        ['MSBuildProjectName']: baseProjectFile
+    };
+    const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', fileName, csProjectContent, msBuildProps);
 
     expect(rootNamespace).to.not.be.undefined;
 

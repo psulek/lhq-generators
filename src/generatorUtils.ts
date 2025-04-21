@@ -4,11 +4,13 @@ import * as zodToJsonSchema from 'zod-to-json-schema';
 import { fromZodError, createMessageBuilder } from 'zod-validation-error';
 
 import { type LhqModel, LhqModelSchema } from './api/schemas';
-import { isNullOrEmpty, replaceLineEndings, tryJsonParse, tryRemoveBOM } from './utils';
+import { isNullOrEmpty, iterateObject, objCount, replaceLineEndings, stringCompare, tryJsonParse, tryRemoveBOM } from './utils';
 import type { CSharpNamespaceInfo, LhqValidationResult } from './types';
 import type { GeneratedFile } from './api/types';
 import type { IRootModelElement } from './api';
 import { RootModelElement } from './model/rootModelElement';
+import type { XPathSelect } from 'xpath';
+import { link } from 'node:fs';
 
 let DOMParser: typeof globalThis.DOMParser;
 
@@ -115,6 +117,7 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
     csProjectFileName: string, csProjectFileContent: string): CSharpNamespaceInfo | undefined {
     let referencedLhqFile = false;
     let referencedT4File = false;
+    let namespaceDynamicExpression = false;
 
     if (isNullOrEmpty(csProjectFileName) || isNullOrEmpty(csProjectFileContent)) {
         return undefined;
@@ -123,6 +126,9 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
     let rootNamespace: string | undefined;
 
     try {
+        let xpathSelect: XPathSelect = undefined!;
+        let rootNode: Node = undefined!;
+
         const fileContent = tryRemoveBOM(csProjectFileContent);
         if (typeof window !== 'undefined' && typeof window.DOMParser !== 'undefined') {
             // Running in a browser, use built-in DOMParser
@@ -133,11 +139,11 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
         }
 
         const doc = new DOMParser().parseFromString(fileContent, 'text/xml');
-        const rootNode = doc as unknown as Node;
+        rootNode = doc as unknown as Node;
         const rootNs = doc.documentElement?.namespaceURI || '';
         const ns = isNullOrEmpty(rootNs) ? null : rootNs;
 
-        const xpathSelect = xpath.useNamespaces({ ns: rootNs });
+        xpathSelect = xpath.useNamespaces({ ns: rootNs });
 
         const findFileElement = function (fileName: string): Element | undefined {
             for (const itemGroupType of itemGroupTypes) {
@@ -155,6 +161,7 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
             return undefined;
         }
 
+        // 1st: try to find <RootNamespace>
         rootNamespace = xpathSelect(xpathRootNamespace, rootNode, true) as string;
 
         referencedLhqFile = findFileElement(lhqModelFileName) != undefined;
@@ -173,12 +180,160 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
         }
 
         if (!rootNamespace) {
+            // 2st: try to find <AssemblyName>
             rootNamespace = xpathSelect(xpathAssemblyName, rootNode, true) as string;
+        }
+
+        if (!isNullOrEmpty(rootNamespace)) {
+            const regexMsBuildProp = /\$\((.*?)(?:\)(?!\)))/g;
+            const match = [...rootNamespace.matchAll(regexMsBuildProp)];
+            namespaceDynamicExpression = match.length > 0;
         }
     } catch (e) {
         console.error('Error getting root namespace.', e);
         rootNamespace = undefined;
     }
 
-    return { csProjectFileName, t4FileName, namespace: rootNamespace, referencedLhqFile, referencedT4File };
+    return { csProjectFileName, t4FileName, namespace: rootNamespace, referencedLhqFile, referencedT4File, namespaceDynamicExpression };
 }
+
+// type StringNullUndef = string | null | undefined;
+
+// function getNamespaceProperties(xpathSelect: XPathSelect, rootNode: Node, msBuildProperties: Record<string, string>) {
+//     const properties: Array<MsBuildProperty> = [];
+
+//     const hasProperty = (propertyName: string, checkExist: boolean) => {
+//         const prop = properties.find(p => stringCompare(p.name, propertyName, false));
+//         return checkExist ? prop !== undefined && prop.exist !== undefined : prop !== undefined;
+//     };
+
+//     iterateObject(msBuildProperties, (value: string, key: string) => {
+//         if (!hasProperty(key, false)) {
+//             properties.push({ name: key, value, exist: true });
+//         }
+//     });
+
+//     function populateProperties(propertyNames: string[], level: number) {
+//         const regexMsBuildProp = /\$\((.*?)(?:\)(?!\)))/g;
+
+//         const propCountBefore = properties.length;
+//         propertyNames.forEach(propertyName => {
+//             if (hasProperty(propertyName, true)) {
+//                 return;
+//             }
+
+//             let propertyValue: StringNullUndef = undefined;
+//             try {
+//                 propertyValue = xpathSelect(`string(//ns:${propertyName})`, rootNode, true) as StringNullUndef;
+//             } catch (error) {
+//                 propertyValue = undefined;
+//             }
+//             const exist = propertyValue !== undefined && propertyValue !== null;
+//             let valueMatch = exist ? [...propertyValue!.matchAll(regexMsBuildProp)] : undefined;
+//             let linkToProperty: string | undefined = undefined;
+
+//             // if property points to another property (itself or another), eg: <MyProp>$(MyProp)</MyProp>
+//             // or <MyProp>$(MyProp2)</MyProp>
+//             if (valueMatch && valueMatch.length > 0) {
+//                 if (valueMatch.length === 1) {
+//                     linkToProperty = valueMatch[0][1];
+
+//                     if (stringCompare(valueMatch[0][0], valueMatch[0].input, false)) {
+//                         valueMatch = undefined;
+//                         // if value contains ref to itself, set value to ''
+//                         if (stringCompare(linkToProperty, propertyName, false)) {
+//                             propertyValue = '';
+//                             linkToProperty = undefined;
+//                         }
+//                     }
+//                 }
+//             } else {
+//                 valueMatch = undefined;
+//             }
+
+//             properties.push({ name: propertyName, value: propertyValue ?? '', exist, valueMatch, linkToProperty });
+//         });
+
+//         const linkedProperties: string[] = [];
+//         properties.slice(propCountBefore).forEach(property => {
+//             if (!isNullOrEmpty(property.linkToProperty) && !hasProperty(property.linkToProperty, true)) {
+//                 linkedProperties.push(property.linkToProperty);
+//             }
+
+//             if (property.valueMatch && property.valueMatch.length > 0) {
+//                 property.valueMatch.forEach(match => {
+//                     let propertyName = match[1];
+//                     // if contains . (dot) it can be expression like: $(MSBuildProjectName.Replace(" ", "_"))
+//                     const dotIndex = propertyName.indexOf('.');
+//                     if (dotIndex > -1) {
+//                         propertyName = propertyName.substring(0, dotIndex);
+//                     }
+
+//                     // if value contains ref to itself, set value to ''
+//                     if (!isNullOrEmpty(propertyName) && !stringCompare(propertyName, property.name, false) && !hasProperty(propertyName, true)) {
+//                         linkedProperties.push(propertyName);
+//                     }
+//                 });
+//             }
+//         });
+
+//         if (linkedProperties.length > 0) {
+//             populateProperties(linkedProperties, level + 1);
+//         }
+
+//         if (level === 0) {
+//             //console.log(properties);
+//             properties.filter(p => !isNullOrEmpty(p.valueMatch))
+//                 .forEach(property => {
+//                     //const replacements: Record<string, string> = {};
+//                     const replacements: string[] = [];
+
+//                     property.valueMatch!.forEach(match => {
+//                         let propertyName = match[1];
+//                         // if contains . (dot) it can be expression like: $(MSBuildProjectName.Replace(" ", "_"))
+//                         const dotIndex = propertyName.indexOf('.');
+//                         const isExpression = dotIndex > -1;
+//                         if (isExpression) {
+//                             propertyName = propertyName.substring(0, dotIndex);
+//                         }
+
+//                         const prop = properties.find(p => stringCompare(p.name, propertyName, false));
+//                         if (prop) {
+//                             if (!isNullOrEmpty(prop.valueMatch) && prop.valueMatch.length > 0) {
+//                                 throw new Error(`Circular reference in value for property "${property.name}"`);
+//                             }
+
+//                             let value = prop.value;
+//                             if (isExpression) {
+//                                 match[1].split('.');
+//                             }
+
+//                             replacements.push(value);
+//                         } else {
+//                             property.value = '';
+//                         }
+//                     });
+
+//                     property.value = property.value.replace(regexMsBuildProp, (match, ...groups) => {
+
+//                         return '';
+//                     });
+
+//                     /* if (objCount(replacements) > 0) {
+//                         //property.value = property.value.replace()
+//                         iterateObject
+//                     } */
+//                 });
+//         }
+//     }
+
+//     populateProperties(['RootNamespace', 'AssemblyName'], 0);
+// }
+
+// type MsBuildProperty = {
+//     name: string;
+//     value: string;
+//     valueMatch?: RegExpExecArray[] | undefined | null;
+//     linkToProperty?: string | undefined;
+//     exist?: boolean | undefined;
+// }

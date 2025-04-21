@@ -213,6 +213,13 @@ export function sortObjectByValue<T>(obj: Record<string, T>, predicate: (item: T
     }));
 }
 
+export function stringCompare(a: string, b: string, caseSensitive: boolean): boolean { 
+    if (caseSensitive) {
+        return a === b;
+    }
+    return a.toLowerCase() === b.toLowerCase();
+}
+
 /**
  * Sorts an array of objects by a specified key in ascending or descending order.
  *
@@ -315,30 +322,7 @@ export function valueOrDefault<T>(value: T | null | undefined | '' | unknown, de
     return defaultOnEmptyString
         ? isNullOrEmpty(value) ? defaultValue : value as T
         : isNullOrUndefined(value) ? defaultValue : value as T;
-
-    // if (typeof defaultValue === 'boolean') {
-    //     result = (valueAsBool(value) as unknown) as T;
-    // }
-
-    // return result as T;
 }
-
-// export function valueAsBool(value: unknown): boolean {
-//     switch (typeof value) {
-//         case 'boolean':
-//             return value;
-//         case 'number':
-//             return value > 0;
-//         case 'string':
-//             return value.toLowerCase() === 'true';
-//         default:
-//             return false;
-//     }
-// }
-
-// export function toBoolean(value: string): boolean {
-//     return value.toLowerCase() === 'true';
-// }
 
 /**
  * Checks if an object or array has any items.

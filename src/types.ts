@@ -39,6 +39,7 @@ export type CSharpNamespaceInfo = {
     namespace: string | undefined;
     referencedLhqFile: boolean;
     referencedT4File: boolean;
+    namespaceDynamicExpression: boolean;
 };
 
 export type TextEncodeOptions =
