@@ -3,5 +3,6 @@
   "t4FileName": "Strings.lhq.tt",
   "namespace": "SynotW.$(RootProjectName).$(MSBuildProjectName.Replace(\" \", \"_\"))",
   "referencedLhqFile": true,
-  "referencedT4File": false
+  "referencedT4File": false,
+  "namespaceDynamicExpression": true
 }

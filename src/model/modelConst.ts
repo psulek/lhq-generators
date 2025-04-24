@@ -2,7 +2,7 @@ import type { LhqModelLineEndings } from '../api/schemas';
 import type { CodeGeneratorBasicSettings, ModelVersionsType } from '../api/modelTypes';
 
 export const ModelVersions: ModelVersionsType = Object.freeze<ModelVersionsType>({
-    model: 2,
+    model: 3,
     codeGenerator: 1
 })
 

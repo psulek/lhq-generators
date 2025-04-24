@@ -1,7 +1,8 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
+import type { LhqModelDataNode } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
 import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement } from '../api/modelTypes';
-import { isNullOrEmpty } from '../utils';
+import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
 
@@ -85,10 +86,56 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
 
         if (!isNullOrEmpty(templateId) && !isNullOrEmpty(node)) {
-
-
             return { templateId, settings: node, version: codeGenVersion };
         }
+
+        return undefined;
+    }
+
+    private createCodeGenerator(codeGeneratorElement: ICodeGeneratorElement): ICodeGeneratorElement {
+        if (isNullOrUndefined(codeGeneratorElement)) {
+            throw new Error('Code generator element is undefined or null.');
+        }
+
+        const templateId = codeGeneratorElement.templateId;
+        const settings = Object.assign({}, codeGeneratorElement.settings ?? {});
+        const codeGenVersion = codeGeneratorElement.version > 0 && codeGeneratorElement.version <= ModelVersions.codeGenerator
+            ? codeGeneratorElement.version
+            : ModelVersions.codeGenerator;
+
+        const metadata: LhqModelMetadata = Object.assign({}, this._metadatas ?? {});
+        metadata.childs ??= [];
+        let metadataElem = metadata.childs.find(x => x.name === 'metadata' && x.attrs?.['descriptorUID'] === CodeGenUID);
+        if (!metadataElem) {
+            metadataElem = { name: 'metadata', attrs: { descriptorUID: CodeGenUID }, childs: [] };
+            metadata.childs.push(metadataElem);
+        }
+        metadataElem.name = 'metadata';
+        metadataElem.childs ??= [];
+        metadataElem.attrs ??= {};
+        metadataElem.attrs['descriptorUID'] = CodeGenUID;
+
+        let contentElem = metadata.childs?.find(x => x.name === 'content');
+        if (!contentElem) {
+            contentElem = { name: 'content', childs: [], attrs: {} };
+            metadataElem.childs.push(contentElem);
+        }
+        contentElem.name = 'content';
+        contentElem.attrs ??= {};
+        contentElem.attrs['templateId'] = templateId;
+        contentElem.attrs['version'] = codeGenVersion.toFixed(0);
+        contentElem.childs ??= [];
+
+        settings.name = 'Settings';
+        const settingsIdx = contentElem.childs.findIndex(x => x.name === 'Settings');
+        if (settingsIdx === -1) {
+            contentElem.childs.push(settings);
+        } else {
+            contentElem.childs[settingsIdx] = settings;
+        }
+
+        this._metadatas = Object.freeze(metadata);
+        return { templateId, settings, version: codeGenVersion };
     }
 
     get uid(): LhqModelUid {
@@ -139,7 +186,11 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         return this._codeGenerator;
     }
 
-    set codeGenerator(codeGenerator: ICodeGeneratorElement) {
-        this._codeGenerator = codeGenerator;
+    set codeGenerator(value: ICodeGeneratorElement) {
+        if (isNullOrUndefined(value)) {
+            this._codeGenerator = value;
+        } else {
+            this._codeGenerator = this.createCodeGenerator(value);
+        }
     }
 }

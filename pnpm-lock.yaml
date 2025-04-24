@@ -72,6 +72,9 @@ importers:
       '@types/node':
         specifier: ^18.18.0
         version: 18.19.86
+      '@types/semver':
+        specifier: ^7.7.0
+        version: 7.7.0
       '@typescript-eslint/eslint-plugin':
         specifier: 8.29.0
         version: 8.29.0(@typescript-eslint/parser@8.29.0(eslint@9.24.0)(typescript@5.8.3))(eslint@9.24.0)(typescript@5.8.3)
@@ -117,6 +120,9 @@ importers:
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1
+      semver:
+        specifier: ^7.7.1
+        version: 7.7.1
       tsup:
         specifier: ^8.4.0
         version: 8.4.0(tsx@4.19.3)(typescript@5.8.3)
@@ -529,6 +535,9 @@ packages:
 
   '@types/node@18.19.86':
     resolution: {integrity: sha512-fifKayi175wLyKyc5qUfyENhQ1dCNI1UNjp653d8kuYcPQN5JhX3dGuP/XmvPTg/xRBn1VTLpbmi+H/Mr7tLfQ==}
+
+  '@types/semver@7.7.0':
+    resolution: {integrity: sha512-k107IF4+Xr7UHjwDc7Cfd6PRQfbdkiRabXGRjo07b4WyPahFBZCZ1sE+BNxYIJPPg73UkfOsVOLwqVc/6ETrIA==}
 
   '@typescript-eslint/eslint-plugin@8.29.0':
     resolution: {integrity: sha512-PAIpk/U7NIS6H7TEtN45SPGLQaHNgB7wSjsQV/8+KYokAb2T/gloOA/Bee2yd4/yKVhPKe5LlaUGhAZk5zmSaQ==}
@@ -2797,6 +2806,8 @@ snapshots:
   '@types/node@18.19.86':
     dependencies:
       undici-types: 5.26.5
+
+  '@types/semver@7.7.0': {}
 
   '@typescript-eslint/eslint-plugin@8.29.0(@typescript-eslint/parser@8.29.0(eslint@9.24.0)(typescript@5.8.3))(eslint@9.24.0)(typescript@5.8.3)':
     dependencies:

@@ -59,10 +59,13 @@ export async function safeReadFile(fileName: string): Promise<string> {
     return isNullOrEmpty(content) ? '' : tryRemoveBOM(content);
 }
 
-export async function verifyFile(fileName: string, value: string | Buffer | Record<string, unknown>): Promise<void> {
+export type FileVerifyType = 'text' | 'binary' | 'json';
+
+export async function verifyFile(fileName: string, value: string | Buffer | Record<string, unknown>,
+    expectFileType: FileVerifyType): Promise<void> {
     const isBuffer = Buffer.isBuffer(value);
-    const isObject = typeof value === 'object' && !isNullOrEmpty(value) && !isBuffer;
-    const isString = typeof value === 'string';
+    let isObject = typeof value === 'object' && !isNullOrEmpty(value) && !isBuffer;
+    let isString = typeof value === 'string';
     const buffer = isBuffer ? value : (isString ? Buffer.from(value, 'utf-8') : Buffer.from(JSON.stringify(value, null, 2), 'utf-8'));
 
     const targetDir = path.dirname(fileName);
@@ -97,27 +100,34 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
                     const buffer_cr = buffer.reduce((count, byte) => byte === 13 ? count + 1 : count, 0);
                     const snapshot_lf = snapshot.reduce((count, byte) => byte === 10 ? count + 1 : count, 0);
                     const snapshot_cr = snapshot.reduce((count, byte) => byte === 13 ? count + 1 : count, 0);
-    
+
                     expect(buffer_lf).to.equal(snapshot_lf, `Count of LF chars do not match!`);
-                    expect(buffer_cr).to.equal(snapshot_cr, `Count of CR chars do not match!`);    
+                    expect(buffer_cr).to.equal(snapshot_cr, `Count of CR chars do not match!`);
                 }
 
                 let compareLE = false;
-                
+
+                let value2 = value;
+                if (expectFileType !== 'binary' && isBuffer) {
+                    isString = expectFileType === 'text';
+                    isObject = expectFileType === 'json';
+                    value2 = isString ? value.toString('utf-8') : JSON.parse(value.toString('utf-8'));
+                }
+
                 const str = snapshot.toString('utf-8');
                 if (isString) {
-                    expect(value).to.equal(str);
+                    expect(value2).to.equal(str);
                     compareLE = true;
                 } else if (isObject) {
                     const parsed = tryJsonParse(str, true);
                     let compareAsString = !parsed.success;
                     if (parsed.success) {
-                        expect(value).to.deep.eq(JSON.parse(str));
+                        expect(value2).to.deep.eq(JSON.parse(str));
                         compareAsString = true;
                     }
-                    
+
                     if (compareAsString) {
-                        expect(JSON.stringify(value, null, 2)).to.equal(str);
+                        expect(JSON.stringify(value2, null, 2)).to.equal(str);
                         compareLE = true;
                     }
                 } else {
@@ -135,13 +145,14 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
     }
 }
 
-export async function verify(/* suite: Mocha.Suite */ snapshotFolder: string, ident: string, value: string | Buffer | Record<string, unknown>): Promise<void> {
+export async function verify(snapshotFolder: string, ident: string, value: string | Buffer | Record<string, unknown>,
+    expectFileType: FileVerifyType): Promise<void> {
     const dir = path.join(folders().snapshots, snapshotFolder);
     //await fse.ensureDir(dir);
     const binary = Buffer.isBuffer(value);
     const snapshotFile = path.join(dir, `${ident}.${binary ? 'bin' : 'txt'}`);
 
-    await verifyFile(snapshotFile, value);
+    await verifyFile(snapshotFile, value, expectFileType);
 }
 
 

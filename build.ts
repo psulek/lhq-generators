@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { exec, spawn } from 'node:child_process';
 import { glob } from 'glob';
+import semver, { type ReleaseType } from 'semver';
 
 import { build, type Options } from 'tsup';
 //type TsupBuildOptions = Parameters<typeof build>[0];
@@ -13,7 +14,7 @@ import { generateLhqSchema } from './src/generatorUtils';
 
 const distFolder = path.join(__dirname, 'dist');
 
-let packageJson: Partial<IPackageJson>;
+let packageJson: Mutable<IPackageJson>;
 
 type EsBuildOptions = Parameters<NonNullable<Options['esbuildOptions']>>[0];
 
@@ -23,7 +24,6 @@ const incVersion = process.argv.findIndex(arg => arg === '--version') > -1;
 void (async () => {
     try {
         await fse.ensureDir(distFolder);
-        await preparePackageVersion();
 
         if (compileOnly) {
             await Promise.all([
@@ -31,7 +31,8 @@ void (async () => {
                 buildLib('esm')
             ]);
         } else {
-            await runMochaTests()
+            await runMochaTests();
+            await preparePackageVersion();
 
             await Promise.all([
                 buildLib('browser'),
@@ -56,17 +57,44 @@ function updateBuildOptions(opts: EsBuildOptions): void {
     };
 }
 
+export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
+
 async function preparePackageVersion() {
+    const sourcePackageFile = path.join(__dirname, 'package.json');
+    packageJson = await fse.readJson(sourcePackageFile, { encoding: 'utf-8' }) as Mutable<IPackageJson>;
+
     if (incVersion) {
-        const args = 'version patch';
-        const { code } = await spawnAsync('pnpm', args.split(' '), { cwd: __dirname, detached: false }, true);
-        if (code !== 0) {
-            throw new Error(`Failed to update package version (code: ${code})`);
+        // const args = 'version patch';
+        // const { code } = await spawnAsync('pnpm', args.split(' '), { cwd: __dirname, detached: false }, true);
+        // if (code !== 0) {
+        //     throw new Error(`Failed to update package version (code: ${code})`);
+        // }
+
+        let release = 'prerelease';
+        let identifier = 'rc';
+
+        const currentVersion = packageJson.version ?? '1.0.0';
+        const packageSemVer = new semver.SemVer(currentVersion);
+        if (packageSemVer.prerelease && packageSemVer.prerelease.length === 2) {
+            release = 'prerelease';
+            identifier = packageSemVer.prerelease[0] as string;
+        } else {
+            release = 'patch';
+            identifier = '';
         }
+
+        const newVersion = semver.inc(currentVersion, release as ReleaseType, identifier);
+        if (newVersion) {
+            packageJson.version = newVersion;
+
+            //await savePackageJson(pkg, packageJsonFile);
+            await fse.writeJson(sourcePackageFile, packageJson, { encoding: 'utf-8', spaces: 2 });
+        }
+
+
+        console.log(newVersion);
     }
 
-    const sourcePackageFile = path.join(__dirname, 'package.json');
-    packageJson = await fse.readJson(sourcePackageFile, { encoding: 'utf-8' }) as IPackageJson;
 
     console.log('Updated local version to ' + pc.blueBright(packageJson.version));
 }

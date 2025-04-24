@@ -5,6 +5,7 @@ import { createRootElement, serializeRootElement } from '../src/generatorUtils';
 import { folders, safeReadFile, verify } from './testUtils';
 import { replaceLineEndings } from '../src/utils';
 import { LhqModel } from '../src/api/schemas';
+import { ICodeGeneratorElement } from '../src/api';
 
 setTimeout(async () => {
 
@@ -78,9 +79,9 @@ setTimeout(async () => {
         });
     });
 
-    describe('serialize LHQ model', async function() {
+    describe('serialize LHQ model', async function () {
         it('serialize root element', async function () {
-            
+
             const root = createRootElement();
             root.name = 'TestRootElement';
             root.description = 'Test description';
@@ -93,9 +94,12 @@ setTimeout(async () => {
             testResource1.description = 'Test resource 1 description';
             testResource1.addValue('sk', 'Test hodnota 1');
 
+            const newCodeGenerator: ICodeGeneratorElement = { templateId: '123', version: 1, settings: { name: 'Settings2' } };
+            root.codeGenerator = newCodeGenerator;
+
             const model = serializeRootElement(root);
             const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
-            await verify('model', `serialize01`, modelJson);
+            await verify('model', `serialize01`, modelJson, 'text');
         });
 
         it('serialize and deserialize lhq model', async function () {

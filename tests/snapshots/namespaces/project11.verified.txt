@@ -3,5 +3,6 @@
   "t4FileName": "Strings.lhq.tt",
   "namespace": "RootNamespace11",
   "referencedLhqFile": false,
-  "referencedT4File": false
+  "referencedT4File": false,
+  "namespaceDynamicExpression": false
 }

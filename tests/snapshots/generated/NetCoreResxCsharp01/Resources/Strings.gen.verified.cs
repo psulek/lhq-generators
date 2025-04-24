@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NetCoreResxCsharp01
+namespace Strings
 {
 	using System;
 	using System.Resources;
@@ -38,8 +38,8 @@ namespace NetCoreResxCsharp01
 
 		private static ResourceManager CreateResourceManager()
 		{
-			return new ResourceManager("NetCoreResxCsharp01.Resources.Strings",
-					typeof(NetCoreResxCsharp01.Strings).GetTypeInfo().Assembly);
+			return new ResourceManager("Strings.Resources.Strings",
+					typeof(Strings.Strings).GetTypeInfo().Assembly);
 		}
 
 		public CultureInfo FallbackCulture

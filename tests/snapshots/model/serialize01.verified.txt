@@ -17,7 +17,7 @@
   },
   "model": {
     "uid": "6ce4d54c5dbd415c93019d315e278638",
-    "version": 2,
+    "version": 3,
     "options": {
       "categories": true,
       "resources": "All"
@@ -28,5 +28,29 @@
   },
   "languages": [
     "en"
-  ]
+  ],
+  "metadatas": {
+    "childs": [
+      {
+        "name": "metadata",
+        "attrs": {
+          "descriptorUID": "b40c8a1d-23b7-4f78-991b-c24898596dd2"
+        },
+        "childs": [
+          {
+            "name": "content",
+            "childs": [
+              {
+                "name": "Settings"
+              }
+            ],
+            "attrs": {
+              "templateId": "123",
+              "version": "1"
+            }
+          }
+        ]
+      }
+    ]
+  }
 }

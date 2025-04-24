@@ -23,6 +23,9 @@ export function createRootElement(data?: LhqModel): IRootModelElement {
     return new RootModelElement(data);
 }
 
+export function createCodeGenerator(templateId: string, settings: LhqModelDataNode): ICodeGeneratorElement {
+}
+
 export function serializeRootElement(root: IRootModelElement): LhqModel {
     if (!(root instanceof RootModelElement)) {
         throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
@@ -196,6 +199,12 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
 
     return { csProjectFileName, t4FileName, namespace: rootNamespace, referencedLhqFile, referencedT4File, namespaceDynamicExpression };
 }
+
+// export type CsProjFile = { fileName: string; fileContent: string };
+
+// export function findOwnerCsProjectFile(csProjFiles: CsProjFile[]) {
+
+// }
 
 // type StringNullUndef = string | null | undefined;
 

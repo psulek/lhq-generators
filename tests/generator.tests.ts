@@ -39,11 +39,12 @@ async function generateFromLhq(folder: string): Promise<void> {
     const csProjectFile = path.join(testDir, csProjectFiles[0]);
 
     const csProjectContent = await safeReadFile(csProjectFile);
-    const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', csProjectFile, csProjectContent);
+    const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', csProjectFile, csProjectContent)!;
 
     const lhqFile = await safeReadFile(lhqFileName);
     const model = JSON.parse(lhqFile) as LhqModel;
-    const data = { namespace: rootNamespace!.namespace };
+    const namespace = rootNamespace?.namespaceDynamicExpression === true ? '' : rootNamespace.namespace;
+    const data = { namespace: namespace };
     const generator = new Generator();
     const result = await generator.generate(lhqFileName, model, data);
 
@@ -55,7 +56,7 @@ async function generateFromLhq(folder: string): Promise<void> {
         file.content = '';
     }));
 
-    await verifyFile(path.join(generatedFolder, 'result.txt'), result);
+    await verifyFile(path.join(generatedFolder, 'result.txt'), result, 'text');
 }
 
 async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): Promise<void> {
@@ -64,7 +65,7 @@ async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): P
     const buffer = Buffer.from(bom + content, 'utf8');
 
     const fileName = !outputPath ? generatedFile.fileName : path.join(outputPath, generatedFile.fileName);
-    await verifyFile(fileName, buffer);
+    await verifyFile(fileName, buffer, 'text');
 }
 
 

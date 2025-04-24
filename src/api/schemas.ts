@@ -60,7 +60,7 @@ export const LhqModelCategorySchema: z.ZodType<Category> = baseCategorySchema.ex
 
 export const LhqModelUidSchema = z.literal('6ce4d54c5dbd415c93019d315e278638');
 
-export const LhqModelVersionSchema = z.union([z.literal(1), z.literal(2)]);
+export const LhqModelVersionSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 
 export const LhqCodeGenVersionSchema = z.literal(1);
 

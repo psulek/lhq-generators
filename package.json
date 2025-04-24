@@ -1,6 +1,6 @@
 {
   "name": "@lhq/lhq-generators",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.4",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -18,7 +18,7 @@
     "cli-3": "tsx ./src/cli.ts c:/Temp/neo_online/Neo.Localization/Strings.lhq -o temp/cli",
     "cli-4": "tsx ./src/cli.ts c:/dev/github/psulek/lhqeditor/src/Gen.Lib.Tests/TestData/NetCoreResxCsharp01/Strings.lhq -o temp/cli",
     "cli-5": "tsx ./src/cli.ts ./tests/data/NetCoreResxCsharp01.lhq -o temp/cli -d namespace=Root a=2 xyz=Peter --no-colors",
-    "publish-local": "pnpm run build-all --version0 && cd dist && pnpm publish --registry http://localhost:4873/ --no-git-checks && rimraf dist",
+    "publish-local": "pnpm run build-all --version && cd dist && pnpm publish --registry http://localhost:4873/ --no-git-checks && rimraf dist",
     "unpublish-local": "pnpm unpublish @lhq/lhq-generators --registry http://localhost:4873/ --force",
     "build-all": "rimraf dist && tsx ./build.ts",
     "compile": "pnpm run build-all --compile",
@@ -52,6 +52,7 @@
     "@types/jmespath": "0.15.2",
     "@types/mocha": "^10.0.10",
     "@types/node": "^18.18.0",
+    "@types/semver": "^7.7.0",
     "@typescript-eslint/eslint-plugin": "8.29.0",
     "@typescript-eslint/parser": "8.29.0",
     "chai": "^4.3.7",
@@ -67,6 +68,7 @@
     "mocha": "^11.1.0",
     "package-json-type": "^1.0.3",
     "rimraf": "^6.0.1",
+    "semver": "^7.7.1",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"

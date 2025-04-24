@@ -144,7 +144,7 @@ export class Generator {
 
         const validation = validateLhqModel(modelData);
         if (!validation.success) {
-            throw new AppError(validation.error ?? `Unable to deserialize or validate LHQ model '${fileName}' !`);
+            throw new AppError(validation.error ?? `Unable to deserialize or validate LHQ model '${fileName}' !`, undefined, true);
         }
 
         const model = validation.model as LhqModel;
