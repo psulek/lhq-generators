@@ -118,8 +118,7 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
     }
 
     private getComment = (): string => {
-        const root = this.root;
-        const primaryLanguage = root.primaryLanguage ?? '';
+        const primaryLanguage = this.root.primaryLanguage ?? '';
         if (!isNullOrEmpty(primaryLanguage) && this.values) {
             const value = this.values.find(x => x.languageName === primaryLanguage);
             const resourceValue = value?.value;

@@ -3,6 +3,7 @@ import Handlebars, { type HelperDelegate } from 'handlebars';
 import {
     hasItems,
     isNullOrEmpty,
+    isNullOrUndefined,
     jsonQuery,
     normalizePath,
     objCount,
@@ -14,8 +15,8 @@ import {
     valueOrDefault,
 } from './utils';
 
-import { AppError } from './AppError';
-import { TreeElement } from './model/treeElement';
+import { AppError, AppErrorKinds } from './AppError';
+import { TreeElement, TreeElementBase } from './model/treeElement';
 import { type OutputFileData, type OutputInlineData, TemplateRootModel } from './model/templateRootModel';
 import { DefaultCodeGenSettings } from './model/modelConst';
 import type { CodeGeneratorBasicSettings } from './api/modelTypes';
@@ -63,6 +64,7 @@ const helpersList: Record<string, HelperDelegate> = {
     'x-stringify': stringifyHelper,
     'x-toJson': toJsonHelper,
     'x-typeOf': typeOfHelper,
+    'x-assert': assertHelper,
 
     // model specific helpers
     'm-data': modelDataHelper,
@@ -80,6 +82,8 @@ export function getKnownHelpers(): KnownHelpers {
 
     return _knownHelpers;
 }
+
+type AssertTypeCheck = 'isTrue' | 'isFalse' | 'isNullOrEmpty' | 'isNullOrUndefined' | 'isNull' | 'isUndefined';
 
 type HbsDataContext<T = Record<string, unknown>> = {
     name?: string;
@@ -143,7 +147,11 @@ function normalizePathHelper(context: unknown, options: HbsDataContext<normalize
     return result;
 }
 
-type queryObjType = { query?: string };
+type queryObjType = { 
+    query?: string 
+    debug?: boolean;
+};
+
 type queryObjFlags = {
     undefinedForDefault?: boolean;
     allowHash?: boolean;
@@ -155,8 +163,10 @@ function queryObjValue(context: unknown, options: HbsDataContext<queryObjType>, 
     const allowHash = flags?.allowHash ?? true;
     const allowFn = flags?.allowFn ?? true;
 
+    const debug = options?.hash?.debug ?? false;
     let value = undefinedForDefault ? undefined : context;
     let query = allowHash ? options?.hash?.query : undefined;
+    
     if (typeof options?.fn === 'function' && allowFn) {
         query = options.fn(context) as string;
         if (!isNullOrEmpty(query) && typeof query === 'string') {
@@ -166,6 +176,11 @@ function queryObjValue(context: unknown, options: HbsDataContext<queryObjType>, 
 
     if (!isNullOrEmpty(query) && typeof query === 'string' && !isNullOrEmpty(context)) {
         try {
+            if (debug) {
+                const json = context instanceof TreeElementBase ? context.debugSerialize() : JSON.stringify(context);
+                hostEnv.debugLog(`jmespath query: ${query} on context: ${json}`);
+            }
+
             value = jsonQuery(context, query);
         } catch (e) {
             const templateId = getRoot(options).currentTemplateId ?? '';
@@ -278,7 +293,6 @@ const concatHelperArgsDefault: concatHelperArgs = {
     empty: false
 }
 
-//function concatHelper(args: unknown[], options: HbsDataContext<concatHelperArgs>): string {
 function concatHelper(...args: unknown[]): string {
     const options = args.pop() as HbsDataContext<concatHelperArgs>;
     const hash: concatHelperArgs = Object.assign({}, concatHelperArgsDefault, options.hash ?? {});
@@ -380,7 +394,7 @@ function mergeHelper(...args: unknown[]): unknown {
     return result;
 }
 
-function sortByHelper<T>(source: T[], propName?: KeysMatching<T, string | number>, sortOrder: 'asc' | 'desc' = 'asc'): T[] { 
+function sortByHelper<T>(source: T[], propName?: KeysMatching<T, string | number>, sortOrder: 'asc' | 'desc' = 'asc'): T[] {
     return sortBy<T>(source, propName, sortOrder);
 }
 
@@ -406,7 +420,7 @@ type textEncodeHelperArgs = {
     quotes?: boolean;
 }
 
-export function textEncodeHelper(input: string, options: HbsDataContext<textEncodeHelperArgs>): Handlebars.SafeString { 
+export function textEncodeHelper(input: string, options: HbsDataContext<textEncodeHelperArgs>): Handlebars.SafeString {
     const mode = valueOrDefault<TextEncodeModes>(options?.hash?.mode, 'html');
     const quotes = valueOrDefault(options?.hash?.quotes, false);
     const s = textEncode(input, { mode, quotes });
@@ -530,6 +544,9 @@ function typeOfHelper(context: unknown) {
 type modalDataHelperArgs = {
     key: string;
     root?: boolean;
+    check?: AssertTypeCheck;
+    error?: string;
+    errorCode?: string;
 } & defaultValuesHelperArgs & queryObjType;
 
 function modelDataHelper() {
@@ -547,6 +564,12 @@ function modelDataHelper() {
     const key = options?.hash?.key ?? '';
     if (isNullOrEmpty(key)) {
         throw new AppError(`Helper '${options.name}' missing hash param 'key' !`);
+    }
+
+    const check = options.hash?.check;
+    if (!isNullOrEmpty(check) && assertValueCheck(context, check)) {
+        const errorCode = options.hash?.errorCode ?? '';
+        throw new AppError(options.hash?.error ?? 'Template validation failure !', undefined, AppErrorKinds.templateValidationError, errorCode);
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -732,4 +755,47 @@ function modelOutputInlineHelper() {
     };
 
     context.addInlineOutputs(inlineOutput);
+}
+
+type assertHelperArgs = {
+    check: AssertTypeCheck;
+    error: string;
+    code: string;
+};
+
+function assertHelper(context: unknown, options: HbsDataContext<assertHelperArgs>) {
+    const check = options.hash?.check;
+    const error = options.hash?.error;
+    const code = options.hash?.code ?? '';
+
+    if (isNullOrEmpty(check)) {
+        throw new AppError(`Helper '${options.name}' missing hash property 'check' !`);
+    }
+
+    if (isNullOrEmpty(error)) {
+        throw new AppError(`Helper '${options.name}' missing hash property 'error' !`);
+    }
+
+    if (assertValueCheck(context, check)) {
+        throw new AppError(error ?? 'Template validation failure !', undefined, AppErrorKinds.templateValidationError, code);
+    }
+}
+
+function assertValueCheck(value: unknown, check: AssertTypeCheck): boolean {
+    const isTrue = check === 'isTrue';
+    const isFalse = check === 'isFalse';
+    const _isNullOrEmpty = check === 'isNullOrEmpty';
+    const _isNullOrUndefined = check === 'isNullOrUndefined';
+    const isNull = check === 'isNull';
+    const isUndefined = check === 'isUndefined';
+
+    const error =
+        (value === undefined && (isUndefined || _isNullOrUndefined)) || // undefined
+        (value === null && (isNull || _isNullOrUndefined || _isNullOrEmpty)) || // null
+        (value === true && isTrue) || // true
+        (value === false && isFalse) || // false
+        (isNullOrEmpty(value) && _isNullOrEmpty) || // empty string
+        (isNullOrUndefined(value) && _isNullOrUndefined); // empty string
+
+    return error;
 }

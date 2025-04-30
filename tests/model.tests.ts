@@ -1,13 +1,52 @@
 import path from 'node:path';
 import { expect } from 'chai';
+import { glob } from 'glob';
+import fse from 'fs-extra';
 
-import { createRootElement, serializeRootElement } from '../src/generatorUtils';
+import { createRootElement, detectLineEndings, serializeLhqModelToString, serializeRootElement } from '../src/generatorUtils';
 import { folders, safeReadFile, verify } from './testUtils';
 import { replaceLineEndings } from '../src/utils';
 import { LhqModel } from '../src/api/schemas';
 import { ICodeGeneratorElement } from '../src/api';
 
 setTimeout(async () => {
+
+    //const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
+    const lhqFiles = ['NetCoreResxCsharp01/Strings.lhq'];
+
+    describe('serialize and deserialize in memory', () => {
+        lhqFiles.forEach(lhqFile => {
+            const ident = lhqFile.replace('.lhq', '');
+            it(`serialize and deserialize file ${ident}`, async function () {
+
+                const file = path.join(folders().templates, lhqFile);
+                const content = await safeReadFile(file);
+                const lineEndings = detectLineEndings(content);
+                const model = JSON.parse(content) as LhqModel;
+
+                const root = createRootElement(model);
+                const serializedModel = serializeRootElement(root);
+
+                expect(model).to.deep.eq(serializedModel);
+
+                const changedModelJson = serializeLhqModelToString(model, lineEndings);
+                const changedModelBuffer = Buffer.from(changedModelJson, 'utf-8');
+
+                let snapshotStr = await fse.readFile(file, { encoding: 'utf8' });
+                const snapshotModel = JSON.parse(snapshotStr) as LhqModel;
+                snapshotStr = replaceLineEndings(JSON.stringify(snapshotModel, null, 2), lineEndings);
+                const snapshot = Buffer.from(snapshotStr, 'utf-8');
+
+                try {
+                    expect(changedModelBuffer).to.equalBytes(snapshot);
+                } catch {
+                    const parsed = path.parse(lhqFile);
+                    const newfile = path.join(folders().snapshots, 'model', `${parsed.dir}_${parsed.name}${parsed.ext}.tmp`);
+                    await fse.writeFile(newfile, changedModelBuffer, { encoding: null });
+                }
+            });
+        });
+    });
 
     describe('LHQ model manipulation', () => {
 
@@ -80,7 +119,7 @@ setTimeout(async () => {
     });
 
     describe('serialize LHQ model', async function () {
-        it('serialize root element', async function () {
+        it('serialize to file', async function () {
 
             const root = createRootElement();
             root.name = 'TestRootElement';
@@ -99,19 +138,71 @@ setTimeout(async () => {
 
             const model = serializeRootElement(root);
             const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
-            await verify('model', `serialize01`, modelJson, 'text');
+            await verify('model', `serialize01`, modelJson, 'text', 'json');
         });
 
-        it('serialize and deserialize lhq model', async function () {
 
-            const fileName = path.join(folders().data, './templates/NetCoreResxCsharp01/Strings.lhq');
-            const lhqModelContent = await safeReadFile(fileName);
-            const model = JSON.parse(lhqModelContent) as LhqModel;
+        it('should handle root element without description', async () => {
+            const root = createRootElement();
+            root.name = 'RootWithoutDescription';
+            root.primaryLanguage = 'en';
 
-            const root = createRootElement(model);
-            const serializedModel = serializeRootElement(root);
+            const model = serializeRootElement(root);
+            const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
+            await verify('model', `serialize02`, modelJson, 'text', 'json');
 
-            expect(model).to.deep.eq(serializedModel);
+        });
+
+        it('should handle category without description', async () => {
+            const root = createRootElement();
+            root.name = 'RootWithoutDescription';
+            root.addCategory('CategoryWithoutDescription');
+
+            const model = serializeRootElement(root);
+            const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
+            await verify('model', `serialize03`, modelJson, 'text', 'json');
+        });
+
+        it('should handle resource without description', async () => {
+            const root = createRootElement();
+            root.name = 'RootWithoutDescription';
+            const category = root.addCategory('Category');
+            category.addResource('ResourceWithoutDescription');
+
+            const model = serializeRootElement(root);
+            const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
+            await verify('model', `serialize04`, modelJson, 'text', 'json');
+        });
+
+        it('should handle resource parameter without description', async () => {
+            const root = createRootElement();
+            root.name = 'RootWithoutDescription';
+            const category = root.addCategory('Category');
+            const resource = category.addResource('Resource');
+            resource.addValue('en', 'ValueWithoutDescription');
+
+            const model = serializeRootElement(root);
+            const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
+            await verify('model', `serialize05`, modelJson, 'text', 'json');
+        });
+
+        it('serialize multiple elements with and without description', async () => {
+            const root = createRootElement();
+            root.name = 'RootWithoutDescription';
+            root.description = 'Root description';
+            const category1 = root.addCategory('Category1');
+            const resource1 = category1.addResource('Resource1');
+            resource1.addValue('en', 'resource1');
+
+            const category2 = root.addCategory('Category2');
+            category2.description = 'Category2 description';
+            const resource2 = category2.addResource('Resource2');
+            resource2.description = 'Resource2 description';
+            resource2.addValue('en', 'resource2').auto = true;
+
+            const model = serializeRootElement(root);
+            const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
+            await verify('model', `serialize06`, modelJson, 'text', 'json');
         });
     });
 

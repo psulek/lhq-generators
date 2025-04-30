@@ -1,19 +1,4 @@
-﻿{
-  "model": {
-    "uid": "6ce4d54c5dbd415c93019d315e278638",
-    "version": 1,
-    "options": {
-      "categories": true,
-      "resources": "All"
-    },
-    "name": "Strings",
-    "primaryLanguage": "en"
-  },
-  "languages": [
-    "de",
-    "en",
-    "sk"
-  ],
+{
   "categories": {
     "Cars": {
       "categories": {
@@ -123,46 +108,62 @@
       }
     }
   },
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 1,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "Strings",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "de",
+    "en",
+    "sk"
+  ],
   "metadatas": {
-  "childs": [
-    {
-      "name": "metadata",
-      "attrs": {
-        "descriptorUID": "b40c8a1d-23b7-4f78-991b-c24898596dd2"
-      },
-      "childs": [
-        {
-          "name": "content",
-          "attrs": {
-            "templateId": "WinFormsResxCsharp01"
-          },
-          "childs": [
-            {
-              "name": "Settings",
-              "childs": [
-                {
-                  "name": "CSharp",
-                  "attrs": {
-                    "OutputFolder": "Resources",
-                    "UseExpressionBodySyntax": "false",
-                    "GenerateParamsMethods": "true",
-                    "MissingTranslationFallbackToPrimary": "false",
-                    "ParamsMethodsSuffix": "WithParams"
+    "childs": [
+      {
+        "name": "metadata",
+        "attrs": {
+          "descriptorUID": "b40c8a1d-23b7-4f78-991b-c24898596dd2"
+        },
+        "childs": [
+          {
+            "name": "content",
+            "attrs": {
+              "templateId": "WinFormsResxCsharp01"
+            },
+            "childs": [
+              {
+                "name": "Settings",
+                "childs": [
+                  {
+                    "name": "CSharp",
+                    "attrs": {
+                      "OutputFolder": "Resources",
+                      "UseExpressionBodySyntax": "false",
+                      "GenerateParamsMethods": "true",
+                      "MissingTranslationFallbackToPrimary": "false",
+                      "ParamsMethodsSuffix": "WithParams",
+                      "Namespace": "ScaleHQ.Windows.WinForms1"
+                    }
+                  },
+                  {
+                    "name": "ResX",
+                    "attrs": {
+                      "OutputFolder": "Resources",
+                      "CultureCodeInFileNameForPrimaryLanguage": "true"
+                    }
                   }
-                },
-                {
-                  "name": "ResX",
-                  "attrs": {
-                    "OutputFolder": "Resources",
-                    "CultureCodeInFileNameForPrimaryLanguage": "true"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

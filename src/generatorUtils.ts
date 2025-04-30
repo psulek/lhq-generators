@@ -7,10 +7,9 @@ import { type LhqModel, LhqModelSchema } from './api/schemas';
 import { isNullOrEmpty, iterateObject, objCount, replaceLineEndings, stringCompare, tryJsonParse, tryRemoveBOM } from './utils';
 import type { CSharpNamespaceInfo, LhqValidationResult } from './types';
 import type { GeneratedFile } from './api/types';
-import type { IRootModelElement } from './api';
+import type { IRootModelElement, LhqModelLineEndings } from './api';
 import { RootModelElement } from './model/rootModelElement';
 import type { XPathSelect } from 'xpath';
-import { link } from 'node:fs';
 
 let DOMParser: typeof globalThis.DOMParser;
 
@@ -23,9 +22,6 @@ export function createRootElement(data?: LhqModel): IRootModelElement {
     return new RootModelElement(data);
 }
 
-export function createCodeGenerator(templateId: string, settings: LhqModelDataNode): ICodeGeneratorElement {
-}
-
 export function serializeRootElement(root: IRootModelElement): LhqModel {
     if (!(root instanceof RootModelElement)) {
         throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
@@ -33,6 +29,19 @@ export function serializeRootElement(root: IRootModelElement): LhqModel {
 
     const str = JSON.stringify(root.mapToModel());
     return JSON.parse(str) as LhqModel;
+}
+
+export function detectLineEndings(content: string): LhqModelLineEndings {
+    const match = content.match(/\r\n|\n/);
+    let lineEnding = match ? match[0] : ''
+    if (lineEnding !== '\r\n' && lineEnding !== '\n') {
+        lineEnding = '\r\n';
+    }
+    return lineEnding === '\r\n' ? 'CRLF' : 'LF';
+}
+
+export function serializeLhqModelToString(model: LhqModel, lineEndings: LhqModelLineEndings): string {
+    return replaceLineEndings(JSON.stringify(model, null, 2), lineEndings);
 }
 
 /**
@@ -199,12 +208,6 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: string, t4FileName:
 
     return { csProjectFileName, t4FileName, namespace: rootNamespace, referencedLhqFile, referencedT4File, namespaceDynamicExpression };
 }
-
-// export type CsProjFile = { fileName: string; fileContent: string };
-
-// export function findOwnerCsProjectFile(csProjFiles: CsProjFile[]) {
-
-// }
 
 // type StringNullUndef = string | null | undefined;
 

@@ -3,7 +3,38 @@ import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeEle
 import { TreeElementPaths } from './treeElementPaths';
 import type { ILhqModelType } from '../api/schemas';
 
-export abstract class TreeElement<TModel extends ILhqModelType> implements ITreeElement {
+export abstract class TreeElementBase implements ITreeElement {
+    abstract get isRoot(): boolean;
+    abstract get root(): IRootModelElement;
+    abstract get parent(): Readonly<ICategoryLikeTreeElement | undefined>;
+    abstract get data(): Readonly<Record<string, unknown>>;
+    abstract get name(): string;
+    abstract set name(name: string);
+    abstract get elementType(): TreeElementType;
+    abstract get description(): string | undefined;
+    abstract set description(description: string);
+    abstract get paths(): Readonly<ITreeElementPaths>;
+
+    public debugSerialize(): string {
+        const seen = new WeakSet<ITreeElement>();
+        return JSON.stringify(this, (key, value) => {
+            if (key === '_parent' || key === '_root') {
+                return undefined; // Exclude parent and root from serialization
+            }
+
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value as ITreeElement)) {
+                    return `[Circular: ${(value as ITreeElement).name}]`;
+                }
+                seen.add(value as ITreeElement);
+            }
+
+            return value as ITreeElement;
+        }, 2);
+    }
+}
+
+export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElementBase {
     protected _parent: ICategoryLikeTreeElement | undefined;
     protected _root: IRootModelElement;
     protected _name: string;
@@ -15,19 +46,26 @@ export abstract class TreeElement<TModel extends ILhqModelType> implements ITree
 
     constructor(root: IRootModelElement, elementType: TreeElementType, name: string,
         parent: ICategoryLikeTreeElement | undefined) {
+        super();
 
         this._name = name ?? '';
         this._elementType = elementType;
         this._root = isNullOrEmpty(root) && isNullOrEmpty(parent) ? this as unknown as IRootModelElement : root;
+        this._isRoot = isNullOrEmpty(this.parent);
+        //this._isRoot = isNullOrEmpty(root) && isNullOrEmpty(parent);
+        //this._root = this._isRoot ? undefined : root;
         this._parent = parent;
         this._paths = new TreeElementPaths(this);
-        this._isRoot = isNullOrEmpty(this.parent);
         this._data = {};
     }
 
     public abstract populate(source: TModel | undefined): void;
 
     public abstract mapToModel(): TModel;
+
+    // public getRoot = (): IRootModelElement => {
+    //     return this._isRoot ? this as unknown as IRootModelElement : this._root!;
+    // }
 
     public addToTempData = (key: string, value: unknown): void => {
         this._data[key] = value;
@@ -72,7 +110,7 @@ export abstract class TreeElement<TModel extends ILhqModelType> implements ITree
     public set description(description: string) {
         this._description = description;
     }
-    
+
     public get paths(): Readonly<ITreeElementPaths> {
         return this._paths;
     }

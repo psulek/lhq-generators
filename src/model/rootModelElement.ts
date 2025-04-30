@@ -1,7 +1,7 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
 import type { LhqModelDataNode } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
-import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement } from '../api/modelTypes';
+import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, ITreeElement } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
@@ -21,7 +21,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
     constructor(model: LhqModel | undefined) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        super(undefined, 'model', model?.model?.name ?? '', model?.model?.description ?? '', undefined);
+        super(undefined, 'model', model?.model?.name ?? '', undefined);
         this.populate(model);
     }
 

@@ -1,1 +1,1 @@
-declare let PKG_VERSION: string;
+// declare let PKG_VERSION: string;

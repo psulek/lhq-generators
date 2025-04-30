@@ -1,0 +1,29 @@
+{
+  "categories": {
+    "Category": {
+      "resources": {
+        "Resource": {
+          "state": "New",
+          "values": {
+            "en": {
+              "value": "ValueWithoutDescription"
+            }
+          }
+        }
+      }
+    }
+  },
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "RootWithoutDescription",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en"
+  ]
+}

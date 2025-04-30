@@ -25,7 +25,7 @@ setTimeout(async () => {
                     // const suite = this as Mocha.Suite;
 
                     const ns = await getNamespace(csProjectFile);
-                    await verify('namespaces', ident, ns);
+                    await verify('namespaces', ident, ns, 'text');
                 });
             });
         });
@@ -40,7 +40,7 @@ setTimeout(async () => {
 
                 const buffer = Buffer.from(content, 'utf8');
 
-                await verify('encodings', `endings_${endings.toLowerCase()}`, buffer);
+                await verify('encodings', `endings_${endings.toLowerCase()}`, buffer, 'binary');
             }
 
             it(`Encode with CRLF`, async function () {

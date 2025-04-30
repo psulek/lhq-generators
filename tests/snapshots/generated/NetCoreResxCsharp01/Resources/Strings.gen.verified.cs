@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Strings
+namespace NetCoreResxCsharp01
 {
 	using System;
 	using System.Resources;
@@ -38,8 +38,8 @@ namespace Strings
 
 		private static ResourceManager CreateResourceManager()
 		{
-			return new ResourceManager("Strings.Resources.Strings",
-					typeof(Strings.Strings).GetTypeInfo().Assembly);
+			return new ResourceManager("NetCoreResxCsharp01.Resources.Strings",
+					typeof(NetCoreResxCsharp01.Strings).GetTypeInfo().Assembly);
 		}
 
 		public CultureInfo FallbackCulture
@@ -177,6 +177,10 @@ namespace Strings
 		}
 		
 		/// <summary>
+		/// Gets localized string similar to: Hi {0}, we're glad you are using {1} at {2} EN
+		/// </summary>
+		public const string Title = "Title";
+		/// <summary>
 		/// Gets localized string similar to: Welcome {0} in this {1} !
 		/// </summary>
 		public const string Welcome = "Welcome";
@@ -237,6 +241,11 @@ namespace Strings
 	
 		}
 		
+		/// <summary>
+		/// Gets localized string similar to: Hi {0}, we're glad you are using {1} at {2} EN
+		/// </summary>
+		public static string Title(object date,object userName,object productName) => _localizer[StringsKeys.Title, date,userName,productName];
+
 		/// <summary>
 		/// Gets localized string similar to: Welcome {0} in this {1} !
 		/// </summary>

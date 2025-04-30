@@ -25,6 +25,7 @@ export interface ITreeElement {
      * Gets the root of the tree.
      */
     get root(): Readonly<IRootModelElement>;
+    //getRoot(): Readonly<IRootModelElement>;
 
     /**
      * Gets the name of the tree element.
@@ -452,3 +453,7 @@ export type ModelVersionsType = {
      */
     codeGenerator: LhqCodeGenVersion;
 };
+
+export type ICodeGeneratorCsharpBase = {
+    Namespace: string;
+}

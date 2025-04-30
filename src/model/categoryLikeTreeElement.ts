@@ -37,11 +37,15 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public populate(source: TModel | undefined): void {
         if (source) {
+            this._description = source.description;
+
             const sourceCategories = source.categories;
             const sourceResources = source.resources;
 
             const newCategories: CategoryLikeTreeElement[] = [];
             const newResources: ResourceElement[] = [];
+
+            //const root = this.getRoot();
 
             if (!isNullOrEmpty(sourceCategories)) {
                 iterateObject(sortObjectByKey(sourceCategories), (category, name) => {

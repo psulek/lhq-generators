@@ -1,0 +1,45 @@
+{
+  "categories": {
+    "Category1": {
+      "resources": {
+        "Resource1": {
+          "state": "New",
+          "values": {
+            "en": {
+              "value": "resource1"
+            }
+          }
+        }
+      }
+    },
+    "Category2": {
+      "resources": {
+        "Resource2": {
+          "state": "New",
+          "description": "Resource2 description",
+          "values": {
+            "en": {
+              "value": "resource2",
+              "auto": true
+            }
+          }
+        }
+      },
+      "description": "Category2 description"
+    }
+  },
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "RootWithoutDescription",
+    "description": "Root description",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en"
+  ]
+}

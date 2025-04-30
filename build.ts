@@ -13,6 +13,7 @@ import pc from 'picocolors'
 import { generateLhqSchema } from './src/generatorUtils';
 
 const distFolder = path.join(__dirname, 'dist');
+const sourcePackageFile = path.join(__dirname, 'package.json');
 
 let packageJson: Mutable<IPackageJson>;
 
@@ -24,6 +25,8 @@ const incVersion = process.argv.findIndex(arg => arg === '--version') > -1;
 void (async () => {
     try {
         await fse.ensureDir(distFolder);
+
+        await readPackageJson();
 
         if (compileOnly) {
             await Promise.all([
@@ -59,9 +62,13 @@ function updateBuildOptions(opts: EsBuildOptions): void {
 
 export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 
-async function preparePackageVersion() {
-    const sourcePackageFile = path.join(__dirname, 'package.json');
+async function readPackageJson() {
     packageJson = await fse.readJson(sourcePackageFile, { encoding: 'utf-8' }) as Mutable<IPackageJson>;
+}
+
+async function preparePackageVersion() {
+    // const sourcePackageFile = path.join(__dirname, 'package.json');
+    // packageJson = await fse.readJson(sourcePackageFile, { encoding: 'utf-8' }) as Mutable<IPackageJson>;
 
     if (incVersion) {
         // const args = 'version patch';

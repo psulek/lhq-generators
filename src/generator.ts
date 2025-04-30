@@ -1,5 +1,5 @@
 import { isNullOrEmpty, jsonParseOrDefault } from './utils';
-import { AppError } from './AppError';
+import { AppError, AppErrorKinds } from './AppError';
 import { RootModelElement } from './model/rootModelElement';
 import { registerHelpers } from './helpers';
 import { type OutputFileData, type OutputInlineData, TemplateRootModel } from './model/templateRootModel';
@@ -10,6 +10,8 @@ import type { GeneratedFile, GenerateResult } from './api/types';
 import { validateLhqModel } from './generatorUtils';
 import type { GeneratorInitialization, IHostEnvironment } from './types';
 import type { LhqModel } from './api';
+
+declare let PKG_VERSION: string;
 
 export const GeneratorHostDataKeys = Object.freeze({
     namespace: 'namespace',
@@ -144,7 +146,7 @@ export class Generator {
 
         const validation = validateLhqModel(modelData);
         if (!validation.success) {
-            throw new AppError(validation.error ?? `Unable to deserialize or validate LHQ model '${fileName}' !`, undefined, true);
+            throw new AppError(validation.error ?? `Validation failed for file '${fileName}' !`, undefined, AppErrorKinds.invalidModelSchema);
         }
 
         const model = validation.model as LhqModel;

@@ -102,6 +102,7 @@ export interface ILhqModelType {}
 export interface ILhqCategoryLikeModelType extends ILhqModelType {
     categories?: LhqModelCategoriesCollection;
     resources?: LhqModelResourcesCollection;
+    description?: string;
 }
 
 export type LhqModelUid = z.infer<typeof LhqModelUidSchema>;

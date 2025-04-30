@@ -66,7 +66,7 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
     const isBuffer = Buffer.isBuffer(value);
     let isObject = typeof value === 'object' && !isNullOrEmpty(value) && !isBuffer;
     let isString = typeof value === 'string';
-    const buffer = isBuffer ? value : (isString ? Buffer.from(value, 'utf-8') : Buffer.from(JSON.stringify(value, null, 2), 'utf-8'));
+    const buffer = isBuffer ? value : (isString ? Buffer.from(value as string, 'utf-8') : Buffer.from(JSON.stringify(value, null, 2), 'utf-8'));
 
     const targetDir = path.dirname(fileName);
     const ext = path.extname(fileName);
@@ -146,12 +146,12 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
 }
 
 export async function verify(snapshotFolder: string, ident: string, value: string | Buffer | Record<string, unknown>,
-    expectFileType: FileVerifyType): Promise<void> {
+    expectFileType: FileVerifyType, fileExt?: string): Promise<void> {
     const dir = path.join(folders().snapshots, snapshotFolder);
     //await fse.ensureDir(dir);
     const binary = Buffer.isBuffer(value);
-    const snapshotFile = path.join(dir, `${ident}.${binary ? 'bin' : 'txt'}`);
-
+    fileExt = fileExt ?? (binary ? 'bin' : 'txt');
+    const snapshotFile = path.join(dir, `${ident}.${fileExt}`);
     await verifyFile(snapshotFile, value, expectFileType);
 }
 
