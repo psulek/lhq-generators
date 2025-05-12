@@ -15,5 +15,13 @@
   "csharp.suppressDotnetInstallWarning": true,
   "csharp.suppressProjectJsonWarning": true,
   "omnisharp.autoStart": false,
-  "dotnet.testWindow.disableBuildOnRefresh": true
+  "dotnet.testWindow.disableBuildOnRefresh": true,
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": ".github/copilot-instructions.md"
+    }
+  ],
+  "chat.instructionsFilesLocations": {
+    ".github": true
+  }
 }

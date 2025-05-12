@@ -2,12 +2,14 @@ import path from 'node:path';
 import { glob } from 'glob';
 import fse from 'fs-extra';
 
-import { getGeneratedFileContent, getRootNamespaceFromCsProj } from '../src/generatorUtils.js';
+import { getGeneratedFileContent } from '../src/generatorUtils.js';
 import { GeneratedFile, GeneratorInitialization, HostEnvironment, LhqModel } from '../src/index.js';
 import { Generator } from '../src/generator.js';
 import { safeReadFile, verifyFile } from './testUtils.js';
+import { readFileInfo } from '../src/cliUtils.js';
 
 import { folders } from './testUtils.js';
+import { findNamespaceForModel } from '../src/namespaceUtils.js';
 
 
 setTimeout(async () => {
@@ -34,16 +36,22 @@ setTimeout(async () => {
 
 async function generateFromLhq(folder: string): Promise<void> {
     const testDir = path.join(folders().templates, folder);
-    const lhqFileName = path.join(testDir, 'Strings.lhq');
+
     const csProjectFiles = await glob('*.csproj', { cwd: testDir, nodir: true });
-    const csProjectFile = path.join(testDir, csProjectFiles[0]);
+    const csProjectFileName = path.join(testDir, csProjectFiles[0]);
+    //const csProjectContent = await safeReadFile(csProjectFile);
+    const csProjectFile = await readFileInfo(csProjectFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
 
-    const csProjectContent = await safeReadFile(csProjectFile);
-    const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', csProjectFile, csProjectContent)!;
 
-    const lhqFile = await safeReadFile(lhqFileName);
-    const model = JSON.parse(lhqFile) as LhqModel;
-    const namespace = rootNamespace?.namespaceDynamicExpression === true ? '' : rootNamespace.namespace;
+    const lhqFileName = path.join(testDir, 'Strings.lhq');
+    const lhqFile = await readFileInfo(lhqFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
+
+    const rootNamespace = findNamespaceForModel(lhqFile, [csProjectFile]);
+    //const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', csProjectFile, csProjectContent)!;
+
+    //const lhqFile = await safeReadFile(lhqFileName);
+    const model = JSON.parse(lhqFile.content as string) as LhqModel;
+    const namespace = rootNamespace?.namespaceDynamicExpression === true ? '' : rootNamespace!.namespace;
     const data = { namespace: namespace };
     const generator = new Generator();
     const result = await generator.generate(lhqFileName, model, data);

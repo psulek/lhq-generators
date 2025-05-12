@@ -79,6 +79,28 @@
     }
   },
   "resources": {
+    "Title": {
+      "state": "Edited",
+      "parameters": {
+        "date": {
+          "order": 0
+        },
+        "userName": {
+          "order": 1
+        },
+        "productName": {
+          "order": 2
+        }
+      },
+      "values": {
+        "en": {
+          "value": "Hi {0}, we're glad you are using {1} at {2} EN"
+        },
+        "sk": {
+          "value": "Hi {0}, we're glad you are using {1} at {2} SK"
+        }
+      }
+    },
     "Welcome": {
       "state": "Edited",
       "values": {
@@ -89,28 +111,6 @@
           "value": "Zmieniono datę i godzinę.\nZ {0} w strefie czasowej {1} z czasem letnim 2,\nna 3 w strefie czasowej 4 z czasem letnim 5."
         }
       }
-    },
-    "Title": {
-        "state": "Edited",
-        "parameters": {
-        "userName": {
-            "order": 1
-        },
-        "productName": {
-            "order": 2
-        },
-        "date": {
-            "order": 0
-        }
-        },
-        "values": {
-        "en": {
-            "value": "Hi {0}, we're glad you are using {1} at {2} EN"
-        },
-        "sk": {
-            "value": "Hi {0}, we're glad you are using {1} at {2} SK"
-        }
-        }
     }
   },
   "model": {

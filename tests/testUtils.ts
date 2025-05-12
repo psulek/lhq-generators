@@ -8,6 +8,7 @@ import chaiBytes from 'chai-bytes';
 use(chaiBytes);
 
 import { isNullOrEmpty, tryJsonParse, tryRemoveBOM } from '../src/utils.js';
+//import { FilePath } from '../src/types.js';
 
 export type TestFolders = {
     cwd: string;
@@ -18,11 +19,7 @@ export type TestFolders = {
     templates: string;
 }
 
-export type FilePath = {
-    full: string;
-    relative?: string;
-    exist?: boolean;
-}
+
 
 let _folders: TestFolders | undefined;
 
@@ -156,36 +153,40 @@ export async function verify(snapshotFolder: string, ident: string, value: strin
 }
 
 
-export function createFilePath(filePath: string, rootFolderOrFilePath: string | FilePath, fileMustExist: boolean, formatRelative: boolean = true): FilePath {
-    if (isNullOrEmpty(filePath)) {
-        throw new Error(`Parameter 'inputPath' could not be undefined or empty!`);
-    }
+// export function createFilePath(filePath: string, rootFolderOrFilePath: string | FilePath, 
+//     fileMustExist: boolean, formatRelative: boolean = true): FilePath {
+//     if (isNullOrEmpty(filePath)) {
+//         throw new Error(`Parameter 'inputPath' could not be undefined or empty!`);
+//     }
 
-    const rootFolder = typeof rootFolderOrFilePath === 'string' ? rootFolderOrFilePath : rootFolderOrFilePath.full;
-    const isAbsolute = path.isAbsolute(filePath);
-    const full = isAbsolute ? filePath : path.join(rootFolder, filePath);
-    if (path.relative(rootFolder, full).startsWith('../')) {
-        throw new Error(`File '${filePath}' is outside of root folder '${rootFolder}'!`);
-    }
+//     const rootFolder = typeof rootFolderOrFilePath === 'string' ? rootFolderOrFilePath : rootFolderOrFilePath.full;
+//     const isAbsolute = path.isAbsolute(filePath);
+//     const full = isAbsolute ? filePath : path.join(rootFolder, filePath);
+//     if (path.relative(rootFolder, full).startsWith('../')) {
+//         throw new Error(`File '${filePath}' is outside of root folder '${rootFolder}'!`);
+//     }
 
-    let relative = isAbsolute ? path.relative(rootFolder, filePath) : filePath;
-    //relative = relative.replace('\\', '/');
-    relative = relative.replace(/\\/g, '/');
-    if (formatRelative) {
-        relative = formatRelativePath(relative);
-    }
+//     let relative = isAbsolute ? path.relative(rootFolder, filePath) : filePath;
+//     //relative = relative.replace('\\', '/');
+//     relative = relative.replace(/\\/g, '/');
+//     if (formatRelative) {
+//         relative = formatRelativePath(relative);
+//     }
 
-    if (relative.startsWith('../')) {
-        throw new Error(`File '${filePath}' is outside of root folder '${rootFolder}'!`);
-    }
+//     if (relative.startsWith('../')) {
+//         throw new Error(`File '${filePath}' is outside of root folder '${rootFolder}'!`);
+//     }
 
-    const exist = fse.pathExistsSync(full);
-    if (!exist && fileMustExist) {
-        throw new Error(`File '${filePath}' does not exist!`);
-    }
+//     const exist = fse.pathExistsSync(full);
+//     if (!exist && fileMustExist) {
+//         throw new Error(`File '${filePath}' does not exist!`);
+//     }
+    
+//     const basename =  exist ? path.basename(full) : '';
+//     const dirname = exist ? path.dirname(full) : '';
 
-    return { full, relative: relative, exist };
-}
+//     return { full, relative: relative, exist, basename, dirname };
+// }
 
 export const formatRelativePath = (p: string): string => {
     const h = p.slice(0, 1);

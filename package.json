@@ -1,6 +1,6 @@
 {
   "name": "@lhq/lhq-generators",
-  "version": "1.0.0-rc.13",
+  "version": "1.0.0-rc.14",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -24,8 +24,9 @@
     "build-all": "rimraf dist && tsx ./build.ts",
     "compile": "pnpm run build-all --compile",
     "eslint": "eslint",
-    "type-check-spec": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./tests/index.spec.ts",
-    "test": "pnpm run type-check-spec && mocha --delay ./tests/index.spec.ts"
+    "check-tests": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./tests/index.spec.ts",
+    "check-src": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./src/index.ts ./src/cli.ts",
+    "test": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts"
   },
   "dependencies": {
     "@commander-js/extra-typings": "13.1.0",

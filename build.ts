@@ -30,8 +30,13 @@ void (async () => {
 
         if (compileOnly) {
             await Promise.all([
+                // buildLib('cjs'),
+                // buildLib('esm')
+                buildLib('browser'),
                 buildLib('cjs'),
-                buildLib('esm')
+                buildLib('esm'),
+                buildCli(),
+                buildDts(),
             ]);
         } else {
             await runMochaTests();

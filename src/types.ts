@@ -44,7 +44,7 @@ export type LhqValidationResult = {
 }
 
 export type CSharpNamespaceInfo = {
-    csProjectFileName: string;
+    csProjectFileName: FileInfo;
     t4FileName: string;
     namespace: string | undefined;
     referencedLhqFile: boolean;
@@ -58,3 +58,37 @@ export type TextEncodeOptions =
     { mode: 'json' };
 
 export type TextEncodeModes = Extract<TextEncodeOptions, { mode: unknown }>['mode'];
+
+export type FileInfo = {
+    exist: boolean;
+    full: string;
+    ext: string;
+    extless: string;
+    relative?: string;
+    dirname: string;
+    basename: string;
+    content?: string | Buffer;
+}
+
+export type ReadFileInfoOptions = {
+    fileMustExist?: boolean;
+    rootFolder?: string | FileInfo;
+    formatRelative?: boolean;
+    loadContent?: boolean;
+    encoding?: BufferEncoding;
+}
+
+// export type FindFilesOptions = {
+//     cwd: string;
+//     nodir?: boolean;
+//     loadfile?: {
+//         enabled?: boolean;
+//         encoding?: string;
+//     };
+// };
+
+// export type FoundedFile = FileInfo & {
+//     content?: string | Buffer;
+// };
+
+// export type FindFilesCallback = (pattern: string, options: FindFilesOptions) => Promise<FoundedFile[]>;

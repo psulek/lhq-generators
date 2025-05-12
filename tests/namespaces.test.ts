@@ -2,18 +2,22 @@ import path from 'node:path';
 import { expect } from 'chai';
 import { glob } from 'glob';
 
-import { getGeneratedFileContent, getRootNamespaceFromCsProj } from '../src/generatorUtils.js';
-import { CSharpNamespaceInfo } from '../src/types.js';
-import { createFilePath, safeReadFile, verify } from './testUtils.js';
+import { getGeneratedFileContent } from '../src/generatorUtils.js';
+import { CSharpNamespaceInfo, FileInfo } from '../src/types.js';
+import { readFileInfo } from '../src/cliUtils.js';
+
+import { safeReadFile, verify } from './testUtils.js';
 
 import { folders } from './testUtils.js';
 import { LhqModelLineEndings } from '../src/api/schemas.js';
 import { GeneratedFile } from '../src/api/types.js';
+import { findNamespaceForModel } from '../src/namespaceUtils.js';
+
 
 setTimeout(async () => {
 
     const csProjectFiles = await glob('*.csproj', { cwd: folders().csproj, nodir: true });
-    // const csProjectFiles = ['project14.csproj'];
+    //const csProjectFiles = ['project10.csproj'];
 
     describe('Retrieving namespace information', () => {
 
@@ -52,6 +56,40 @@ setTimeout(async () => {
                 await testEncodings('LF');
             });
         });
+
+        describe('Manual tests', function () {
+            it('Manual test 1', function () {
+
+                const lhqModelFile = {
+                    "exist": true,
+                    "full": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01\\Strings.lhq",
+                    "ext": ".lhq",
+                    "extless": "Strings",
+                    "relative": "Strings.lhq",
+                    "dirname": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01",
+                    "basename": "Strings.lhq",
+                    "content": null
+                } as unknown as FileInfo;
+
+                const csprojs = [
+                    {
+                        "exist": true,
+                        "full": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01\\WpfResxCsharp01.csproj",
+                        "ext": ".csproj",
+                        "extless": "WpfResxCsharp01",
+                        "relative": "WpfResxCsharp01.csproj",
+                        "dirname": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01",
+                        "basename": "WpfResxCsharp01.csproj",
+                        "content": "<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n    <PropertyGroup>\r\n        <TargetFramework>net8.0</TargetFramework>\r\n        <ImplicitUsings>enable</ImplicitUsings>\r\n        <Nullable>enable</Nullable>\r\n        <RootNamespace>test.localization</RootNamespace>\r\n        <OutputType>Exe</OutputType>\r\n    </PropertyGroup>\r\n\r\n    <ItemGroup>\r\n        <None Update=\"Strings.lhq\">\r\n            <CopyToOutputDirectory>Always</CopyToOutputDirectory>\r\n        </None>\r\n        <None Update=\"Strings.lhq.tt\">\r\n            <CopyToOutputDirectory>Always</CopyToOutputDirectory>\r\n<!--            <CustomToolNamespace>mynamspace1</CustomToolNamespace>-->\r\n        </None>\r\n    </ItemGroup>\r\n\r\n    <ItemGroup>\r\n      <Folder Include=\"GenOutput\\\" />\r\n    </ItemGroup>\r\n\r\n</Project>\r\n"
+                    }
+                ] as unknown as FileInfo[];
+
+                const result = findNamespaceForModel(lhqModelFile, csprojs);
+                expect(result).to.not.be.undefined;
+                expect(result!.namespace).to.equal('test.localization');
+
+            });
+        });
     });
 
     run();
@@ -59,15 +97,17 @@ setTimeout(async () => {
 }, 500);
 
 
-async function getNamespace(csProjectFile: string): Promise<CSharpNamespaceInfo> {
-    const fileName = path.join(folders().csproj, csProjectFile);
-    const fp = createFilePath(fileName, folders().cwd, true, true);
-    const csProjectContent = await safeReadFile(fileName);
+async function getNamespace(csProjectName: string): Promise<CSharpNamespaceInfo> {
+    csProjectName = path.join(folders().csproj, csProjectName);
+    const csProjFile = await readFileInfo(csProjectName, { rootFolder: folders().cwd, fileMustExist: true, formatRelative: true, loadContent: true });
+    const lhqFile = await readFileInfo('Strings.lhq', { rootFolder: csProjFile.dirname });
 
-    const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', fileName, csProjectContent);
+    // const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', fileName, csProjectContent);
+    const rootNamespace = findNamespaceForModel(lhqFile, [csProjFile]);
 
     expect(rootNamespace).to.not.be.undefined;
 
-    rootNamespace!.csProjectFileName = fp.relative!;
-    return rootNamespace!
+    // @ts-ignore
+    (rootNamespace as any).csProjectFileName = csProjFile.relative!;
+    return rootNamespace!;
 }

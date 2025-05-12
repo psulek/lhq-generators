@@ -1,7 +1,7 @@
 {
   "csProjectFileName": "./data/csprojs/project14.csproj",
   "t4FileName": "Strings.lhq.tt",
-  "namespace": "SynotW.$(RootProjectName).$(MSBuildProjectName.Replace(\" \", \"_\"))",
+  "namespace": "project14",
   "referencedLhqFile": true,
   "referencedT4File": false,
   "namespaceDynamicExpression": true
