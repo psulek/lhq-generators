@@ -16,7 +16,7 @@ childs[?name=='CSharp'].attrs | [0].merge(@, {
 
 {{~m-data (x-concat model.name "Context") key="rootClassName" ~}}
 {{~m-data (x-concat model.name "Keys") key="keysClassName" ~}}
-{{~m-data (x-select @root.settings.Namespace @root.host.namespace) key="rootNamespace" 
+{{~m-data (x-select @root.host.namespace @root.settings.Namespace) key="rootNamespace" 
    check="isNullOrEmpty" error="Missing 'Namespace' value for C# settings." errorCode="csharp.namespace.missing" ~}}
 
 {{~m-data (x-normalizePath @root.settings.OutputFolder replacePathSep=".") key="outputFolderDots" ~}}
@@ -255,7 +255,7 @@ public static partial class {{name}}
 {{#each resources}}
 	{{m-data (x-fn paths.getParentPath '') key="parentPath" ~}}
 	{{~m-data (x-concat (x-test (x-equals ../_resourceRenderValue "key") then=@root.data.keysClassName else=@root.data.rootClassName) ".Instance.GetStringSafely") key="localizer" ~}}
-	{{m-data (x-concat @root.data.keysClassName (x-fn paths.getParentPath '.') sep=".") key="resourceFullPath" ~}}
+	{{m-data (x-concat @root.data.keysClassName (x-fn paths.getPaths) sep=".") key="resourceFullPath" ~}}
 	/// <summary>
 	/// Gets localized string similar to: {{{ this.comment }}}
 	/// </summary>

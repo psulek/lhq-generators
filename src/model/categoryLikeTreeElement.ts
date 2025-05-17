@@ -1,4 +1,4 @@
-import type { ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, TreeElementType } from '../api/modelTypes';
+import type { ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementType } from '../api/modelTypes';
 import type { ILhqCategoryLikeModelType } from '../api/schemas';
 import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey } from '../utils';
 import { ResourceElement } from './resourceElement';
@@ -85,6 +85,63 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public get hasResources(): boolean {
         return this._hasResources;
+    }
+
+    public getCategory(name: string): ICategoryElement | undefined {
+        return isNullOrEmpty(name) ? undefined : this.categories.find(x => x.name === name);
+    }
+
+    public getResource(name: string): IResourceElement | undefined {
+        return isNullOrEmpty(name) ? undefined : this.resources.find(x => x.name === name);
+    }
+
+    private getChildByName(name: string, elementType: TreeElementType): ITreeElement | undefined {
+        if (elementType === 'model') {
+            throw new Error('Model element cannot be retrieved by name.');
+        }
+
+        return elementType === 'category' ? this.getCategory(name) : this.getResource(name);
+    }
+
+    public getElementByPath(elementPaths: ITreeElementPaths, elementType: 'category'): ICategoryElement | undefined;
+    public getElementByPath(elementPaths: ITreeElementPaths, elementType: 'resource'): IResourceElement | undefined;
+    public getElementByPath(elementPaths: ITreeElementPaths, elementType: Exclude<TreeElementType, 'model'>): ITreeElement | undefined {
+        if (isNullOrUndefined(elementPaths)) {
+            throw new Error('Element paths cannot be null or undefined.');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (elementType === 'model') {
+            throw new Error('Model element cannot be retrieved by path.');
+        }
+
+        const paths = elementPaths.getPaths(true);
+        if (paths.length === 0) {
+            return undefined;
+        }
+
+        let currentElement: ITreeElement | undefined;
+        let path = paths.shift();
+        let isLast = paths.length === 0;
+
+        while (!isNullOrEmpty(path)) {
+            currentElement = currentElement ?? this;
+            if (isLast) {
+                currentElement = currentElement instanceof CategoryLikeTreeElement
+                    ? currentElement.getChildByName(path, elementType)
+                    : undefined;
+            } else {
+                currentElement = currentElement instanceof CategoryLikeTreeElement
+                    ? currentElement.getCategory(path)
+                    : undefined;
+            }
+
+            path = paths.shift();
+            isLast = paths.length === 0;
+        }
+
+        return currentElement?.elementType === elementType ? currentElement : undefined;
     }
 
     public addCategory(name: string): ICategoryElement {

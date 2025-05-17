@@ -274,6 +274,7 @@ type joinHelperArgs = {
 function joinHelper(items: unknown[], options: HbsDataContext<joinHelperArgs>) {
     const separator = valueOrDefault(options.hash?.sep, ',');
     const start = valueOrDefault(options.hash?.start, 0);
+    items = items ? items.flat() : [];
     const len = items ? items.length : 0;
     let end = valueOrDefault(options.hash?.end, len);
     const decorator = options.hash?.decorator || '';

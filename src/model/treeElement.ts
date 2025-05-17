@@ -51,7 +51,7 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         this._name = name ?? '';
         this._elementType = elementType;
         this._root = isNullOrEmpty(root) && isNullOrEmpty(parent) ? this as unknown as IRootModelElement : root;
-        this._isRoot = isNullOrEmpty(this.parent);
+        this._isRoot = isNullOrEmpty(parent);
         //this._isRoot = isNullOrEmpty(root) && isNullOrEmpty(parent);
         //this._root = this._isRoot ? undefined : root;
         this._parent = parent;

@@ -30,7 +30,7 @@ childs[?name=='CSharp'].attrs | [0].merge(@, {
 {{! setup some root data that will be accesible in template via '@root.data.[key]', eg: @root.data.rootClassName }}
 {{~m-data (x-concat model.name "Localizer") key="rootClassName" ~}}
 {{~m-data (x-concat model.name "Keys") key="keysClassName" ~}}
-{{~m-data (x-select @root.settings.Namespace @root.host.namespace) key="rootNamespace" 
+{{~m-data (x-select @root.host.namespace @root.settings.Namespace) key="rootNamespace" 
    check="isNullOrEmpty" error="Missing 'Namespace' value for C# settings." errorCode="csharp.namespace.missing" ~}}
 
 {{! normalize path value in 'outputFolder' from eg: 'Resources\\subdir\' to 'Resources/subdir' and also replace path sep (/) with . so result will be 'Resources.subdir' }}
@@ -278,7 +278,7 @@ public static{{x-render " partial" when=(x-equals _resourceRenderValue "value") 
 	{{! prepare temp data for current resource element (m-data to put data in ITreeElement object and not @root) }}
 	{{~m-data (x-fn paths.getParentPath '') key="parentPath" ~}}
 	{{! constructs full resource path to resource separated by dot , eg: Strings.Dialogs.MyResource1 (Model name: 'Strings', sub category: 'Dialogs' and resource name: 'MyResource1') }}
-	{{m-data (x-concat @root.data.keysClassName (x-fn paths.getParentPath '.') sep=".") key="resourceFullPath" ~}}
+	{{m-data (x-concat @root.data.keysClassName (x-fn paths.getPaths) sep=".") key="resourceFullPath" ~}}
 	/// <summary>
 	/// Gets localized string similar to: {{{ this.comment }}}
 	/// </summary>

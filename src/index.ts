@@ -4,6 +4,7 @@ export { HostEnvironment } from './hostEnv';
 export * from './generator';
 export * as generatorUtils from './generatorUtils';
 export * as namespaceUtils from './namespaceUtils';
+export * as fileUtils from './fileUtils';
 export * from './utils';
 export * from './types';
 export * from './api/index';

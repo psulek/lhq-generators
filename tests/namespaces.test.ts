@@ -4,7 +4,7 @@ import { glob } from 'glob';
 
 import { getGeneratedFileContent } from '../src/generatorUtils.js';
 import { CSharpNamespaceInfo, FileInfo } from '../src/types.js';
-import { readFileInfo } from '../src/cliUtils.js';
+import * as fileUtils from './fileUtils.js';
 
 import { safeReadFile, verify } from './testUtils.js';
 
@@ -99,8 +99,8 @@ setTimeout(async () => {
 
 async function getNamespace(csProjectName: string): Promise<CSharpNamespaceInfo> {
     csProjectName = path.join(folders().csproj, csProjectName);
-    const csProjFile = await readFileInfo(csProjectName, { rootFolder: folders().cwd, fileMustExist: true, formatRelative: true, loadContent: true });
-    const lhqFile = await readFileInfo('Strings.lhq', { rootFolder: csProjFile.dirname });
+    const csProjFile = await fileUtils.readFileInfo(csProjectName, { rootFolder: folders().cwd, fileMustExist: true, formatRelative: true, loadContent: true });
+    const lhqFile = await fileUtils.readFileInfo('Strings.lhq', { rootFolder: csProjFile.dirname });
 
     // const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', fileName, csProjectContent);
     const rootNamespace = findNamespaceForModel(lhqFile, [csProjFile]);

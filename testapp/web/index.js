@@ -17236,6 +17236,7 @@ var LhqGenerators = (() => {
     arraySortBy: () => arraySortBy,
     baseCategorySchema: () => baseCategorySchema,
     baseDataNodeSchema: () => baseDataNodeSchema,
+    fileUtils: () => fileUtils_exports,
     generatorUtils: () => generatorUtils_exports,
     getLibraryVersion: () => getLibraryVersion,
     hasItems: () => hasItems,
@@ -17244,6 +17245,7 @@ var LhqGenerators = (() => {
     iterateObject: () => iterateObject,
     jsonParseOrDefault: () => jsonParseOrDefault,
     jsonQuery: () => jsonQuery,
+    namespaceUtils: () => namespaceUtils_exports,
     normalizePath: () => normalizePath,
     objCount: () => objCount,
     removeNewLines: () => removeNewLines,
@@ -17252,6 +17254,7 @@ var LhqGenerators = (() => {
     sortBy: () => sortBy,
     sortObjectByKey: () => sortObjectByKey,
     sortObjectByValue: () => sortObjectByValue,
+    stringCompare: () => stringCompare,
     textEncode: () => textEncode,
     tryJsonParse: () => tryJsonParse,
     tryRemoveBOM: () => tryRemoveBOM,
@@ -17259,10 +17262,16 @@ var LhqGenerators = (() => {
   });
 
   // src/AppError.ts
+  var AppErrorKinds = Object.freeze({
+    invalidModelSchema: "invalidModelSchema",
+    templateValidationError: "templateValidationError"
+  });
   var AppError = class _AppError extends Error {
-    constructor(message, stack) {
+    constructor(message, stack, kind = "", code = "") {
       super(message);
       this.message = message;
+      this.kind = kind;
+      this.code = code;
       this.name = "AppError";
       if (Error.captureStackTrace) {
         Error.captureStackTrace(this, _AppError);
@@ -17403,6 +17412,12 @@ var LhqGenerators = (() => {
       }
       return 0;
     }));
+  }
+  function stringCompare(a, b, caseSensitive) {
+    if (caseSensitive) {
+      return a === b;
+    }
+    return a.toLowerCase() === b.toLowerCase();
   }
   function sortBy(source, key, sortOrder = "asc") {
     return arraySortBy(source, (x) => key === void 0 ? x : x[key], sortOrder);
@@ -17604,8 +17619,29 @@ var LhqGenerators = (() => {
   };
 
   // src/model/treeElement.ts
-  var TreeElement = class {
+  var TreeElementBase = class {
+    debugSerialize() {
+      const seen = /* @__PURE__ */ new WeakSet();
+      return JSON.stringify(this, (key, value) => {
+        if (key === "_parent" || key === "_root") {
+          return void 0;
+        }
+        if (typeof value === "object" && value !== null) {
+          if (seen.has(value)) {
+            return `[Circular: ${value.name}]`;
+          }
+          seen.add(value);
+        }
+        return value;
+      }, 2);
+    }
+  };
+  var TreeElement = class extends TreeElementBase {
     constructor(root, elementType, name2, parent) {
+      super();
+      // public getRoot = (): IRootModelElement => {
+      //     return this._isRoot ? this as unknown as IRootModelElement : this._root!;
+      // }
       this.addToTempData = (key, value) => {
         this._data[key] = value;
       };
@@ -17615,9 +17651,9 @@ var LhqGenerators = (() => {
       this._name = name2 != null ? name2 : "";
       this._elementType = elementType;
       this._root = isNullOrEmpty(root) && isNullOrEmpty(parent) ? this : root;
+      this._isRoot = isNullOrEmpty(this.parent);
       this._parent = parent;
       this._paths = new TreeElementPaths(this);
-      this._isRoot = isNullOrEmpty(this.parent);
       this._data = {};
     }
     get isRoot() {
@@ -17654,7 +17690,6 @@ var LhqGenerators = (() => {
 
   // src/model/resourceElement.ts
   var ResourceElement = class extends TreeElement {
-    // constructor(root: IRootModelElement, name: string, source: LhqModelResource | undefined, parent: ICategoryLikeTreeElement) {
     constructor(root, name2, parent) {
       super(root, "resource", name2, parent);
       this._state = "New";
@@ -17663,8 +17698,7 @@ var LhqGenerators = (() => {
       this._hasValues = false;
       this.getComment = () => {
         var _a, _b;
-        const root = this.root;
-        const primaryLanguage = (_a = root.primaryLanguage) != null ? _a : "";
+        const primaryLanguage = (_a = this.root.primaryLanguage) != null ? _a : "";
         if (!isNullOrEmpty(primaryLanguage) && this.values) {
           const value = this.values.find((x) => x.languageName === primaryLanguage);
           const resourceValue = value == null ? void 0 : value.value;
@@ -17834,9 +17868,6 @@ var LhqGenerators = (() => {
       this._hasCategories = false;
       this._hasResources = false;
     }
-    // protected abstract createResource(root: IRootModelElement, name: string, source: LhqModelResource | undefined,
-    //     parent: ICategoryLikeTreeElement): IResourceElement;
-    // protected abstract createModel(): TModel;
     mapToModel() {
       const model = {};
       this.bindToModel(model);
@@ -17850,6 +17881,7 @@ var LhqGenerators = (() => {
     }
     populate(source) {
       if (source) {
+        this._description = source.description;
         const sourceCategories = source.categories;
         const sourceResources = source.resources;
         const newCategories = [];
@@ -21929,7 +21961,7 @@ var LhqGenerators = (() => {
     categories: z.lazy(() => LhqModelCategoriesCollectionSchema).optional()
   });
   var LhqModelUidSchema = z.literal("6ce4d54c5dbd415c93019d315e278638");
-  var LhqModelVersionSchema = z.union([z.literal(1), z.literal(2)]);
+  var LhqModelVersionSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
   var LhqCodeGenVersionSchema = z.literal(1);
   var LhqModelCategoriesCollectionSchema = z.record(LhqModelCategorySchema);
   var LhqModelResourcesCollectionSchema = z.record(LhqModelResourceSchema);
@@ -21957,7 +21989,7 @@ var LhqGenerators = (() => {
 
   // src/model/modelConst.ts
   var ModelVersions = Object.freeze({
-    model: 2,
+    model: 3,
     codeGenerator: 1
   });
   var DefaultLineEndings = "LF";
@@ -21983,27 +22015,17 @@ var LhqGenerators = (() => {
       super.bindToModel(model);
       model.description = this._description;
     }
-    // public mapToModel(): LhqModelCategory {
-    //     return {
-    //         description: this._description,
-    //         categories: this._categories === undefined ? undefined : Object.fromEntries(this._categories.map(x => [x.name, x.mapToModel()])),
-    //         resources: this._resources === undefined ? undefined : Object.fromEntries(this._resources.map(x => [x.name, x.mapToModel()])),
-    //     };
-    // }
     createCategory(root, name2, parent) {
       return new _CategoryElement(root, name2, parent);
     }
-    // protected createResource(root: IRootModelElement, name: string, source: LhqModelResource | undefined, parent: ICategoryLikeTreeElement): IResourceElement {
-    //     return new ResourceElement(root, name, source, parent);
-    // }
   };
 
   // src/model/rootModelElement.ts
   var CodeGenUID = "b40c8a1d-23b7-4f78-991b-c24898596dd2";
   var RootModelElement = class extends CategoryLikeTreeElement {
     constructor(model) {
-      var _a, _b, _c, _d;
-      super(void 0, "model", (_b = (_a = model == null ? void 0 : model.model) == null ? void 0 : _a.name) != null ? _b : "", (_d = (_c = model == null ? void 0 : model.model) == null ? void 0 : _c.description) != null ? _d : "", void 0);
+      var _a, _b;
+      super(void 0, "model", (_b = (_a = model == null ? void 0 : model.model) == null ? void 0 : _a.name) != null ? _b : "", void 0);
       this._uid = LhqModelUidSchema.value;
       this._version = ModelVersions.model;
       this._options = { categories: true, resources: "All" };
@@ -22048,13 +22070,6 @@ var LhqGenerators = (() => {
     createCategory(root, name2, parent) {
       return new CategoryElement(root, name2, parent);
     }
-    // protected createCategory(root: IRootModelElement, name: string, source: LhqModelCategory,
-    //     parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement {
-    //     return new CategoryElement(root, name, source, parent);
-    // }
-    // protected createResource(root: IRootModelElement, name: string, source: LhqModelResource, parent: ICategoryLikeTreeElement): IResourceElement {
-    //     return new ResourceElement(root, name, source, parent);
-    // }
     getCodeGenerator(model) {
       var _a, _b, _c, _d;
       let templateId = "";
@@ -22086,6 +22101,49 @@ var LhqGenerators = (() => {
       if (!isNullOrEmpty(templateId) && !isNullOrEmpty(node)) {
         return { templateId, settings: node, version: codeGenVersion };
       }
+      return void 0;
+    }
+    createCodeGenerator(codeGeneratorElement) {
+      var _a, _b, _c, _d, _e, _f, _g, _h;
+      if (isNullOrUndefined(codeGeneratorElement)) {
+        throw new Error("Code generator element is undefined or null.");
+      }
+      const templateId = codeGeneratorElement.templateId;
+      const settings = Object.assign({}, (_a = codeGeneratorElement.settings) != null ? _a : {});
+      const codeGenVersion = codeGeneratorElement.version > 0 && codeGeneratorElement.version <= ModelVersions.codeGenerator ? codeGeneratorElement.version : ModelVersions.codeGenerator;
+      const metadata = Object.assign({}, (_b = this._metadatas) != null ? _b : {});
+      (_c = metadata.childs) != null ? _c : metadata.childs = [];
+      let metadataElem = metadata.childs.find((x) => {
+        var _a2;
+        return x.name === "metadata" && ((_a2 = x.attrs) == null ? void 0 : _a2["descriptorUID"]) === CodeGenUID;
+      });
+      if (!metadataElem) {
+        metadataElem = { name: "metadata", attrs: { descriptorUID: CodeGenUID }, childs: [] };
+        metadata.childs.push(metadataElem);
+      }
+      metadataElem.name = "metadata";
+      (_d = metadataElem.childs) != null ? _d : metadataElem.childs = [];
+      (_e = metadataElem.attrs) != null ? _e : metadataElem.attrs = {};
+      metadataElem.attrs["descriptorUID"] = CodeGenUID;
+      let contentElem = (_f = metadata.childs) == null ? void 0 : _f.find((x) => x.name === "content");
+      if (!contentElem) {
+        contentElem = { name: "content", childs: [], attrs: {} };
+        metadataElem.childs.push(contentElem);
+      }
+      contentElem.name = "content";
+      (_g = contentElem.attrs) != null ? _g : contentElem.attrs = {};
+      contentElem.attrs["templateId"] = templateId;
+      contentElem.attrs["version"] = codeGenVersion.toFixed(0);
+      (_h = contentElem.childs) != null ? _h : contentElem.childs = [];
+      settings.name = "Settings";
+      const settingsIdx = contentElem.childs.findIndex((x) => x.name === "Settings");
+      if (settingsIdx === -1) {
+        contentElem.childs.push(settings);
+      } else {
+        contentElem.childs[settingsIdx] = settings;
+      }
+      this._metadatas = Object.freeze(metadata);
+      return { templateId, settings, version: codeGenVersion };
     }
     get uid() {
       return this._uid;
@@ -22123,8 +22181,12 @@ var LhqGenerators = (() => {
     get codeGenerator() {
       return this._codeGenerator;
     }
-    set codeGenerator(codeGenerator) {
-      this._codeGenerator = codeGenerator;
+    set codeGenerator(value) {
+      if (isNullOrUndefined(value)) {
+        this._codeGenerator = value;
+      } else {
+        this._codeGenerator = this.createCodeGenerator(value);
+      }
     }
   };
 
@@ -22270,6 +22332,7 @@ var LhqGenerators = (() => {
     "char-tab": charHelper,
     "char-quote": charHelper,
     "x-value": valueHelper,
+    "x-select": selectValueHelper,
     "x-join": joinHelper,
     "x-split": splitHelper,
     "x-concat": concatHelper,
@@ -22295,6 +22358,7 @@ var LhqGenerators = (() => {
     "x-stringify": stringifyHelper,
     "x-toJson": toJsonHelper,
     "x-typeOf": typeOfHelper,
+    "x-assert": assertHelper,
     // model specific helpers
     "m-data": modelDataHelper,
     "output": modelOutputHelper,
@@ -22346,12 +22410,13 @@ var LhqGenerators = (() => {
     return result;
   }
   function queryObjValue(context, options, flags) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     const undefinedForDefault = (_a = flags == null ? void 0 : flags.undefinedForDefault) != null ? _a : false;
     const allowHash = (_b = flags == null ? void 0 : flags.allowHash) != null ? _b : true;
     const allowFn = (_c = flags == null ? void 0 : flags.allowFn) != null ? _c : true;
+    const debug = (_e = (_d = options == null ? void 0 : options.hash) == null ? void 0 : _d.debug) != null ? _e : false;
     let value = undefinedForDefault ? void 0 : context;
-    let query = allowHash ? (_d = options == null ? void 0 : options.hash) == null ? void 0 : _d.query : void 0;
+    let query = allowHash ? (_f = options == null ? void 0 : options.hash) == null ? void 0 : _f.query : void 0;
     if (typeof (options == null ? void 0 : options.fn) === "function" && allowFn) {
       query = options.fn(context);
       if (!isNullOrEmpty(query) && typeof query === "string") {
@@ -22360,9 +22425,13 @@ var LhqGenerators = (() => {
     }
     if (!isNullOrEmpty(query) && typeof query === "string" && !isNullOrEmpty(context)) {
       try {
+        if (debug) {
+          const json = context instanceof TreeElementBase ? context.debugSerialize() : JSON.stringify(context);
+          hostEnv.debugLog(`jmespath query: ${query} on context: ${json}`);
+        }
         value = jsonQuery(context, query);
       } catch (e) {
-        const templateId = (_e = getRoot(options).currentTemplateId) != null ? _e : "";
+        const templateId = (_g = getRoot(options).currentTemplateId) != null ? _g : "";
         const loc = options.loc;
         const locText = isNullOrEmpty(loc) ? "" : `starts on ${loc.start.line}:${loc.start.column}, ends: ${loc.end.line}:${loc.end.column}`;
         const msg = `Template: ${templateId}, failed on jmespath query: ${query}
@@ -22392,6 +22461,20 @@ ${locText}`;
     const defaultOnEmpty = (_c = (_b = options.hash) == null ? void 0 : _b.defaultOnEmpty) != null ? _c : false;
     const result = queryObjValue(context, options);
     return valueOrDefault(result, defaultValue, defaultOnEmpty);
+  }
+  function selectValueHelper() {
+    const items = [...arguments];
+    while (items.length > 0) {
+      const item = items.shift();
+      if (typeof item === "string" && !isNullOrEmpty(item)) {
+        return item;
+      } else if (typeof item === "number" && !isNaN(item)) {
+        return item;
+      } else if (typeof item === "boolean") {
+        return item;
+      }
+    }
+    return "";
   }
   function splitHelper() {
     var _a;
@@ -22580,7 +22663,7 @@ ${locText}`;
     }
   }
   function modelDataHelper() {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
     const { context, options } = getContextAndOptions(this, ...arguments);
     const defaultValue = (_a = options.hash) == null ? void 0 : _a.default;
     const defaultOnEmpty = (_c = (_b = options.hash) == null ? void 0 : _b.defaultOnEmpty) != null ? _c : false;
@@ -22589,6 +22672,11 @@ ${locText}`;
     const key = (_f = (_e = options == null ? void 0 : options.hash) == null ? void 0 : _e.key) != null ? _f : "";
     if (isNullOrEmpty(key)) {
       throw new AppError(`Helper '${options.name}' missing hash param 'key' !`);
+    }
+    const check = (_g = options.hash) == null ? void 0 : _g.check;
+    if (!isNullOrEmpty(check) && assertValueCheck(context, check)) {
+      const errorCode = (_i = (_h = options.hash) == null ? void 0 : _h.errorCode) != null ? _i : "";
+      throw new AppError((_k = (_j = options.hash) == null ? void 0 : _j.error) != null ? _k : "Template validation failure !", void 0, AppErrorKinds.templateValidationError, errorCode);
     }
     setCustomData(this, options, value, forceToRoot);
   }
@@ -22721,6 +22809,36 @@ ${locText}`;
     };
     context.addInlineOutputs(inlineOutput);
   }
+  function assertHelper(context, options) {
+    var _a, _b, _c, _d;
+    const check = (_a = options.hash) == null ? void 0 : _a.check;
+    const error = (_b = options.hash) == null ? void 0 : _b.error;
+    const code = (_d = (_c = options.hash) == null ? void 0 : _c.code) != null ? _d : "";
+    if (isNullOrEmpty(check)) {
+      throw new AppError(`Helper '${options.name}' missing hash property 'check' !`);
+    }
+    if (isNullOrEmpty(error)) {
+      throw new AppError(`Helper '${options.name}' missing hash property 'error' !`);
+    }
+    if (assertValueCheck(context, check)) {
+      throw new AppError(error != null ? error : "Template validation failure !", void 0, AppErrorKinds.templateValidationError, code);
+    }
+  }
+  function assertValueCheck(value, check) {
+    const isTrue = check === "isTrue";
+    const isFalse = check === "isFalse";
+    const _isNullOrEmpty = check === "isNullOrEmpty";
+    const _isNullOrUndefined = check === "isNullOrUndefined";
+    const isNull = check === "isNull";
+    const isUndefined = check === "isUndefined";
+    const error = value === void 0 && (isUndefined || _isNullOrUndefined) || // undefined
+    value === null && (isNull || _isNullOrUndefined || _isNullOrEmpty) || // null
+    value === true && isTrue || // true
+    value === false && isFalse || // false
+    isNullOrEmpty(value) && _isNullOrEmpty || // empty string
+    isNullOrUndefined(value) && _isNullOrUndefined;
+    return error;
+  }
 
   // src/hbsManager.ts
   var import_handlebars2 = __toESM(require_handlebars());
@@ -22769,14 +22887,13 @@ ${locText}`;
   var generatorUtils_exports = {};
   __export(generatorUtils_exports, {
     createRootElement: () => createRootElement,
+    detectLineEndings: () => detectLineEndings,
     generateLhqSchema: () => generateLhqSchema,
     getGeneratedFileContent: () => getGeneratedFileContent,
-    getRootNamespaceFromCsProj: () => getRootNamespaceFromCsProj,
+    serializeLhqModelToString: () => serializeLhqModelToString,
     serializeRootElement: () => serializeRootElement,
     validateLhqModel: () => validateLhqModel
   });
-  var import_xmldom = __toESM(require_lib());
-  var xpath = __toESM(require_xpath());
 
   // node_modules/.pnpm/zod-to-json-schema@3.24.5_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/Options.js
   var ignoreOverride = Symbol("Let zodToJsonSchema decide on which parser to use");
@@ -24182,7 +24299,6 @@ ${locText}`;
   }
 
   // src/generatorUtils.ts
-  var DOMParser;
   function createRootElement(data) {
     return new RootModelElement(data);
   }
@@ -24192,6 +24308,17 @@ ${locText}`;
     }
     const str = JSON.stringify(root.mapToModel());
     return JSON.parse(str);
+  }
+  function detectLineEndings(content) {
+    const match = content.match(/\r\n|\n/);
+    let lineEnding = match ? match[0] : "";
+    if (lineEnding !== "\r\n" && lineEnding !== "\n") {
+      lineEnding = "\r\n";
+    }
+    return lineEnding === "\r\n" ? "CRLF" : "LF";
+  }
+  function serializeLhqModelToString(model, lineEndings) {
+    return replaceLineEndings(JSON.stringify(model, null, 2), lineEndings);
   }
   function validateLhqModel(data) {
     if (typeof data === "string") {
@@ -24231,66 +24358,6 @@ ${locText}`;
     });
     return JSON.stringify(jsonSchema, null, 2);
   }
-  var itemGroupTypes = ["None", "Compile", "Content", "EmbeddedResource"];
-  var itemGroupTypesAttrs = ["Include", "Update"];
-  var csProjectXPath = '//ns:ItemGroup/ns:##TYPE##[@##ATTR##="##FILE##"]';
-  var xpathRootNamespace = "string(//ns:RootNamespace)";
-  var xpathAssemblyName = "string(//ns:AssemblyName)";
-  function getRootNamespaceFromCsProj(lhqModelFileName, t4FileName, csProjectFileName, csProjectFileContent) {
-    var _a, _b, _c;
-    let referencedLhqFile = false;
-    let referencedT4File = false;
-    if (isNullOrEmpty(csProjectFileName) || isNullOrEmpty(csProjectFileContent)) {
-      return void 0;
-    }
-    let rootNamespace;
-    try {
-      const fileContent = tryRemoveBOM(csProjectFileContent);
-      if (typeof window !== "undefined" && typeof window.DOMParser !== "undefined") {
-        DOMParser = window.DOMParser;
-      } else {
-        DOMParser = import_xmldom.DOMParser;
-      }
-      const doc = new DOMParser().parseFromString(fileContent, "text/xml");
-      const rootNode = doc;
-      const rootNs = ((_a = doc.documentElement) == null ? void 0 : _a.namespaceURI) || "";
-      const ns = isNullOrEmpty(rootNs) ? null : rootNs;
-      const xpathSelect = xpath.useNamespaces({ ns: rootNs });
-      const findFileElement = function(fileName) {
-        for (const itemGroupType of itemGroupTypes) {
-          for (const attr of itemGroupTypesAttrs) {
-            const xpathQuery = csProjectXPath.replace("##TYPE##", itemGroupType).replace("##ATTR##", attr).replace("##FILE##", fileName);
-            const element = xpathSelect(xpathQuery, rootNode, true);
-            if (element) {
-              return element;
-            }
-          }
-        }
-        return void 0;
-      };
-      rootNamespace = xpathSelect(xpathRootNamespace, rootNode, true);
-      referencedLhqFile = findFileElement(lhqModelFileName) != void 0;
-      const t4FileElement = findFileElement(t4FileName);
-      if (t4FileElement) {
-        referencedT4File = true;
-        const dependentUpon = (_b = t4FileElement.getElementsByTagNameNS(ns, "DependentUpon")[0]) == null ? void 0 : _b.textContent;
-        if (dependentUpon && dependentUpon === lhqModelFileName) {
-          referencedLhqFile = true;
-        }
-        const customToolNamespace = (_c = t4FileElement.getElementsByTagNameNS(ns, "CustomToolNamespace")[0]) == null ? void 0 : _c.textContent;
-        if (customToolNamespace) {
-          rootNamespace = customToolNamespace;
-        }
-      }
-      if (!rootNamespace) {
-        rootNamespace = xpathSelect(xpathAssemblyName, rootNode, true);
-      }
-    } catch (e) {
-      console.error("Error getting root namespace.", e);
-      rootNamespace = void 0;
-    }
-    return { csProjectFileName, t4FileName, namespace: rootNamespace, referencedLhqFile, referencedT4File };
-  }
 
   // src/generator.ts
   var GeneratorHostDataKeys = Object.freeze({
@@ -24301,7 +24368,7 @@ ${locText}`;
     if (false) {
       return "0.0.0";
     }
-    return "1.0.0-rc.0";
+    return "1.0.0-rc.16";
   }
   var _Generator = class _Generator {
     constructor() {
@@ -24392,7 +24459,7 @@ ${locText}`;
       hostData != null ? hostData : hostData = {};
       const validation = validateLhqModel(modelData);
       if (!validation.success) {
-        throw new AppError((_a = validation.error) != null ? _a : `Unable to deserialize or validate LHQ model '${fileName}' !`);
+        throw new AppError((_a = validation.error) != null ? _a : `Validation failed for file '${fileName}' !`, void 0, AppErrorKinds.invalidModelSchema);
       }
       const model = validation.model;
       const rootModel = new RootModelElement(model);
@@ -24459,5 +24526,204 @@ ${locText}`;
   };
   _Generator._initialized = false;
   var Generator = _Generator;
+
+  // src/namespaceUtils.ts
+  var namespaceUtils_exports = {};
+  __export(namespaceUtils_exports, {
+    findNamespaceForModel: () => findNamespaceForModel,
+    getRootNamespaceFromCsProj: () => getRootNamespaceFromCsProj
+  });
+  var import_xmldom = __toESM(require_lib());
+  var xpath = __toESM(require_xpath());
+  var DOMParser;
+  function findNamespaceForModel(lhqModelFile, csProjectFiles) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    let namespaceInfo = void 0;
+    const dir = lhqModelFile.dirname;
+    const namespaceResults = [];
+    for (const csProj of csProjectFiles.filter((x) => x.exist)) {
+      const ttFile = lhqModelFile.basename + ".tt";
+      const csProjContent = csProj.content;
+      if (!isNullOrEmpty(csProjContent)) {
+        const namespaceInfo2 = getRootNamespaceFromCsProj(lhqModelFile, ttFile, csProj, csProjContent);
+        if (namespaceInfo2) {
+          namespaceResults.push(namespaceInfo2);
+        }
+      }
+    }
+    if (namespaceResults.length > 1) {
+      const mutileRefs = namespaceResults.filter((x) => x.referencedLhqFile || x.referencedT4File).length;
+      if (mutileRefs > 1) {
+        const lhq = lhqModelFile.basename;
+        const t4 = lhqModelFile.basename + ".tt";
+        throw new Error(
+          `Multiple C# project files found in directory '${dir}' that references either '${lhq}' or a '${t4}' file.
+Specify which C# project file to use with the '--project' argument.`
+        );
+      }
+      namespaceInfo = namespaceResults.find((x) => (x.referencedLhqFile || x.referencedT4File) && !isNullOrEmpty(x.namespace));
+      namespaceInfo = namespaceInfo || namespaceResults.find((x) => !isNullOrEmpty(x.namespace)) || namespaceResults[0];
+    } else if (namespaceResults.length === 1) {
+      namespaceInfo = namespaceResults[0];
+    }
+    if (namespaceInfo == null ? void 0 : namespaceInfo.namespaceDynamicExpression) {
+      namespaceInfo.namespace = "";
+      console.log(`Warning: Processing '${lhqModelFile.full}' and its '${(_b = (_a = namespaceInfo.csProjectFileName) == null ? void 0 : _a.full) != null ? _b : ""}' 
+Value in 'RootNamespace' or 'AssemblyName' element contains dynamic expression which is not supported.
+This value will not be used for 'Namespace' in generator.
+Set namespace directly in the lhq file in C# template setting 'Namespace' or provide namespace via cmd '--data namespace=<value>'.`);
+    }
+    const csProjFileName = (_d = (_c = namespaceInfo == null ? void 0 : namespaceInfo.csProjectFileName) == null ? void 0 : _c.full) != null ? _d : "";
+    const namespace = (_e = namespaceInfo == null ? void 0 : namespaceInfo.namespace) != null ? _e : "";
+    if (isNullOrEmpty(namespace) && namespaceInfo) {
+      namespaceInfo.namespace = isNullOrEmpty(csProjFileName) ? "" : (_g = (_f = namespaceInfo.csProjectFileName.extless) == null ? void 0 : _f.replace(" ", "_")) != null ? _g : "";
+    }
+    return namespaceInfo;
+  }
+  var itemGroupTypes = ["None", "Compile", "Content", "EmbeddedResource"];
+  var itemGroupTypesAttrs = ["Include", "Update"];
+  var csProjectXPath = '//ns:ItemGroup/ns:##TYPE##[@##ATTR##="##FILE##"]';
+  var xpathRootNamespace = "string(//ns:RootNamespace)";
+  var xpathAssemblyName = "string(//ns:AssemblyName)";
+  function getRootNamespaceFromCsProj(lhqModelFileName, t4FileName, csProjectFileName, csProjectFileContent) {
+    var _a, _b, _c;
+    let referencedLhqFile = false;
+    let referencedT4File = false;
+    let namespaceDynamicExpression = false;
+    if (isNullOrEmpty(csProjectFileName) || isNullOrEmpty(csProjectFileContent)) {
+      return void 0;
+    }
+    let rootNamespace;
+    try {
+      let xpathSelect = void 0;
+      let rootNode = void 0;
+      const fileContent = tryRemoveBOM(csProjectFileContent);
+      if (typeof window !== "undefined" && typeof window.DOMParser !== "undefined") {
+        DOMParser = window.DOMParser;
+      } else {
+        DOMParser = import_xmldom.DOMParser;
+      }
+      const doc = new DOMParser().parseFromString(fileContent, "text/xml");
+      rootNode = doc;
+      const rootNs = ((_a = doc.documentElement) == null ? void 0 : _a.namespaceURI) || "";
+      const ns = isNullOrEmpty(rootNs) ? null : rootNs;
+      xpathSelect = xpath.useNamespaces({ ns: rootNs });
+      const findFileElement = function(fileName) {
+        for (const itemGroupType of itemGroupTypes) {
+          for (const attr of itemGroupTypesAttrs) {
+            const xpathQuery = csProjectXPath.replace("##TYPE##", itemGroupType).replace("##ATTR##", attr).replace("##FILE##", fileName);
+            const element = xpathSelect(xpathQuery, rootNode, true);
+            if (element) {
+              return element;
+            }
+          }
+        }
+        return void 0;
+      };
+      rootNamespace = xpathSelect(xpathRootNamespace, rootNode, true);
+      referencedLhqFile = findFileElement(lhqModelFileName.basename) != void 0;
+      const t4FileElement = findFileElement(t4FileName);
+      if (t4FileElement) {
+        referencedT4File = true;
+        const dependentUpon = (_b = t4FileElement.getElementsByTagNameNS(ns, "DependentUpon")[0]) == null ? void 0 : _b.textContent;
+        if (dependentUpon && dependentUpon === lhqModelFileName.basename) {
+          referencedLhqFile = true;
+        }
+        const customToolNamespace = (_c = t4FileElement.getElementsByTagNameNS(ns, "CustomToolNamespace")[0]) == null ? void 0 : _c.textContent;
+        if (customToolNamespace) {
+          rootNamespace = customToolNamespace;
+        }
+      }
+      if (!rootNamespace) {
+        rootNamespace = xpathSelect(xpathAssemblyName, rootNode, true);
+      }
+      if (!isNullOrEmpty(rootNamespace)) {
+        const regexMsBuildProp = /\$\((.*?)(?:\)(?!\)))/g;
+        const match = [...rootNamespace.matchAll(regexMsBuildProp)];
+        namespaceDynamicExpression = match.length > 0;
+      }
+    } catch (e) {
+      console.error("Error getting root namespace.", e);
+      rootNamespace = void 0;
+    }
+    return { csProjectFileName, t4FileName, namespace: rootNamespace, referencedLhqFile, referencedT4File, namespaceDynamicExpression };
+  }
+
+  // src/fileUtils.ts
+  var fileUtils_exports = {};
+  __export(fileUtils_exports, {
+    readFileInfo: () => readFileInfo,
+    safeReadFile: () => safeReadFile
+  });
+  function safeReadFile(fileName, pathExists, readFile) {
+    return __async(this, null, function* () {
+      if (!(yield pathExists(fileName))) {
+        throw new Error(`File '${fileName}' not found.`);
+      }
+      const content = yield readFile(fileName, { encoding: "utf-8" });
+      return isNullOrEmpty(content) ? "" : tryRemoveBOM(content);
+    });
+  }
+  var formatRelativePath = (p) => {
+    const h = p.slice(0, 1);
+    const res = h === "." ? p : h === "/" ? `.${p}` : `./${p}`;
+    return res.replace("\\", "/");
+  };
+  function readFileInfo(inputPath, platformPath, pathExists, readFile, options) {
+    return __async(this, null, function* () {
+      var _a;
+      if (isNullOrEmpty(inputPath)) {
+        throw new Error(`Parameter 'inputPath' could not be undefined or empty!`);
+      }
+      options = Object.assign({
+        fileMustExist: false,
+        rootFolder: void 0,
+        formatRelative: false,
+        loadContent: false,
+        encoding: "utf-8"
+      }, options != null ? options : {});
+      let rootFolder = void 0;
+      const hasRootFolder = options.rootFolder !== void 0 && options.rootFolder !== null;
+      if (hasRootFolder) {
+        rootFolder = typeof options.rootFolder === "string" ? options.rootFolder : options.rootFolder.full;
+      }
+      const isAbsolute = platformPath.isAbsolute(inputPath);
+      if (!isAbsolute && rootFolder === void 0) {
+        throw new Error(`Parameter 'rootFolder' is required when 'inputPath' is relative!`);
+      }
+      const full = isAbsolute ? inputPath : platformPath.join(rootFolder, inputPath);
+      if (rootFolder && platformPath.relative(rootFolder, full).startsWith("../")) {
+        throw new Error(`File '${inputPath}' is outside of root folder '${rootFolder}'!`);
+      }
+      let relative;
+      if (hasRootFolder) {
+        relative = isAbsolute ? platformPath.relative(rootFolder, inputPath) : inputPath;
+        relative = relative.replace(/\\/g, "/");
+        if (options.formatRelative === true) {
+          relative = formatRelativePath(relative);
+        }
+        if (relative.startsWith("../")) {
+          throw new Error(`File '${inputPath}' is outside of root folder '${rootFolder}'!`);
+        }
+      }
+      const exist = yield pathExists(full);
+      if (!exist && options.fileMustExist === true) {
+        throw new Error(`File '${inputPath}' does not exist!`);
+      }
+      const basename = platformPath.basename(full);
+      const dirname = platformPath.dirname(full);
+      const ext = platformPath.extname(full);
+      const extless = platformPath.basename(full, ext);
+      let content = void 0;
+      if (options.loadContent === true) {
+        const encoding = (_a = options.encoding) != null ? _a : null;
+        content = yield readFile(full, { encoding });
+        if (typeof content === "string") {
+          content = isNullOrEmpty(content) ? "" : tryRemoveBOM(content);
+        }
+      }
+      return { full, relative, exist, basename, dirname, ext, extless, content };
+    });
+  }
   return __toCommonJS(index_exports);
 })();

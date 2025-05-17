@@ -3,16 +3,18 @@ import { expect } from 'chai';
 import { glob } from 'glob';
 import fse from 'fs-extra';
 
-import { createRootElement, detectLineEndings, serializeLhqModelToString, serializeRootElement } from '../src/generatorUtils';
+import { createRootElement, createTreeElementPaths, serializeLhqModelToString, serializeRootElement } from '../src/generatorUtils';
 import { folders, safeReadFile, verify } from './testUtils';
-import { replaceLineEndings } from '../src/utils';
+import { detectLineEndings, replaceLineEndings } from '../src/utils';
 import { LhqModel } from '../src/api/schemas';
 import { ICodeGeneratorElement } from '../src/api';
+import { CategoryElement } from '../src/model/categoryElement';
+import { ResourceElement } from '../src/model/resourceElement';
 
 setTimeout(async () => {
 
-    //const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
-    const lhqFiles = ['NetCoreResxCsharp01/Strings.lhq'];
+    // const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
+    const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
 
     describe('serialize and deserialize in memory', () => {
         lhqFiles.forEach(lhqFile => {
@@ -21,18 +23,36 @@ setTimeout(async () => {
 
                 const file = path.join(folders().templates, lhqFile);
                 const content = await safeReadFile(file);
-                const lineEndings = detectLineEndings(content);
+                const lineEndings = detectLineEndings(content)!;
                 const model = JSON.parse(content) as LhqModel;
 
                 const root = createRootElement(model);
                 const serializedModel = serializeRootElement(root);
 
                 expect(model).to.deep.eq(serializedModel);
+                expect(root.isRoot).to.be.true;
+
+                if (root.hasCategories) {
+                    expect(root.categories[0].isRoot).to.be.false;
+                }
+
+                if (root.hasResources) {
+                    expect(root.resources[0].isRoot).to.be.false;
+                }
+
+                if (ident === 'NetCoreResxCsharp01\\Strings') {
+                    const rp = root.paths.getPaths(true);
+
+                    const paths = createTreeElementPaths('/Cars/Diesel/Old', '/');
+                    const f1 = root.getElementByPath(paths, 'resource');
+                    console.log('f1', f1);
+                }
 
                 const changedModelJson = serializeLhqModelToString(model, lineEndings);
                 const changedModelBuffer = Buffer.from(changedModelJson, 'utf-8');
 
-                let snapshotStr = await fse.readFile(file, { encoding: 'utf8' });
+                //let snapshotStr = await fse.readFile(file, { encoding: 'utf8' });
+                let snapshotStr = await safeReadFile(file);
                 const snapshotModel = JSON.parse(snapshotStr) as LhqModel;
                 snapshotStr = replaceLineEndings(JSON.stringify(snapshotModel, null, 2), lineEndings);
                 const snapshot = Buffer.from(snapshotStr, 'utf-8');
@@ -203,6 +223,57 @@ setTimeout(async () => {
             const model = serializeRootElement(root);
             const modelJson = replaceLineEndings(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize06`, modelJson, 'text', 'json');
+        });
+    });
+
+    describe('LHQ Model Tree paths', () => {
+        it('get tree paths', async function () {
+            const lhqFile = 'NetCoreResxCsharp01\\Strings.lhq';
+            const file = path.join(folders().templates, lhqFile);
+            const content = await safeReadFile(file);
+            const model = JSON.parse(content) as LhqModel;
+
+            const root = createRootElement(model);
+
+            let paths = root.paths;
+            expect(paths).not.undefined;
+
+            // paths for root element
+            expect(paths.getParentPath('/', true), 'root1').to.equal(`/${root.name}`);
+            expect(paths.getParentPath('/', false), 'root2').to.equal(`/`);
+            expect(paths.getParentPath('/'), 'root3').to.equal(`/`);
+
+            // paths for child elements
+            paths = root.getCategory('Cars')?.paths!;
+            expect(paths).not.undefined;
+            expect(paths.getParentPath('/', true), 'cars1').to.equal(`/Strings/Cars`);
+            expect(paths.getParentPath('/', false), 'cars2').to.equal(`/Cars`);
+            expect(paths.getParentPath('/'), 'cars3').to.equal(`/Cars`);
+
+            // create tree element paths
+            expect(createTreeElementPaths('/Cars/Diesel/Old', '/').getParentPath('/', true), 'paths1').to.equal('/Cars/Diesel/Old');
+            expect(createTreeElementPaths('/Cars/Diesel/Old').getParentPath('/', true), 'paths2').to.equal('/Cars/Diesel/Old');
+            expect(createTreeElementPaths('/Cars/Diesel/Old').getParentPath('/', false), 'paths3').to.equal('/Diesel/Old');
+            expect(createTreeElementPaths('/Cars/Diesel/Old').getParentPath('/'), 'paths4').to.equal('/Diesel/Old');
+            expect(createTreeElementPaths('@Cars@Diesel@Old', '@').getParentPath('@', true), 'paths5').to.equal('@Cars@Diesel@Old');
+
+            expect(root.getElementByPath(createTreeElementPaths('/Cars/Diesel/Old'), 'resource')).be.undefined;
+            
+            const category_Old = root.getElementByPath(createTreeElementPaths('/Cars/Diesel/Old'), 'category');
+            expect(category_Old).not.undefined;
+            expect(category_Old).to.be.instanceOf(CategoryElement);
+
+            expect(category_Old?.getElementByPath(createTreeElementPaths('/Old_Kia'), 'resource'), 'res1').not.undefined;
+            expect(category_Old?.getElementByPath(createTreeElementPaths('Old_Kia'), 'resource'), 'res2').not.undefined;
+
+            const resource_OldKia = root.getElementByPath(createTreeElementPaths('/Cars/Diesel/Old/Old_Kia'), 'resource');
+            expect(resource_OldKia).not.undefined;
+            expect(resource_OldKia).to.be.instanceOf(ResourceElement);
+
+            const category_Diesel = root.getElementByPath(createTreeElementPaths('/Cars/Diesel'), 'category');
+            expect(category_Diesel?.getElementByPath(createTreeElementPaths('/Old/Old_Kia'), 'resource'), 'getElemByPath1').not.undefined;
+            expect(category_Diesel?.getElementByPath(createTreeElementPaths('Old/Old_Kia'), 'resource'), 'getElemByPath2').not.undefined;
+
         });
     });
 

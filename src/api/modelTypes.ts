@@ -25,7 +25,6 @@ export interface ITreeElement {
      * Gets the root of the tree.
      */
     get root(): Readonly<IRootModelElement>;
-    //getRoot(): Readonly<IRootModelElement>;
 
     /**
      * Gets the name of the tree element.
@@ -118,6 +117,30 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
      * @param name - The name of the resource to remove.
      */
     removeResource(name: string): void;
+
+    /**
+     * Retrieves a child element by full element paths, like `category1/category2/resource`.
+     * @param elementPaths - The paths to the child element.
+     * @param elementType - The type of the child element (category or resource).
+     * @returns The child element if found, otherwise undefined.
+     */
+    getElementByPath(elementPaths: ITreeElementPaths, elementType: 'category'): ICategoryElement | undefined;
+    getElementByPath(elementPaths: ITreeElementPaths, elementType: 'resource'): IResourceElement | undefined;
+    getElementByPath(elementPaths: ITreeElementPaths, elementType: Exclude<TreeElementType, 'model'>): ITreeElement | undefined;
+
+    /**
+     * Retrieves a child element by name.
+     * @param name - The name of the child element.
+     * @returns The child element if found, otherwise undefined.
+     */
+    getCategory(name: string): ICategoryElement | undefined;
+
+    /**
+     * Retrieves a resource element by name.
+     * @param name - The name of the resource element.
+     * @returns The resource element if found, otherwise undefined.
+     */
+    getResource(name: string): IResourceElement | undefined;
 }
 
 /**
@@ -431,9 +454,16 @@ export interface IResourceValueElement {
  */
 export interface ITreeElementPaths {
     /**
+     * Retrieves the paths of the tree element.
+     * @param includeRoot - Whether to include the root in the path (optional, default is false).
+     * @returns The paths of the tree element.
+     */
+    getPaths(includeRoot?: boolean): string[];
+
+    /**
      * Retrieves the parent path of the tree element.
      * @param separator - The separator to use in the path.
-     * @param includeRoot - Whether to include the root in the path (optional).
+     * @param includeRoot - Whether to include the root in the path (optional, default is false).
      * @returns The parent path of the tree element.
      */
     getParentPath(separator: string, includeRoot?: boolean): string;

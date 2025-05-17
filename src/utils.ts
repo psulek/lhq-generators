@@ -1,5 +1,6 @@
 import { search as jmespath } from 'jmespath';
 import type { KeysMatching, TextEncodeOptions } from './types';
+import type { LhqModelLineEndings } from '.';
 
 const regexLF = new RegExp('\\r\\n|\\r', 'g');
 const regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
@@ -51,6 +52,31 @@ export function replaceLineEndings(value: string, lineEndings: 'CRLF' | 'LF'): s
  */
 export function tryRemoveBOM(value: string): string {
     return isNullOrEmpty(value) ? value : (value.charCodeAt(0) === 0xFEFF ? value.slice(1) : value);
+}
+
+/**
+ * Detects the line endings in a string and returns the type of line endings used.
+ *
+ * @param content - The string to check for line endings.
+ * @returns The type of line endings used in the string, either 'CRLF' or 'LF'.
+ */
+export function detectLineEndings(content: string, defaultValue: LhqModelLineEndings | undefined = 'CRLF'): LhqModelLineEndings | undefined {
+    const match = content.match(/\r\n|\n/);
+    const lineEnding = match ? match[0] : ''
+    if (lineEnding !== '\r\n' && lineEnding !== '\n') {
+        return defaultValue;
+    }
+    return lineEnding === '\r\n' ? 'CRLF' : 'LF';
+}
+
+/**
+ * Returns the line endings based on the specified model line endings.
+ *
+ * @param modelLineEndings - The model line endings to use.
+ * @returns The string representation of the line endings, either '\r\n' or '\n'.
+ */
+export function getLineEndingsRaw(modelLineEndings: LhqModelLineEndings): string {
+    return modelLineEndings === 'CRLF' ? '\r\n' : '\n';
 }
 
 /**
@@ -213,7 +239,7 @@ export function sortObjectByValue<T>(obj: Record<string, T>, predicate: (item: T
     }));
 }
 
-export function stringCompare(a: string, b: string, caseSensitive: boolean): boolean { 
+export function stringCompare(a: string, b: string, caseSensitive: boolean): boolean {
     if (caseSensitive) {
         return a === b;
     }

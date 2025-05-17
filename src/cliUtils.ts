@@ -1,87 +1,84 @@
 import path from 'node:path';
 import fse from 'fs-extra';
 
-import { type PlatformPath } from 'node:path'; 
 
+// import { type FileInfo, type ReadFileInfoOptions, isNullOrEmpty, tryRemoveBOM } from './index'
 
+// export async function safeReadFile(fileName: string): Promise<string> {
+//     if (!(await fse.pathExists(fileName))) {
+//         throw new Error(`File '${fileName}' not found.`);
+//     }
 
-import { type FileInfo, type ReadFileInfoOptions, isNullOrEmpty, tryRemoveBOM } from './index'
+//     const content = await fse.readFile(fileName, { encoding: 'utf-8' });
+//     return isNullOrEmpty(content) ? '' : tryRemoveBOM(content);
+// }
 
-export async function safeReadFile(fileName: string): Promise<string> {
-    if (!(await fse.pathExists(fileName))) {
-        throw new Error(`File '${fileName}' not found.`);
-    }
+// const formatRelativePath = (p: string): string => {
+//     const h = p.slice(0, 1);
+//     const res = h === '.' ? p : (h === '/' ? `.${p}` : `./${p}`);
+//     return res.replace('\\', '/');
+// };
 
-    const content = await fse.readFile(fileName, { encoding: 'utf-8' });
-    return isNullOrEmpty(content) ? '' : tryRemoveBOM(content);
-}
+// export async function readFileInfo(inputPath: string, options?: ReadFileInfoOptions): Promise<FileInfo> {
+//     if (isNullOrEmpty(inputPath)) {
+//         throw new Error(`Parameter 'inputPath' could not be undefined or empty!`);
+//     }
 
-const formatRelativePath = (p: string): string => {
-    const h = p.slice(0, 1);
-    const res = h === '.' ? p : (h === '/' ? `.${p}` : `./${p}`);
-    return res.replace('\\', '/');
-};
+//     options = Object.assign<ReadFileInfoOptions, Partial<ReadFileInfoOptions>>({
+//         fileMustExist: false,
+//         rootFolder: undefined,
+//         formatRelative: false,
+//         loadContent: false,
+//         encoding: 'utf-8',
+//     }, options ?? {});
 
-export async function readFileInfo(inputPath: string, options?: ReadFileInfoOptions): Promise<FileInfo> {
-    if (isNullOrEmpty(inputPath)) {
-        throw new Error(`Parameter 'inputPath' could not be undefined or empty!`);
-    }
+//     let rootFolder: string | undefined = undefined;
+//     const hasRootFolder = options.rootFolder !== undefined && options.rootFolder !== null;
+//     if (hasRootFolder) {
+//         rootFolder = typeof options.rootFolder === 'string' ? options.rootFolder : options.rootFolder!.full;
+//     }
 
-    options = Object.assign<ReadFileInfoOptions, Partial<ReadFileInfoOptions>>({
-        fileMustExist: false,
-        rootFolder: undefined,
-        formatRelative: false,
-        loadContent: false,
-        encoding: 'utf-8',
-    }, options ?? {});
+//     const isAbsolute = path.isAbsolute(inputPath);
+//     if (!isAbsolute && rootFolder === undefined) {
+//         throw new Error(`Parameter 'rootFolder' is required when 'inputPath' is relative!`);
+//     }
 
-    let rootFolder: string | undefined = undefined;
-    const hasRootFolder = options.rootFolder !== undefined && options.rootFolder !== null;
-    if (hasRootFolder) {
-        rootFolder = typeof options.rootFolder === 'string' ? options.rootFolder : options.rootFolder!.full;
-    }
+//     const full = isAbsolute ? inputPath : path.join(rootFolder!, inputPath);
+//     if (rootFolder && path.relative(rootFolder, full).startsWith('../')) {
+//         throw new Error(`File '${inputPath}' is outside of root folder '${rootFolder}'!`);
+//     }
 
-    const isAbsolute = path.isAbsolute(inputPath);
-    if (!isAbsolute && rootFolder === undefined) {
-        throw new Error(`Parameter 'rootFolder' is required when 'inputPath' is relative!`);
-    }
+//     let relative: string | undefined;
+//     if (hasRootFolder) {
+//         relative = isAbsolute ? path.relative(rootFolder!, inputPath) : inputPath;
+//         relative = relative.replace(/\\/g, '/');
+//         if (options.formatRelative === true) {
+//             relative = formatRelativePath(relative);
+//         }
 
-    const full = isAbsolute ? inputPath : path.join(rootFolder!, inputPath);
-    if (rootFolder && path.relative(rootFolder, full).startsWith('../')) {
-        throw new Error(`File '${inputPath}' is outside of root folder '${rootFolder}'!`);
-    }
+//         if (relative.startsWith('../')) {
+//             throw new Error(`File '${inputPath}' is outside of root folder '${rootFolder}'!`);
+//         }
+//     }
 
-    let relative: string | undefined;
-    if (hasRootFolder) {
-        relative = isAbsolute ? path.relative(rootFolder!, inputPath) : inputPath;
-        relative = relative.replace(/\\/g, '/');
-        if (options.formatRelative === true) {
-            relative = formatRelativePath(relative);
-        }
+//     const exist = fse.pathExistsSync(full);
+//     if (!exist && options.fileMustExist === true) {
+//         throw new Error(`File '${inputPath}' does not exist!`);
+//     }
 
-        if (relative.startsWith('../')) {
-            throw new Error(`File '${inputPath}' is outside of root folder '${rootFolder}'!`);
-        }
-    }
+//     const basename = path.basename(full);
+//     const dirname = path.dirname(full);
+//     const ext = path.extname(full);
+//     const extless = path.basename(full, ext);
 
-    const exist = fse.pathExistsSync(full);
-    if (!exist && options.fileMustExist === true) {
-        throw new Error(`File '${inputPath}' does not exist!`);
-    }
+//     let content: string | Buffer | undefined = undefined;
+//     if (options.loadContent === true) {
+//         const encoding = options.encoding ?? null;
+//         content = await fse.readFile(full, { encoding: encoding });
+//         if (typeof content === 'string') {
+//             content = isNullOrEmpty(content) ? '' : tryRemoveBOM(content);
+//         }
+//     }
 
-    const basename = path.basename(full);
-    const dirname = path.dirname(full);
-    const ext = path.extname(full);
-    const extless = path.basename(full, ext);
-
-    let content: string | Buffer | undefined = undefined;
-    if (options.loadContent === true) {
-        const encoding = options.encoding ?? null;
-        content = await fse.readFile(full, { encoding: encoding });
-        if (typeof content === 'string') {
-            content = isNullOrEmpty(content) ? '' : tryRemoveBOM(content);
-        }
-    }
-
-    return { full, relative: relative, exist, basename, dirname, ext: ext, extless: extless, content };
-}
+//     return { full, relative: relative, exist, basename, dirname, ext: ext, extless: extless, content };
+// }

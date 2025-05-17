@@ -1,4 +1,4 @@
-import './utils.test';
 import './model.tests';
-import './generator.tests';
+import './utils.test';
 import './namespaces.test'
+import './generator.tests';

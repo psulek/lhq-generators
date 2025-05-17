@@ -1,7 +1,6 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
-import type { LhqModelDataNode } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
-import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, ITreeElement } from '../api/modelTypes';
+import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementType } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
@@ -47,7 +46,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
 
         super.populate(model);
     }
-
+    
     protected bindToModel(model: Partial<LhqModel>): void {
         super.bindToModel(model);
         model.model = {

@@ -6,7 +6,7 @@ import { getGeneratedFileContent } from '../src/generatorUtils.js';
 import { GeneratedFile, GeneratorInitialization, HostEnvironment, LhqModel } from '../src/index.js';
 import { Generator } from '../src/generator.js';
 import { safeReadFile, verifyFile } from './testUtils.js';
-import { readFileInfo } from '../src/cliUtils.js';
+import * as fileUtils from './fileUtils.js';
 
 import { folders } from './testUtils.js';
 import { findNamespaceForModel } from '../src/namespaceUtils.js';
@@ -40,11 +40,11 @@ async function generateFromLhq(folder: string): Promise<void> {
     const csProjectFiles = await glob('*.csproj', { cwd: testDir, nodir: true });
     const csProjectFileName = path.join(testDir, csProjectFiles[0]);
     //const csProjectContent = await safeReadFile(csProjectFile);
-    const csProjectFile = await readFileInfo(csProjectFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
+    const csProjectFile = await fileUtils.readFileInfo(csProjectFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
 
 
     const lhqFileName = path.join(testDir, 'Strings.lhq');
-    const lhqFile = await readFileInfo(lhqFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
+    const lhqFile = await fileUtils.readFileInfo(lhqFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
 
     const rootNamespace = findNamespaceForModel(lhqFile, [csProjectFile]);
     //const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', csProjectFile, csProjectContent)!;
