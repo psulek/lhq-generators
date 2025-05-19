@@ -5,6 +5,11 @@ export class TreeElementPaths implements ITreeElementPaths {
     private paths: string[] = [];
 
     constructor(element: ITreeElement) {
+        this.refresh(element)
+    }
+
+    public refresh(element: ITreeElement): void {
+        this.paths = [];
         if (element) {
             if (element.parent) {
                 const parentPaths = element.parent.paths;
@@ -44,7 +49,7 @@ export class TreeElementPaths implements ITreeElementPaths {
 
         let p = this.paths;
         if (!includeRoot && this.paths.length > 0) {
-             p = this.paths.slice(1);
+            p = this.paths.slice(1);
         }
 
         return separator + p.join(separator);

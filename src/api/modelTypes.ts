@@ -67,6 +67,15 @@ export interface ITreeElement {
      * e.g. Generator using this data to store temporary data defined dynamically by template run, resets on each template run.
      */
     get data(): Readonly<Record<string, unknown>>;
+
+    /**
+     * Changes the parent of the current tree element.
+     * @param newParent - The new parent element, undefined if the element is root.
+     * @returns True if the parent was changed successfully, otherwise false.
+     * Checks will be performed to ensure the new parent does not already contain the element (category or resource) with the same name.
+     * Also if current parent is the same as new parent, no changes will be made and true will be returned.
+     */
+    changeParent(newParent: ICategoryLikeTreeElement | undefined): boolean;
 }
 
 /**
@@ -119,6 +128,14 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
     removeResource(name: string): void;
 
     /**
+     * Removes a child element (category or resource) from the current element.
+     * @param element - The child element to remove.
+     * @remarks check is made by reference, not by name so current element has have reference to the element in either categories or resources list.
+     * Error is not thrown if element is not found in either list.
+     */
+    removeElement(element: ITreeElement): void;
+
+    /**
      * Retrieves a child element by full element paths, like `category1/category2/resource`.
      * @param elementPaths - The paths to the child element.
      * @param elementType - The type of the child element (category or resource).
@@ -141,6 +158,14 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
      * @returns The resource element if found, otherwise undefined.
      */
     getResource(name: string): IResourceElement | undefined;
+
+    /**
+     * Checks if the element (category or resource) exists by name and type.
+     * @param name - The name of the element.
+     * @param elementType - The type of the element.
+     * @returns true if the element exists, otherwise false.
+     */
+    hasElement(name: string, elementType: Exclude<TreeElementType, 'model'>): boolean;
 }
 
 /**

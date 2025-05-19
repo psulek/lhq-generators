@@ -2,6 +2,7 @@ import { isNullOrEmpty } from '../utils';
 import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths } from '../api/modelTypes';
 import { TreeElementPaths } from './treeElementPaths';
 import type { ILhqModelType } from '../api/schemas';
+import type { ICategoryLikeTreeElementOperations } from './types';
 
 export abstract class TreeElementBase implements ITreeElement {
     abstract get isRoot(): boolean;
@@ -14,6 +15,8 @@ export abstract class TreeElementBase implements ITreeElement {
     abstract get description(): string | undefined;
     abstract set description(description: string);
     abstract get paths(): Readonly<ITreeElementPaths>;
+
+    abstract changeParent(newParent: ICategoryLikeTreeElement | undefined): boolean;
 
     public debugSerialize(): string {
         const seen = new WeakSet<ITreeElement>();
@@ -52,8 +55,6 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         this._elementType = elementType;
         this._root = isNullOrEmpty(root) && isNullOrEmpty(parent) ? this as unknown as IRootModelElement : root;
         this._isRoot = isNullOrEmpty(parent);
-        //this._isRoot = isNullOrEmpty(root) && isNullOrEmpty(parent);
-        //this._root = this._isRoot ? undefined : root;
         this._parent = parent;
         this._paths = new TreeElementPaths(this);
         this._data = {};
@@ -63,16 +64,45 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
 
     public abstract mapToModel(): TModel;
 
-    // public getRoot = (): IRootModelElement => {
-    //     return this._isRoot ? this as unknown as IRootModelElement : this._root!;
-    // }
-
     public addToTempData = (key: string, value: unknown): void => {
         this._data[key] = value;
     }
 
     public clearTempData = (): void => {
         this._data = {};
+    }
+
+    public changeParent(newParent: ICategoryLikeTreeElement | undefined): boolean {
+        // cant change if its the root or if its resource element
+        if (this.isRoot || (newParent?.elementType === 'resource')) {
+            return false;
+        }
+
+        if (newParent === undefined) {
+            newParent = this.root;
+        }
+
+        // Check if the new parent is the same as the current parent
+        if (newParent === this._parent) {
+            return true;
+        }
+
+        const elemType = this.elementType as Exclude<TreeElementType, 'model'>;
+
+        //if (newParent.getElementByPath(TreeElementPaths.parse(this.name, '/'), elemType)) {
+        if (newParent.hasElement(this.name, elemType)) {
+            return false;
+        }
+
+        (this.parent ?? this.root).removeElement(this);
+
+        (newParent as unknown as ICategoryLikeTreeElementOperations).addElement(this);
+
+        this._parent = newParent;
+
+        (this._paths as TreeElementPaths).refresh(this);
+
+        return true;
     }
 
     public get isRoot(): boolean {
@@ -96,7 +126,10 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
     }
 
     public set name(name: string) {
-        this._name = name;
+        if (this._name !== name) {
+            this._name = name;
+            (this._paths as TreeElementPaths).refresh(this);
+        }
     }
 
     public get elementType(): TreeElementType {

@@ -7,14 +7,14 @@ import { createRootElement, createTreeElementPaths, serializeLhqModelToString, s
 import { folders, safeReadFile, verify } from './testUtils';
 import { detectLineEndings, replaceLineEndings } from '../src/utils';
 import { LhqModel } from '../src/api/schemas';
-import { ICodeGeneratorElement } from '../src/api';
+import { ICodeGeneratorElement, IResourceElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
 
 setTimeout(async () => {
 
-    // const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
-    const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
+    const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
+    // const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
 
     describe('serialize and deserialize in memory', () => {
         lhqFiles.forEach(lhqFile => {
@@ -226,7 +226,7 @@ setTimeout(async () => {
         });
     });
 
-    describe('LHQ Model Tree paths', () => {
+    describe('LHQ Model operations', () => {
         it('get tree paths', async function () {
             const lhqFile = 'NetCoreResxCsharp01\\Strings.lhq';
             const file = path.join(folders().templates, lhqFile);
@@ -274,6 +274,68 @@ setTimeout(async () => {
             expect(category_Diesel?.getElementByPath(createTreeElementPaths('/Old/Old_Kia'), 'resource'), 'getElemByPath1').not.undefined;
             expect(category_Diesel?.getElementByPath(createTreeElementPaths('Old/Old_Kia'), 'resource'), 'getElemByPath2').not.undefined;
 
+        });
+
+        function createSampleModel(): IRootModelElement {
+            const root = createRootElement();
+            root.name = 'RootElement';
+            root.description = 'Root description';
+            root.primaryLanguage = 'sk';
+
+            expect(root.paths.getParentPath('/', true), 'root_path1').to.equal(`/RootElement`);
+
+            const category1 = root.addCategory('Category1');
+            category1.description = 'Category 1 description';
+            expect(category1.paths.getParentPath('/', true), 'category1_path1').to.equal('/RootElement/Category1');
+
+            const resource1 = category1.addResource('Resource1');
+            resource1.description = 'Resource 1 description';
+            resource1.addValue('sk', 'Value 1');
+
+            const category2 = root.addCategory('Category2');
+            category2.description = 'Category 2 description';
+
+            const resource2 = category2.addResource('Resource2');
+            resource2.description = 'Resource 2 description';
+            resource2.addValue('sk', 'Value 2');
+
+            return root;
+        }
+
+        it('change parent of element', async function () {
+            // const root = createRootElement();
+            // const category1 = root.addCategory('Category1');
+            // const resource1 = category1.addResource('Resource1');
+
+            // const category2 = root.addCategory('Category2');
+            const root = createSampleModel();
+            const category1 = root.getCategory('Category1')!;
+            const category2 = root.getCategory('Category2')!;
+            const resource1 = category1.getResource('Resource1')!;
+
+            expect(resource1.paths.getParentPath('/', true), 'path1').to.equal('/RootElement/Category1/Resource1');
+
+            let result = resource1.changeParent(category2);
+
+            expect(result).to.be.true;
+            expect(resource1.parent).to.equal(category2);
+
+            expect(category1.getElementByPath(createTreeElementPaths('Resource1'), 'resource')).be.undefined;
+            expect(category2.getElementByPath(createTreeElementPaths('Resource1'), 'resource')).not.undefined;
+
+            expect(resource1.paths.getParentPath('/', true), 'path2').to.equal('/RootElement/Category2/Resource1');
+
+            // change to same category
+            result = resource1.changeParent(category2);
+            expect(result).to.be.true;
+            expect(resource1.parent).to.equal(category2);
+
+            // move category2 under category1
+            result = category2.changeParent(category1);
+            expect(result).to.be.true;
+            expect(category2.parent).to.equal(category1);
+            expect(category1.getElementByPath(createTreeElementPaths('Category2'), 'category')).not.undefined;
+            expect(root.getElementByPath(createTreeElementPaths('Category2'), 'category')).be.undefined;
         });
     });
 

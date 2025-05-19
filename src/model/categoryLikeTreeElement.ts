@@ -3,8 +3,9 @@ import type { ILhqCategoryLikeModelType } from '../api/schemas';
 import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey } from '../utils';
 import { ResourceElement } from './resourceElement';
 import { TreeElement } from './treeElement';
+import type { ICategoryLikeTreeElementOperations } from './types';
 
-export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeModelType = ILhqCategoryLikeModelType> extends TreeElement<TModel> implements ICategoryLikeTreeElement {
+export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeModelType = ILhqCategoryLikeModelType> extends TreeElement<TModel> implements ICategoryLikeTreeElement, ICategoryLikeTreeElementOperations {
     protected _categories: CategoryLikeTreeElement[] | undefined;
     protected _resources: ResourceElement[] | undefined;
     protected _hasCategories = false;
@@ -95,7 +96,15 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         return isNullOrEmpty(name) ? undefined : this.resources.find(x => x.name === name);
     }
 
+    public hasElement(name: string, elementType: Exclude<TreeElementType, 'model'>): boolean {
+        return this.getChildByName(name, elementType) !== undefined;
+    }
+
     private getChildByName(name: string, elementType: TreeElementType): ITreeElement | undefined {
+        if (isNullOrUndefined(name)) {
+            throw new Error('Element name cannot be null or undefined.');
+        }
+
         if (elementType === 'model') {
             throw new Error('Model element cannot be retrieved by name.');
         }
@@ -144,6 +153,25 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         return currentElement?.elementType === elementType ? currentElement : undefined;
     }
 
+    addElement(element: ITreeElement): void {
+        if (element instanceof ResourceElement) {
+            this._resources ??= [];
+            if (!this._resources.includes(element)) {
+                this._resources.push(element);
+                this._hasResources = true;
+            }
+        } else if (element instanceof CategoryLikeTreeElement) {
+            this._categories ??= [];
+            const categElement = element as CategoryLikeTreeElement<ILhqCategoryLikeModelType>;
+            if (!this._categories.includes(categElement)) {
+                this._categories.push(categElement);
+                this._hasCategories = true;
+            }
+        } else {
+            throw new Error(`Could not add element of type ${element.elementType}.`);
+        }
+    }
+
     public addCategory(name: string): ICategoryElement {
         if (isNullOrUndefined(name)) {
             throw new Error('Category name cannot be null or undefined.');
@@ -163,6 +191,24 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
                 this._categories.splice(index, 1);
                 this._hasCategories = this._categories.length > 0;
             }
+        }
+    }
+
+    public removeElement(element: ITreeElement): void {
+        if (element instanceof ResourceElement && this._resources) {
+            const idx = this._resources.findIndex(x => x.name === element.name);
+            if (idx !== -1) {
+                this._resources.splice(idx, 1);
+                this._hasResources = this._resources.length > 0;
+            }
+        } else if (element instanceof CategoryLikeTreeElement && this._categories) {
+            const idx = this._categories.findIndex(x => x.name === element.name);
+            if (idx !== -1) {
+                this._categories.splice(idx, 1);
+                this._hasCategories = this._categories.length > 0;
+            }
+        } else {
+            throw new Error(`Could not remove element of type ${element.elementType}.`);
         }
     }
 
