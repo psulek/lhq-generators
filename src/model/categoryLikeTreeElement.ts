@@ -1,6 +1,6 @@
-import type { ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementType } from '../api/modelTypes';
+import type { CategoryOrResourceType, ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementType } from '../api/modelTypes';
 import type { ILhqCategoryLikeModelType } from '../api/schemas';
-import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey } from '../utils';
+import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
 import { ResourceElement } from './resourceElement';
 import { TreeElement } from './treeElement';
 import type { ICategoryLikeTreeElementOperations } from './types';
@@ -38,7 +38,9 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public populate(source: TModel | undefined): void {
         if (source) {
-            this._description = source.description;
+            if (source.description !== undefined) {
+                this._description = source.description;
+            }
 
             const sourceCategories = source.categories;
             const sourceResources = source.resources;
@@ -89,22 +91,28 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
     }
 
     public getCategory(name: string): ICategoryElement | undefined {
-        return isNullOrEmpty(name) ? undefined : this.categories.find(x => x.name === name);
+        //return isNullOrEmpty(name) ? undefined : this.categories.find(x => x.name === name);
+        return isNullOrEmpty(name) ? undefined : this.categories.find(x => strCompare(x.name, name, true));
     }
 
     public getResource(name: string): IResourceElement | undefined {
-        return isNullOrEmpty(name) ? undefined : this.resources.find(x => x.name === name);
+        return isNullOrEmpty(name) ? undefined : this.resources.find(x => strCompare(x.name, name, true));
     }
 
-    public hasElement(name: string, elementType: Exclude<TreeElementType, 'model'>): boolean {
-        return this.getChildByName(name, elementType) !== undefined;
+    public contains(name: string, elementType: CategoryOrResourceType): boolean {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        return this.find(name, elementType as any) !== undefined;
     }
 
-    private getChildByName(name: string, elementType: TreeElementType): ITreeElement | undefined {
+    public find(name: string, elementType: 'category'): ICategoryElement | undefined;
+    public find(name: string, elementType: 'resource'): IResourceElement | undefined;
+    public find(name: string, elementType: CategoryOrResourceType): ITreeElement | undefined {
         if (isNullOrUndefined(name)) {
             throw new Error('Element name cannot be null or undefined.');
         }
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         if (elementType === 'model') {
             throw new Error('Model element cannot be retrieved by name.');
         }
@@ -114,7 +122,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public getElementByPath(elementPaths: ITreeElementPaths, elementType: 'category'): ICategoryElement | undefined;
     public getElementByPath(elementPaths: ITreeElementPaths, elementType: 'resource'): IResourceElement | undefined;
-    public getElementByPath(elementPaths: ITreeElementPaths, elementType: Exclude<TreeElementType, 'model'>): ITreeElement | undefined {
+    public getElementByPath(elementPaths: ITreeElementPaths, elementType: CategoryOrResourceType): ITreeElement | undefined {
         if (isNullOrUndefined(elementPaths)) {
             throw new Error('Element paths cannot be null or undefined.');
         }
@@ -138,7 +146,8 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
             currentElement = currentElement ?? this;
             if (isLast) {
                 currentElement = currentElement instanceof CategoryLikeTreeElement
-                    ? currentElement.getChildByName(path, elementType)
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+                    ? currentElement.find(path, elementType as any)
                     : undefined;
             } else {
                 currentElement = currentElement instanceof CategoryLikeTreeElement
@@ -186,7 +195,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public removeCategory(name: string): void {
         if (this._categories && !isNullOrEmpty(name)) {
-            const index = this._categories.findIndex(x => x.name === name);
+            const index = this._categories.findIndex(x => strCompare(x.name, name, true));
             if (index !== -1) {
                 this._categories.splice(index, 1);
                 this._hasCategories = this._categories.length > 0;
@@ -196,13 +205,13 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public removeElement(element: ITreeElement): void {
         if (element instanceof ResourceElement && this._resources) {
-            const idx = this._resources.findIndex(x => x.name === element.name);
+            const idx = this._resources.findIndex(x => strCompare(x.name, element.name, true));
             if (idx !== -1) {
                 this._resources.splice(idx, 1);
                 this._hasResources = this._resources.length > 0;
             }
         } else if (element instanceof CategoryLikeTreeElement && this._categories) {
-            const idx = this._categories.findIndex(x => x.name === element.name);
+            const idx = this._categories.findIndex(x => strCompare(x.name, element.name, true));
             if (idx !== -1) {
                 this._categories.splice(idx, 1);
                 this._hasCategories = this._categories.length > 0;
@@ -226,11 +235,22 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     public removeResource(name: string): void {
         if (this._resources && !isNullOrEmpty(name)) {
-            const index = this._resources.findIndex(x => x.name === name);
+            const index = this._resources.findIndex(x => strCompare(x.name, name, true));
             if (index !== -1) {
                 this._resources.splice(index, 1);
                 this._hasResources = this._resources.length > 0;
             }
+        }
+    }
+
+    public childCount(elementType: CategoryOrResourceType): number {
+        if (elementType === 'category') {
+            return this._categories?.length ?? 0;
+        } else if (elementType === 'resource') {
+            return this._resources?.length ?? 0;
+        } else {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            throw new Error(`Invalid element type: ${elementType}`);
         }
     }
 }

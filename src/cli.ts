@@ -14,10 +14,12 @@ import {
     generatorUtils, isNullOrEmpty, jsonParseOrDefault,
     HostEnvironment, objCount,
     getLibraryVersion, namespaceUtils, fileUtils,
-    detectLineEndings
+    detectLineEndings,
+    ModelSerializer,
+    detectFormatting
 } from './index';
 
-import type { GeneratedFile, LhqModel, GeneratorInitialization, FileInfo, ReadFileInfoOptions } from './index'
+import type { GeneratedFile, LhqModel, GeneratorInitialization, FileInfo, ReadFileInfoOptions, FormattingOptions } from './index'
 
 
 //import { readFileInfo, safeReadFile } from './cliUtils';
@@ -141,9 +143,8 @@ async function validateLhqModelFile(lhqFileName: string, verbose: boolean): Prom
 
 async function saveLhqModelFile(model: LhqModel, fileName: string, fileContent?: string): Promise<void> {
     fileContent = fileContent ?? await safeReadFile(fileName);
-    const lineEndings = detectLineEndings(fileContent)!;
-
-    const json = generatorUtils.serializeLhqModelToString(model, lineEndings);
+    const options = detectFormatting(fileContent) ?? {} as FormattingOptions;
+    const json = ModelSerializer.serializeModel(model, options);
     await fse.writeFile(fileName, json, { encoding: 'utf-8' });
 }
 
@@ -245,7 +246,7 @@ async function fixNamespaceForLhqModel(csProjectFileName: string, lhqFileName: s
     model = model ?? JSON.parse(lhqFileContent) as LhqModel;
 
     const namespace = await findNamespaceFromCsProj(csProjectFileName, lhqFileName);
-    const rootModel = generatorUtils.createRootElement(model);
+    const rootModel = ModelSerializer.createRootElement(model);
     const templateId = rootModel.codeGenerator?.templateId ?? '';
     if (!isNullOrEmpty(templateId)) {
         const csharpSettings = rootModel.codeGenerator?.settings?.childs?.find(x => x.name === 'CSharp');
@@ -253,7 +254,7 @@ async function fixNamespaceForLhqModel(csProjectFileName: string, lhqFileName: s
             const currentNamespace = csharpSettings.attrs?.['Namespace'] ?? '';
             if (isNullOrEmpty(currentNamespace)) {
                 csharpSettings.attrs!['Namespace'] = namespace;
-                model = generatorUtils.serializeRootElement(rootModel);
+                model = ModelSerializer.rootElementToModel(rootModel);
                 await saveLhqModelFile(model, lhqFileName, lhqFileContent);
                 console.log(`Namespace '${pc.blueBright(namespace)}' was updated in 'CSharp' settings in file '${pc.yellow(lhqFileName)}'.`);
             }

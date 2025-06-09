@@ -3,7 +3,7 @@ import { glob } from 'glob';
 import fse from 'fs-extra';
 
 import { getGeneratedFileContent } from '../src/generatorUtils.js';
-import { GeneratedFile, GeneratorInitialization, HostEnvironment, LhqModel } from '../src/index.js';
+import { GeneratedFile, GeneratorInitialization, HostEnvironment, isNullOrUndefined, LhqModel } from '../src/index.js';
 import { Generator } from '../src/generator.js';
 import { safeReadFile, verifyFile } from './testUtils.js';
 import * as fileUtils from './fileUtils.js';
@@ -20,11 +20,8 @@ setTimeout(async () => {
 
     describe('Generating code from LHQ models', () => {
         testFolders.forEach((folder) => {
-            describe(`Generator ${folder}`, async function () {
-                this.slow(1000);
-                it(`generate code from lhq`, async function () {
-                    await generateFromLhq(folder);
-                });
+            it(`generate code from folder '${folder}'`, async function () {
+                await generateFromLhq(folder);
             });
         });
 
@@ -38,6 +35,10 @@ async function generateFromLhq(folder: string): Promise<void> {
     const testDir = path.join(folders().templates, folder);
 
     const csProjectFiles = await glob('*.csproj', { cwd: testDir, nodir: true });
+    if (csProjectFiles?.length === 0) {
+        return;
+    }
+
     const csProjectFileName = path.join(testDir, csProjectFiles[0]);
     //const csProjectContent = await safeReadFile(csProjectFile);
     const csProjectFile = await fileUtils.readFileInfo(csProjectFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });

@@ -2,45 +2,9 @@ import * as zodToJsonSchema from 'zod-to-json-schema';
 import { fromZodError, createMessageBuilder } from 'zod-validation-error';
 
 import { type LhqModel, LhqModelSchema } from './api/schemas';
-import { isNullOrEmpty, replaceLineEndings, tryJsonParse } from './utils';
+import { isNullOrEmpty, updateEOL, tryJsonParse } from './utils';
 import type { LhqValidationResult } from './types';
 import type { GeneratedFile } from './api/types';
-import type { IRootModelElement, ITreeElementPaths, LhqModelLineEndings } from './api';
-import { RootModelElement } from './model/rootModelElement';
-import { TreeElementPaths } from './model/treeElementPaths';
-
-/**
- * Creates a new root element for the specified LHQ model data.
- * @param data - The LHQ model data to be used for creating the root element.
- * @returns  The created root element.
- */
-export function createRootElement(data?: LhqModel): IRootModelElement {
-    return new RootModelElement(data);
-}
-
-/*
- * Creates a new tree element paths object for the specified path and separator.
- * @param path - The path to be parsed.
- * @param separator - The separator used to split the path, optional, defaults to `/`.
- * @returns The created tree element paths object.
- */
-export function createTreeElementPaths(path: string, separator: string = '/'): ITreeElementPaths {
-    return TreeElementPaths.parse(path, separator);
-}
-
-export function serializeRootElement(root: IRootModelElement): LhqModel {
-    if (!(root instanceof RootModelElement)) {
-        throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
-    }
-
-    const str = JSON.stringify(root.mapToModel());
-    return JSON.parse(str) as LhqModel;
-}
-
-
-export function serializeLhqModelToString(model: LhqModel, lineEndings: LhqModelLineEndings): string {
-    return replaceLineEndings(JSON.stringify(model, null, 2), lineEndings);
-}
 
 /**
  * Validates the specified data (as JSON object or JSON as string) against the defined `LhqModel` schema.
@@ -91,7 +55,7 @@ export function getGeneratedFileContent(generatedFile: GeneratedFile, applyLineE
         return generatedFile.content;
     }
 
-    return replaceLineEndings(generatedFile.content, generatedFile.lineEndings);
+    return updateEOL(generatedFile.content, generatedFile.lineEndings);
 }
 
 /**

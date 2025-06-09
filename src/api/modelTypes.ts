@@ -8,6 +8,8 @@ import type {
 
 export type TreeElementType = 'model' | 'category' | 'resource';
 
+export type CategoryOrResourceType = Exclude<TreeElementType, 'model'>;
+
 /**
  * Represents a tree element (root, category or resource) from `*.lhq` model file.
  */
@@ -76,6 +78,12 @@ export interface ITreeElement {
      * Also if current parent is the same as new parent, no changes will be made and true will be returned.
      */
     changeParent(newParent: ICategoryLikeTreeElement | undefined): boolean;
+
+    /**
+     * Gets the level of the tree element in the hierarchy.
+     * @returns The level of the tree element, where 0 is the root level.
+     */
+    getLevel(): number;
 }
 
 /**
@@ -112,6 +120,7 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
     /**
      * Removes a category from the categories list.
      * @param name - The name of the category to remove.
+     * @remarks Search is case-insensitive.
      */
     removeCategory(name: string): void;
 
@@ -124,6 +133,7 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
     /**
      * Removes a resource from the resources list.
      * @param name - The name of the resource to remove.
+     * @remarks Search is case-insensitive.
      */
     removeResource(name: string): void;
 
@@ -143,12 +153,13 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
      */
     getElementByPath(elementPaths: ITreeElementPaths, elementType: 'category'): ICategoryElement | undefined;
     getElementByPath(elementPaths: ITreeElementPaths, elementType: 'resource'): IResourceElement | undefined;
-    getElementByPath(elementPaths: ITreeElementPaths, elementType: Exclude<TreeElementType, 'model'>): ITreeElement | undefined;
+    getElementByPath(elementPaths: ITreeElementPaths, elementType: CategoryOrResourceType): ITreeElement | undefined;
 
     /**
      * Retrieves a child element by name.
      * @param name - The name of the child element.
      * @returns The child element if found, otherwise undefined.
+     * @remarks Search is case-insensitive.
      */
     getCategory(name: string): ICategoryElement | undefined;
 
@@ -156,6 +167,7 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
      * Retrieves a resource element by name.
      * @param name - The name of the resource element.
      * @returns The resource element if found, otherwise undefined.
+     * @remarks Search is case-insensitive.
      */
     getResource(name: string): IResourceElement | undefined;
 
@@ -164,8 +176,27 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
      * @param name - The name of the element.
      * @param elementType - The type of the element.
      * @returns true if the element exists, otherwise false.
+     * @remarks Search is case-insensitive.
      */
-    hasElement(name: string, elementType: Exclude<TreeElementType, 'model'>): boolean;
+    contains(name: string, elementType: CategoryOrResourceType): boolean;
+
+    /**
+     * Counts the number of child elements of a specific type.
+     * @param elementType - The type of the child elements to count.
+     * @returns The number of child elements of the specified type.
+     */
+    childCount(elementType: CategoryOrResourceType): number;
+
+    /**
+     * Finds a child element by name and type.
+     * @param name - The name of the child element.
+     * @param elementType - The type of the child element.
+     * @returns true if the child element is found, otherwise false.
+     * @remarks Search is case-insensitive.
+     */
+    find(name: string, elementType: 'category'): ICategoryElement | undefined;
+    find(name: string, elementType: 'resource'): IResourceElement | undefined;
+    find(name: string, elementType: CategoryOrResourceType): ITreeElement | undefined;
 }
 
 /**

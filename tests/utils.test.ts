@@ -16,6 +16,7 @@ import {
     objCount,
     removeNewLines,
     removeProperties,
+    //formatJson,
     //copyObject
 } from '../src/utils';
 
@@ -355,4 +356,12 @@ describe('Utils Functions', () => {
             expect(result).to.equal(input);
         });
     });
+
+    // describe('formatJson', () => {
+    //     it('should format JSON string with specified line endings', () => {
+    //         const input = { a: 1, b: 2, c: 3 };
+    //         const res = formatJson(input);
+    //         expect(res).to.eq(JSON.stringify(input));
+    //     });
+    // });
 });

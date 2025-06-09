@@ -1,6 +1,7 @@
 export { AppError } from './AppError';
 export { Duration } from './duration';
 export { HostEnvironment } from './hostEnv';
+export { ModelSerializer } from './modelSerializer';
 export * from './generator';
 export * as generatorUtils from './generatorUtils';
 export * as namespaceUtils from './namespaceUtils';

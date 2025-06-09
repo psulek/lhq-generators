@@ -1,5 +1,5 @@
 import { isNullOrEmpty } from '../utils';
-import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths } from '../api/modelTypes';
+import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths, CategoryOrResourceType } from '../api/modelTypes';
 import { TreeElementPaths } from './treeElementPaths';
 import type { ILhqModelType } from '../api/schemas';
 import type { ICategoryLikeTreeElementOperations } from './types';
@@ -17,6 +17,10 @@ export abstract class TreeElementBase implements ITreeElement {
     abstract get paths(): Readonly<ITreeElementPaths>;
 
     abstract changeParent(newParent: ICategoryLikeTreeElement | undefined): boolean;
+    abstract getLevel(): number;
+
+    abstract addToTempData(key: string, value: unknown): void;
+    abstract clearTempData(): void;
 
     public debugSerialize(): string {
         const seen = new WeakSet<ITreeElement>();
@@ -87,10 +91,9 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
             return true;
         }
 
-        const elemType = this.elementType as Exclude<TreeElementType, 'model'>;
+        const elemType = this.elementType as CategoryOrResourceType;
 
-        //if (newParent.getElementByPath(TreeElementPaths.parse(this.name, '/'), elemType)) {
-        if (newParent.hasElement(this.name, elemType)) {
+        if (newParent.contains(this.name, elemType)) {
             return false;
         }
 
@@ -103,6 +106,18 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         (this._paths as TreeElementPaths).refresh(this);
 
         return true;
+    }
+
+    public getLevel(): number {
+        let level = 0;
+        let current: ICategoryLikeTreeElement | undefined = this._parent;
+
+        while (current) {
+            level++;
+            current = current.parent;
+        }
+
+        return level;
     }
 
     public get isRoot(): boolean {

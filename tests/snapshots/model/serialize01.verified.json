@@ -1,4 +1,18 @@
 {
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "description": "Test description",
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "TestRootElement",
+    "primaryLanguage": "sk"
+  },
+  "languages": [
+    "en"
+  ],
   "categories": {
     "TestCategory1": {
       "resources": {
@@ -15,20 +29,6 @@
       "description": "Test category 1 description"
     }
   },
-  "model": {
-    "uid": "6ce4d54c5dbd415c93019d315e278638",
-    "version": 3,
-    "options": {
-      "categories": true,
-      "resources": "All"
-    },
-    "name": "TestRootElement",
-    "description": "Test description",
-    "primaryLanguage": "sk"
-  },
-  "languages": [
-    "en"
-  ],
   "metadatas": {
     "childs": [
       {

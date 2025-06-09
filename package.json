@@ -1,6 +1,6 @@
 {
   "name": "@lhq/lhq-generators",
-  "version": "1.0.0-rc.27",
+  "version": "1.0.0-rc.39",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -34,6 +34,7 @@
     "@commander-js/extra-typings": "13.1.0",
     "@xmldom/xmldom": "^0.9.8",
     "commander": "^13.1.0",
+    "detect-indent": "^7.0.1",
     "fs-extra": "11.3.0",
     "glob": "^11.0.1",
     "handlebars": "^4.7.8",

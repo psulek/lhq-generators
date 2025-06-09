@@ -1,4 +1,25 @@
-import type { LhqModel } from './api/schemas';
+import type { LhqModel, LhqModelLineEndings } from './api/schemas';
+//import type detectIndent from 'detect-indent';
+
+export type IndentationType = {
+	/**
+	The type of indentation.
+
+	It is `undefined` if no indentation is detected.
+	*/
+	type?: 'tab' | 'space' | undefined;
+
+	/**
+	The amount of indentation. For example, `2`.
+	*/
+	amount?: number;
+
+	/**
+	The actual indentation.
+	*/
+	indent?: string;
+}
+
 
 export type HbsTemplatesData = {
     [templateId: string]: string;
@@ -14,15 +35,6 @@ export interface IHostEnvironment {
     pathCombine(path1: string, path2: string): string;
     //readonly path: IPathProvider;
 }
-
-// export interface IPathProvider {
-//     join(path1: string, path2: string): string;
-//     exist(path: string): boolean;
-//     dirname(path: string): string;
-//     basename(path: string): string;
-//     ext(path: string): string;
-//     find(pattern: string, options: { cwd: string, nodir: boolean }): string[];
-// }
 
 export type GeneratorInitialization = {
     /**
@@ -78,17 +90,9 @@ export type ReadFileInfoOptions = {
     encoding?: BufferEncoding;
 }
 
-// export type FindFilesOptions = {
-//     cwd: string;
-//     nodir?: boolean;
-//     loadfile?: {
-//         enabled?: boolean;
-//         encoding?: string;
-//     };
-// };
+export type LineEOL = LhqModelLineEndings | '\r\n' | '\n';
 
-// export type FoundedFile = FileInfo & {
-//     content?: string | Buffer;
-// };
-
-// export type FindFilesCallback = (pattern: string, options: FindFilesOptions) => Promise<FoundedFile[]>;
+export type FormattingOptions = {
+    indentation?: IndentationType;
+    eol: LineEOL;
+}

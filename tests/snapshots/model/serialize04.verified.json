@@ -1,13 +1,4 @@
 {
-  "categories": {
-    "Category": {
-      "resources": {
-        "ResourceWithoutDescription": {
-          "state": "New"
-        }
-      }
-    }
-  },
   "model": {
     "uid": "6ce4d54c5dbd415c93019d315e278638",
     "version": 3,
@@ -20,5 +11,14 @@
   },
   "languages": [
     "en"
-  ]
+  ],
+  "categories": {
+    "Category": {
+      "resources": {
+        "ResourceWithoutDescription": {
+          "state": "New"
+        }
+      }
+    }
+  }
 }

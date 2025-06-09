@@ -1,6 +1,7 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
+import type { LhqModelProperties} from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
-import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementType } from '../api/modelTypes';
+import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
@@ -12,7 +13,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
     private _version: LhqModelVersion = ModelVersions.model;
     private _options: LhqModelOptions = { categories: true, resources: 'All' };
     private _primaryLanguage = 'en';
-    private _languages: string[] = ['en'];
+    private _languages: string[] = [];
     private _metadatas: Readonly<LhqModelMetadata> | undefined;
     private _codeGenerator: ICodeGeneratorElement | undefined;
     private _hasLanguages = true;
@@ -34,7 +35,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
             this._hasLanguages = this._languages.length > 0;
             this._metadatas = model.metadatas ? Object.freeze({ ...model.metadatas }) : undefined;
             this._codeGenerator = this.getCodeGenerator(model);
-            //this.populate(model.categories, model.resources);
+            this._description = model.model.description;
         } else {
             this._uid = LhqModelUidSchema.value;
             this._version = ModelVersions.model;
@@ -46,18 +47,30 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
 
         super.populate(model);
     }
-    
+
     protected bindToModel(model: Partial<LhqModel>): void {
-        super.bindToModel(model);
-        model.model = {
+        let primaryLang = this._primaryLanguage;
+        if (isNullOrEmpty(primaryLang) && this._languages.length > 0) {
+            primaryLang = this._languages[0] ?? '';
+        }
+
+        const properties: Partial<LhqModelProperties> = {
             uid: this._uid,
             version: this._version,
-            options: this._options,
-            name: this.name,
-            description: this._description,
-            primaryLanguage: this._primaryLanguage
         };
+
+        if (!isNullOrEmpty(this._description)) {
+            properties.description = this._description;
+        }
+
+        properties.options = this._options;
+        properties.name = this._name
+        properties.primaryLanguage = primaryLang;
+
+        model.model = properties as LhqModelProperties;
         model.languages = this._languages;
+        
+        super.bindToModel(model);
         model.metadatas = this._metadatas;
     }
 

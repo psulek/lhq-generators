@@ -1,6 +1,9 @@
 import { search as jmespath } from 'jmespath';
-import type { KeysMatching, TextEncodeOptions } from './types';
+import type { FormattingOptions, IndentationType, KeysMatching, LineEOL, TextEncodeOptions } from './types';
 import type { LhqModelLineEndings } from '.';
+
+import detectIndent from 'detect-indent';
+
 
 const regexLF = new RegExp('\\r\\n|\\r', 'g');
 const regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
@@ -37,8 +40,15 @@ const encodingCharMaps = {
     }
 };
 
-export function replaceLineEndings(value: string, lineEndings: 'CRLF' | 'LF'): string {
-    return lineEndings === 'LF'
+/**
+ * Updates the line endings in a string based on the specified line endings.
+ *
+ * @param value - The string to process.
+ * @param lineEndings - The desired line endings.
+ * @returns The string with updated line endings.
+ */
+export function updateEOL(value: string, lineEndings: LineEOL): string {
+    return (lineEndings === 'LF' || lineEndings === '\n')
         ? value.replace(regexLF, '\n')
         : value.replace(regexCRLF, '\r\n');
 }
@@ -55,25 +65,80 @@ export function tryRemoveBOM(value: string): string {
 }
 
 /**
+ * Detects the indentation type (tabs or spaces) and amount in a string.
+ *
+ * @param text - The string to check for indentation.
+ * @returns An object containing the type of indentation ('tab' or 'space') and the amount of indentation.
+ */
+export function detectIndentation(text: string): IndentationType {
+    return detectIndent(text);
+}
+
+/**
+ * Detects the formatting options (indentation and line endings) in a string.
+ *
+ * @param text - The string to check for formatting.
+ * @returns An object containing the detected indentation and line endings.
+ */
+export function detectFormatting(text: string): FormattingOptions {
+    if (text) {
+        const indentation = detectIndentation(text);
+        const lineEndings = detectLineEndings(text, 'LF') ?? 'LF';
+        const eol = getLineEndingsRaw(lineEndings) ?? '\n';
+        return { indentation, eol: eol as LineEOL };
+    }
+
+    return { indentation: { amount: 2, type: 'space' }, eol: '\n' };
+}
+
+/**
  * Detects the line endings in a string and returns the type of line endings used.
  *
- * @param content - The string to check for line endings.
+ * @param text - The string to check for line endings.
  * @returns The type of line endings used in the string, either 'CRLF' or 'LF'.
  */
-export function detectLineEndings(content: string, defaultValue: LhqModelLineEndings | undefined = 'CRLF'): LhqModelLineEndings | undefined {
-    const match = content.match(/\r\n|\n/);
-    const lineEnding = match ? match[0] : ''
-    if (lineEnding !== '\r\n' && lineEnding !== '\n') {
-        return defaultValue;
+export function detectLineEndings(text: string, defaultValue: LhqModelLineEndings | undefined = 'CRLF'): LhqModelLineEndings | undefined {
+    if (text) {
+        const match = text.match(/\r\n|\n/);
+        const lineEnding = match ? match[0] : ''
+        if (lineEnding !== '\r\n' && lineEnding !== '\n') {
+            return defaultValue;
+        }
+        return lineEnding === '\r\n' ? 'CRLF' : 'LF';
     }
-    return lineEnding === '\r\n' ? 'CRLF' : 'LF';
+
+    return undefined;
+}
+
+/**
+ * Serializes a JSON object to a string with specified formatting options.
+ *
+ * @typeParam T - The type of the object to serialize.
+ * @param value - The object to serialize.
+ * @param options - The formatting options to use.
+ * @returns The serialized JSON string.
+ */
+export function serializeJson<T>(value: T, options: FormattingOptions): string {
+    const indentation = options.indentation;
+    let indent = '  ';
+    if (indentation) {
+        if (indentation.indent === undefined) {
+            const amount = typeof indentation.amount === 'number' ? indentation.amount : 2;
+            const char = indentation.type === undefined ? ' ' : (indentation.type === 'space' ? ' ' : '\t');
+            indent = char.repeat(amount);
+        } else {
+            indent = indentation.indent
+        }
+    }
+    const eol = options.eol ?? '\n';
+    return updateEOL(JSON.stringify(value, null, indent), eol);
 }
 
 /**
  * Returns the line endings based on the specified model line endings.
  *
  * @param modelLineEndings - The model line endings to use.
- * @returns The string representation of the line endings, either '\r\n' or '\n'.
+ * @returns The string representation of the line endings, either `\r\n` or `\n`.
  */
 export function getLineEndingsRaw(modelLineEndings: LhqModelLineEndings): string {
     return modelLineEndings === 'CRLF' ? '\r\n' : '\n';
@@ -444,4 +509,12 @@ export function removeProperties<T>(obj: T | undefined, ...propertiesToRemove: o
     });
 
     return obj;
+}
+
+export function strCompare(str1: string, str2: string, ignoreCase: boolean = false): boolean {
+    if (ignoreCase) {
+        return str1.localeCompare(str2, 'en-US', { sensitivity: 'base' }) === 0;
+    } else {
+        return str1 === str2;
+    }
 }

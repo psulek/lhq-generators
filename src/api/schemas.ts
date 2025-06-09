@@ -77,15 +77,17 @@ export const LhqModelMetadataSchema = z.object({
     childs: z.array(LhqModelDataNodeSchema).optional(),
 });
 
+export const LhqModelPropertiesSchema = z.object({
+    uid: LhqModelUidSchema,
+    version: LhqModelVersionSchema,
+    options: LhqModelOptionsSchema,
+    name: z.string(),
+    description: z.string().optional(),
+    primaryLanguage: z.string()
+});
+
 export const LhqModelSchema = z.object({
-    model: z.object({
-        uid: LhqModelUidSchema,
-        version: LhqModelVersionSchema,
-        options: LhqModelOptionsSchema,
-        name: z.string(),
-        description: z.string().optional(),
-        primaryLanguage: z.string()
-    }),
+    model: LhqModelPropertiesSchema,
     languages: z.array(z.string()),
     metadatas: LhqModelMetadataSchema.optional(),
     resources: z.lazy(() => LhqModelResourcesCollectionSchema).optional(),
@@ -97,7 +99,7 @@ export const LhqModelSchema = z.object({
  * root, category, and resource element, resource parameter, and resource value.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ILhqModelType {}
+export interface ILhqModelType { }
 
 export interface ILhqCategoryLikeModelType extends ILhqModelType {
     categories?: LhqModelCategoriesCollection;
@@ -136,3 +138,5 @@ export type LhqModelMetadata = z.infer<typeof LhqModelMetadataSchema>;
 export type LhqModelLineEndings = z.infer<typeof LhqModelLineEndingsSchema>;
 
 export type LhqModel = z.infer<typeof LhqModelSchema> & ILhqCategoryLikeModelType;
+
+export type LhqModelProperties = z.infer<typeof LhqModelPropertiesSchema>;

@@ -152,42 +152,6 @@ export async function verify(snapshotFolder: string, ident: string, value: strin
     await verifyFile(snapshotFile, value, expectFileType);
 }
 
-
-// export function createFilePath(filePath: string, rootFolderOrFilePath: string | FilePath, 
-//     fileMustExist: boolean, formatRelative: boolean = true): FilePath {
-//     if (isNullOrEmpty(filePath)) {
-//         throw new Error(`Parameter 'inputPath' could not be undefined or empty!`);
-//     }
-
-//     const rootFolder = typeof rootFolderOrFilePath === 'string' ? rootFolderOrFilePath : rootFolderOrFilePath.full;
-//     const isAbsolute = path.isAbsolute(filePath);
-//     const full = isAbsolute ? filePath : path.join(rootFolder, filePath);
-//     if (path.relative(rootFolder, full).startsWith('../')) {
-//         throw new Error(`File '${filePath}' is outside of root folder '${rootFolder}'!`);
-//     }
-
-//     let relative = isAbsolute ? path.relative(rootFolder, filePath) : filePath;
-//     //relative = relative.replace('\\', '/');
-//     relative = relative.replace(/\\/g, '/');
-//     if (formatRelative) {
-//         relative = formatRelativePath(relative);
-//     }
-
-//     if (relative.startsWith('../')) {
-//         throw new Error(`File '${filePath}' is outside of root folder '${rootFolder}'!`);
-//     }
-
-//     const exist = fse.pathExistsSync(full);
-//     if (!exist && fileMustExist) {
-//         throw new Error(`File '${filePath}' does not exist!`);
-//     }
-    
-//     const basename =  exist ? path.basename(full) : '';
-//     const dirname = exist ? path.dirname(full) : '';
-
-//     return { full, relative: relative, exist, basename, dirname };
-// }
-
 export const formatRelativePath = (p: string): string => {
     const h = p.slice(0, 1);
     const res = h === '.' ? p : (h === '/' ? `.${p}` : `./${p}`);

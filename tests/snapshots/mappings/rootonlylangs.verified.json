@@ -1,0 +1,17 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "description": "Root description",
+    "options": {
+      "categories": false,
+      "resources": "Categories"
+    },
+    "name": "RootElement",
+    "primaryLanguage": "sk"
+  },
+  "languages": [
+    "sk",
+    "en"
+  ]
+}
