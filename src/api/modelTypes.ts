@@ -249,6 +249,43 @@ export interface ICodeGeneratorElement {
 }
 
 /**
+ * Callback function type for iterating through the tree structure.
+ * @param element - The current tree element being processed.
+ * @param leaf - Indicates whether the current element is a leaf (i.e., has no children).
+ * @returns void or false to stop the iteration.
+ */
+export type IterateTreeCallback = (element: ITreeElement, leaf: boolean) => void | false;
+
+
+/**
+ * Options for iterating through the tree structure.
+ * @remarks
+ * The options allow controlling which elements are included in the iteration callback.
+ */
+export type IterateTreeOptions = {
+    /**
+     * Indicates whether to include the root element in the iteration callback.
+     * Root element will be still iterated, but callback will not be called for it when value is false.
+     * Default is false.
+     */
+    root?: boolean;
+
+    /**
+     * Indicates whether to include categories in the iteration callback.
+     * Categories will be still iterated, but callback will not be called for them when value is false.
+     * Default is false.
+     */
+    categories?: boolean;
+
+    /**
+     * Indicates whether to include resources in the iteration callback.
+     * Resources will be still iterated, but callback will not be called for them when value is false.
+     * Default is false.
+     */
+    resources?: boolean;
+};
+
+/**
  * Represents the root model element.
  */
 export interface IRootModelElement extends ICategoryLikeTreeElement {
@@ -326,6 +363,35 @@ export interface IRootModelElement extends ICategoryLikeTreeElement {
      * Sets the code generator for the root model element.
      */
     set codeGenerator(value: ICodeGeneratorElement);
+
+    /**
+     * Adds a new language to the root model element.
+     * @param language - The language to add.
+     */
+    addLanguage(language: string): boolean;
+
+    /**
+     * Determines whether the root model element contains a specific language.
+     * @param language - The language to check.
+     */
+    containsLanguage(language: string): boolean;
+
+    /**
+     * Removes a language from the root model element.
+     * @param language - The language to remove.
+     */
+    removeLanguage(language: string): boolean;
+
+    /**
+     * Iterates through the tree structure starting from the root element and applies the callback function to each element.
+     * @param callback - The callback function to apply to each tree element.
+     * @param options - Options for the iteration, such as whether to include root, categories, and resources.
+     * If `options` is not provided, it will iterate through all elements.
+     * If `options` is provided, it will only iterate through elements specified in the options.
+     * @throws Error if the root element is not an instance of RootModelElement.
+     * @returns true if the iteration completes successfully, or false if the iteration was stopped by the callback function.
+     */
+    iterateTree(callback: IterateTreeCallback, options?: IterateTreeOptions): boolean;
 }
 
 /**

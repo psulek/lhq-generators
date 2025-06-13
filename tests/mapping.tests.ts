@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 import { verify } from './testUtils.js';
 
-import { FormattingOptions, IRootModelElement, ModelSerializer } from '../src';
+import { FormattingOptions, IRootModelElement, ModelUtils } from '../src';
 
 setTimeout(async () => {
 
@@ -17,7 +17,7 @@ setTimeout(async () => {
     describe('serialize and deserialize in memory', () => {
         it('serialize all properties and values', async function () {
             const root = createSampleModel();
-            const data = ModelSerializer.serializeTreeElement(root, defaultFormatting);
+            const data = ModelUtils.serializeTreeElement(root, defaultFormatting);
             await verify('mappings', 'allvalues', data, 'json', 'json');
 
         });
@@ -27,7 +27,7 @@ setTimeout(async () => {
             root.removeCategory('Category1');
             root.removeCategory('Category2');
             root.removeResource('RootResource1');
-            const data = ModelSerializer.serializeTreeElement(root, defaultFormatting);
+            const data = ModelUtils.serializeTreeElement(root, defaultFormatting);
             await verify('mappings', 'rootonlylangs', data, 'json', 'json');
         });
 
@@ -39,13 +39,13 @@ setTimeout(async () => {
             root.removeCategory('Category1');
             root.removeCategory('Category2');
             root.removeResource('RootResource1');
-            const data = ModelSerializer.serializeTreeElement(root, defaultFormatting);
+            const data = ModelUtils.serializeTreeElement(root, defaultFormatting);
             await verify('mappings', 'rootonly', data, 'json', 'json');
         });
     });
 
     function createSampleModel(): IRootModelElement {
-        const root = ModelSerializer.createRootElement();
+        const root = ModelUtils.createRootElement();
         root.languages = ['sk', 'en'];
         root.name = 'RootElement';
         root.description = 'Root description';

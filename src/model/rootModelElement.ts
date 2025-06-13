@@ -1,10 +1,11 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
-import type { LhqModelProperties} from '../api/schemas';
+import type { LhqModelProperties } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
-import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement } from '../api/modelTypes';
+import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
+import { ResourceElement } from './resourceElement';
 
 const CodeGenUID = 'b40c8a1d-23b7-4f78-991b-c24898596dd2';
 
@@ -69,7 +70,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
 
         model.model = properties as LhqModelProperties;
         model.languages = this._languages;
-        
+
         super.bindToModel(model);
         model.metadatas = this._metadatas;
     }
@@ -204,5 +205,73 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         } else {
             this._codeGenerator = this.createCodeGenerator(value);
         }
+    }
+
+    public addLanguage(language: string): boolean {
+        const contains = this._languages.includes(language);
+        if (!contains) {
+            this._languages.push(language);
+            this._hasLanguages = true;
+        }
+        return !contains;
+    }
+
+    public containsLanguage(language: string): boolean {
+        return this._languages.includes(language);
+    }
+
+    public removeLanguage(language: string): boolean {
+        const idx = this._languages.indexOf(language);
+        const contains = idx > -1;
+        if (contains) {
+            this._languages.splice(idx, 1);
+            this._hasLanguages = this._languages.length > 0;
+
+            this.iterateTree(elem => {
+                if (elem instanceof ResourceElement) {
+                    elem.removeValue(language);
+                }
+
+            }, { resources: true });
+        }
+
+        return contains;
+    }
+
+    public iterateTree(callback: IterateTreeCallback, options?: IterateTreeOptions): boolean {
+        options = options ?? { root: true, categories: true, resources: true };
+
+        const includes: Record<TreeElementType, boolean> = {
+            model: options.root ?? false,
+            category: options.categories ?? false,
+            resource: options.resources ?? false
+        };
+
+        const iterate = (element: ITreeElement, leaf: boolean): boolean => {
+            const result = includes[element.elementType] ? callback(element, leaf) : true;
+            if (result === false) {
+                return false;
+            }
+
+            if (element instanceof CategoryLikeTreeElement) {
+                const lastCategory = element.categories.length === 0 ? undefined : element.categories[element.categories.length - 1];
+                for (const category of element.categories) {
+                    if (iterate(category, category === lastCategory) === false) {
+                        return false;
+                    }
+                }
+
+                const lastResource = element.resources.length === 0 ? undefined : element.resources[element.resources.length - 1];
+                for (const resource of element.resources) {
+                    if (iterate(resource, resource === lastResource) === false) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return iterate(this, true);
     }
 }

@@ -14,9 +14,7 @@ import {
     generatorUtils, isNullOrEmpty, jsonParseOrDefault,
     HostEnvironment, objCount,
     getLibraryVersion, namespaceUtils, fileUtils,
-    detectLineEndings,
-    ModelSerializer,
-    detectFormatting
+    detectFormatting, ModelUtils
 } from './index';
 
 import type { GeneratedFile, LhqModel, GeneratorInitialization, FileInfo, ReadFileInfoOptions, FormattingOptions } from './index'
@@ -144,7 +142,7 @@ async function validateLhqModelFile(lhqFileName: string, verbose: boolean): Prom
 async function saveLhqModelFile(model: LhqModel, fileName: string, fileContent?: string): Promise<void> {
     fileContent = fileContent ?? await safeReadFile(fileName);
     const options = detectFormatting(fileContent) ?? {} as FormattingOptions;
-    const json = ModelSerializer.serializeModel(model, options);
+    const json = ModelUtils.serializeModel(model, options);
     await fse.writeFile(fileName, json, { encoding: 'utf-8' });
 }
 
@@ -246,7 +244,7 @@ async function fixNamespaceForLhqModel(csProjectFileName: string, lhqFileName: s
     model = model ?? JSON.parse(lhqFileContent) as LhqModel;
 
     const namespace = await findNamespaceFromCsProj(csProjectFileName, lhqFileName);
-    const rootModel = ModelSerializer.createRootElement(model);
+    const rootModel = ModelUtils.createRootElement(model);
     const templateId = rootModel.codeGenerator?.templateId ?? '';
     if (!isNullOrEmpty(templateId)) {
         const csharpSettings = rootModel.codeGenerator?.settings?.childs?.find(x => x.name === 'CSharp');
@@ -254,7 +252,7 @@ async function fixNamespaceForLhqModel(csProjectFileName: string, lhqFileName: s
             const currentNamespace = csharpSettings.attrs?.['Namespace'] ?? '';
             if (isNullOrEmpty(currentNamespace)) {
                 csharpSettings.attrs!['Namespace'] = namespace;
-                model = ModelSerializer.rootElementToModel(rootModel);
+                model = ModelUtils.rootElementToModel(rootModel);
                 await saveLhqModelFile(model, lhqFileName, lhqFileContent);
                 console.log(`Namespace '${pc.blueBright(namespace)}' was updated in 'CSharp' settings in file '${pc.yellow(lhqFileName)}'.`);
             }

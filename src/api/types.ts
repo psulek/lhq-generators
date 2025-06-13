@@ -1,13 +1,6 @@
 import type { LhqModelLineEndings } from './schemas';
 
-// export type GeneratorSource = {
-//     model: LhqModel;
-//     fileName: string;
-//     csProjectFileName: string;
-//     // outDir: string;
-// };
-
-
+export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 
 /**
  * Represents information about a single generated file as a result of the Generator.Generate method. 

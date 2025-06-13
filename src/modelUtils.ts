@@ -1,13 +1,14 @@
 import type { IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
 import type { ILhqModelType, LhqModel } from './api/schemas';
 import { validateLhqModel } from './generatorUtils';
+import { CategoryLikeTreeElement } from './model/categoryLikeTreeElement';
 import { RootModelElement } from './model/rootModelElement';
 import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
 import type { FormattingOptions } from './types';
 import { serializeJson } from './utils';
 
-export class ModelSerializer {
+export class ModelUtils {
     /**
      * Creates a new root element for the specified LHQ model data.
      * @param data - The LHQ model data to be used for creating the root element.
@@ -23,6 +24,42 @@ export class ModelSerializer {
         return new RootModelElement(model);
     }
 
+    // /**
+    //  * Iterates through the tree structure starting from the root element and applies the callback function to each element.
+    //  * @param root - The root element of the tree to iterate through.
+    //  * @param callback - The callback function to apply to each tree element.
+    //  * @throws Error if the root element is not an instance of RootModelElement.
+    //  */
+    // public static iterateTree(root: IRootModelElement, callback: (element: ITreeElement, leaf: boolean) => void | boolean): void | false {
+    //     if (!(root instanceof RootModelElement)) {
+    //         throw new Error('Invalid root element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
+    //     }
+
+    //     const iterate = (element: ITreeElement, leaf: boolean): void | false => {
+    //         const result = callback(element, leaf);
+    //         if (result === false) {
+    //             return false;
+    //         }
+    //         if (element instanceof CategoryLikeTreeElement) {
+    //             const lastCategory = element.categories.length === 0 ? undefined : element.categories[element.categories.length - 1];
+    //             for (const category of element.categories) {
+    //                 if (iterate(category, category === lastCategory) === false) {
+    //                     return false;
+    //                 }
+    //             }
+
+    //             const lastResource = element.resources.length === 0 ? undefined : element.resources[element.resources.length - 1];
+    //             for (const resource of element.resources) {
+    //                 if (iterate(resource, resource === lastResource) === false) {
+    //                     return false;
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return iterate(root, true);
+    // }
+
     /**
      * Sets temporary data for the specified tree element.
      * @param element - The tree element to set the temporary data for.
@@ -31,10 +68,10 @@ export class ModelSerializer {
      * @throws Error if the element is not an instance of TreeElementBase.
      */
     public static setTempData<T>(element: ITreeElement, key: string, value: T): void {
-        if (ModelSerializer.isTreeElementInstance(element)) {
+        if (ModelUtils.isTreeElementInstance(element)) {
             element.addToTempData(key, value);
         } else {
-            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelSerializer.createRootElement".');
+            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
         }
     }
 
@@ -44,10 +81,10 @@ export class ModelSerializer {
      * @throws Error if the element is not an instance of TreeElementBase.
      */
     public static clearTempData(element: ITreeElement): void {
-        if (ModelSerializer.isTreeElementInstance(element)) {
+        if (ModelUtils.isTreeElementInstance(element)) {
             element.clearTempData();
         } else {
-            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelSerializer.createRootElement".');
+            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
         }
     }
 
@@ -102,7 +139,7 @@ export class ModelSerializer {
      * @returns The serialized tree element as a string.
      */
     public static serializeTreeElement(element: ITreeElement, options: FormattingOptions): string {
-        const model = ModelSerializer.elementToModel(element);
+        const model = ModelUtils.elementToModel(element);
         // if (model instanceof RootModelElement && model.metadatas) {
         //     const metadatas = model.metadatas;
         //     model.metadatas = undefined;
@@ -122,7 +159,7 @@ export class ModelSerializer {
         if (element instanceof TreeElementBase) {
             return (element as TreeElement<TModel>).mapToModel();
         } else {
-            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelSerializer.createRootElement".');
+            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
         }
     }
 }

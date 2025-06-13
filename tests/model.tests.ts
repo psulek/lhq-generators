@@ -9,8 +9,7 @@ import { LhqModel } from '../src/api/schemas';
 import { ICodeGeneratorElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
-import { ModelSerializer } from '../src/modelSerializer';
-import { FormattingOptions } from '../src';
+import { FormattingOptions, ModelUtils } from '../src';
 
 setTimeout(async () => {
 
@@ -33,8 +32,8 @@ setTimeout(async () => {
                 const formatOptions = detectFormatting(content);
                 const model = JSON.parse(content) as LhqModel;
 
-                const root = ModelSerializer.createRootElement(model);
-                const serializedModel = ModelSerializer.rootElementToModel(root);
+                const root = ModelUtils.createRootElement(model);
+                const serializedModel = ModelUtils.rootElementToModel(root);
 
                 expect(model).to.deep.eq(serializedModel);
                 expect(root.isRoot).to.be.true;
@@ -50,12 +49,12 @@ setTimeout(async () => {
                 if (ident === 'NetCoreResxCsharp01\\Strings') {
                     const rp = root.paths.getPaths(true);
 
-                    const paths = ModelSerializer.createTreePaths('/Cars/Diesel/Old', '/');
+                    const paths = ModelUtils.createTreePaths('/Cars/Diesel/Old', '/');
                     const f1 = root.getElementByPath(paths, 'resource');
                     console.log('f1', f1);
                 }
 
-                const changedModelJson = ModelSerializer.serializeModel(model, formatOptions);
+                const changedModelJson = ModelUtils.serializeModel(model, formatOptions);
                 const changedModelBuffer = Buffer.from(changedModelJson, 'utf-8');
 
                 //let snapshotStr = await fse.readFile(file, { encoding: 'utf8' });
@@ -78,7 +77,7 @@ setTimeout(async () => {
     describe('LHQ model manipulation', () => {
 
         it('Create root element', () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'TestRootElement';
             root.description = 'Test description';
             root.primaryLanguage = 'sk';
@@ -103,7 +102,7 @@ setTimeout(async () => {
         });
 
         it('should add a category to the root element', () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             const testCategory = root.addCategory('TestCategory');
             testCategory.description = 'Test category description';
 
@@ -113,7 +112,7 @@ setTimeout(async () => {
         });
 
         it('should add a resource to a category', () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             const testCategory = root.addCategory('TestCategory');
             const testResource = testCategory.addResource('TestResource');
             testResource.description = 'Test resource description';
@@ -124,7 +123,7 @@ setTimeout(async () => {
         });
 
         it('should add a value to a resource', () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             const testCategory = root.addCategory('TestCategory');
             const testResource = testCategory.addResource('TestResource');
             testResource.addValue('en', 'Test value');
@@ -133,7 +132,7 @@ setTimeout(async () => {
         });
 
         it('should maintain hierarchy of root, category, and resource', () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootElement';
             const category = root.addCategory('Category1');
             const resource = category.addResource('Resource1');
@@ -148,7 +147,7 @@ setTimeout(async () => {
     describe('serialize LHQ model', async function () {
         it('serialize to file', async function () {
 
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'TestRootElement';
             root.description = 'Test description';
             root.primaryLanguage = 'sk';
@@ -163,60 +162,60 @@ setTimeout(async () => {
             const newCodeGenerator: ICodeGeneratorElement = { templateId: '123', version: 1, settings: { name: 'Settings2' } };
             root.codeGenerator = newCodeGenerator;
 
-            const model = ModelSerializer.rootElementToModel(root);
+            const model = ModelUtils.rootElementToModel(root);
             //const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
 
-            const modelJson = ModelSerializer.serializeModel(model, defaultFormatting);
+            const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
 
             await verify('model', `serialize01`, modelJson, 'text', 'json');
         });
 
         it('should handle root element without description', async () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
             root.primaryLanguage = 'en';
 
-            const model = ModelSerializer.rootElementToModel(root);
+            const model = ModelUtils.rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize02`, modelJson, 'text', 'json');
 
         });
 
         it('should handle category without description', async () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
             root.addCategory('CategoryWithoutDescription');
 
-            const model = ModelSerializer.rootElementToModel(root);
+            const model = ModelUtils.rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize03`, modelJson, 'text', 'json');
         });
 
         it('should handle resource without description', async () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
             const category = root.addCategory('Category');
             category.addResource('ResourceWithoutDescription');
 
-            const model = ModelSerializer.rootElementToModel(root);
+            const model = ModelUtils.rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize04`, modelJson, 'text', 'json');
         });
 
         it('should handle resource parameter without description', async () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
             const category = root.addCategory('Category');
             const resource = category.addResource('Resource');
             resource.addValue('en', 'ValueWithoutDescription');
 
-            const model = ModelSerializer.rootElementToModel(root);
+            const model = ModelUtils.rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize05`, modelJson, 'text', 'json');
         });
 
         it('serialize multiple elements with and without description', async () => {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
             root.description = 'Root description';
             const category1 = root.addCategory('Category1');
@@ -229,7 +228,7 @@ setTimeout(async () => {
             resource2.description = 'Resource2 description';
             resource2.addValue('en', 'resource2').auto = true;
 
-            const model = ModelSerializer.rootElementToModel(root);
+            const model = ModelUtils.rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize06`, modelJson, 'text', 'json');
         });
@@ -240,8 +239,8 @@ setTimeout(async () => {
             const file = path.join(folders().templates, lhqFile);
             const content = await safeReadFile(file);
             const formatting = detectFormatting(content);
-            const root = ModelSerializer.createRootElement(content);
-            const modelJson = ModelSerializer.serializeTreeElement(root, formatting);
+            const root = ModelUtils.createRootElement(content);
+            const modelJson = ModelUtils.serializeTreeElement(root, formatting);
             await verify('model', `serialize07`, modelJson, 'text', 'json');
         });
 
@@ -254,7 +253,7 @@ setTimeout(async () => {
             const content = await safeReadFile(file);
             const model = JSON.parse(content) as LhqModel;
 
-            const root = ModelSerializer.createRootElement(model);
+            const root = ModelUtils.createRootElement(model);
 
             let paths = root.paths;
             expect(paths).not.undefined;
@@ -272,33 +271,33 @@ setTimeout(async () => {
             expect(paths.getParentPath('/'), 'cars3').to.equal(`/Cars`);
 
             // create tree element paths
-            expect(ModelSerializer.createTreePaths('/Cars/Diesel/Old', '/').getParentPath('/', true), 'paths1').to.equal('/Cars/Diesel/Old');
-            expect(ModelSerializer.createTreePaths('/Cars/Diesel/Old').getParentPath('/', true), 'paths2').to.equal('/Cars/Diesel/Old');
-            expect(ModelSerializer.createTreePaths('/Cars/Diesel/Old').getParentPath('/', false), 'paths3').to.equal('/Diesel/Old');
-            expect(ModelSerializer.createTreePaths('/Cars/Diesel/Old').getParentPath('/'), 'paths4').to.equal('/Diesel/Old');
-            expect(ModelSerializer.createTreePaths('@Cars@Diesel@Old', '@').getParentPath('@', true), 'paths5').to.equal('@Cars@Diesel@Old');
+            expect(ModelUtils.createTreePaths('/Cars/Diesel/Old', '/').getParentPath('/', true), 'paths1').to.equal('/Cars/Diesel/Old');
+            expect(ModelUtils.createTreePaths('/Cars/Diesel/Old').getParentPath('/', true), 'paths2').to.equal('/Cars/Diesel/Old');
+            expect(ModelUtils.createTreePaths('/Cars/Diesel/Old').getParentPath('/', false), 'paths3').to.equal('/Diesel/Old');
+            expect(ModelUtils.createTreePaths('/Cars/Diesel/Old').getParentPath('/'), 'paths4').to.equal('/Diesel/Old');
+            expect(ModelUtils.createTreePaths('@Cars@Diesel@Old', '@').getParentPath('@', true), 'paths5').to.equal('@Cars@Diesel@Old');
 
-            expect(root.getElementByPath(ModelSerializer.createTreePaths('/Cars/Diesel/Old'), 'resource')).be.undefined;
+            expect(root.getElementByPath(ModelUtils.createTreePaths('/Cars/Diesel/Old'), 'resource')).be.undefined;
 
-            const category_Old = root.getElementByPath(ModelSerializer.createTreePaths('/Cars/Diesel/Old'), 'category');
+            const category_Old = root.getElementByPath(ModelUtils.createTreePaths('/Cars/Diesel/Old'), 'category');
             expect(category_Old).not.undefined;
             expect(category_Old).to.be.instanceOf(CategoryElement);
 
-            expect(category_Old?.getElementByPath(ModelSerializer.createTreePaths('/Old_Kia'), 'resource'), 'res1').not.undefined;
-            expect(category_Old?.getElementByPath(ModelSerializer.createTreePaths('Old_Kia'), 'resource'), 'res2').not.undefined;
+            expect(category_Old?.getElementByPath(ModelUtils.createTreePaths('/Old_Kia'), 'resource'), 'res1').not.undefined;
+            expect(category_Old?.getElementByPath(ModelUtils.createTreePaths('Old_Kia'), 'resource'), 'res2').not.undefined;
 
-            const resource_OldKia = root.getElementByPath(ModelSerializer.createTreePaths('/Cars/Diesel/Old/Old_Kia'), 'resource');
+            const resource_OldKia = root.getElementByPath(ModelUtils.createTreePaths('/Cars/Diesel/Old/Old_Kia'), 'resource');
             expect(resource_OldKia).not.undefined;
             expect(resource_OldKia).to.be.instanceOf(ResourceElement);
 
-            const category_Diesel = root.getElementByPath(ModelSerializer.createTreePaths('/Cars/Diesel'), 'category');
-            expect(category_Diesel?.getElementByPath(ModelSerializer.createTreePaths('/Old/Old_Kia'), 'resource'), 'getElemByPath1').not.undefined;
-            expect(category_Diesel?.getElementByPath(ModelSerializer.createTreePaths('Old/Old_Kia'), 'resource'), 'getElemByPath2').not.undefined;
+            const category_Diesel = root.getElementByPath(ModelUtils.createTreePaths('/Cars/Diesel'), 'category');
+            expect(category_Diesel?.getElementByPath(ModelUtils.createTreePaths('/Old/Old_Kia'), 'resource'), 'getElemByPath1').not.undefined;
+            expect(category_Diesel?.getElementByPath(ModelUtils.createTreePaths('Old/Old_Kia'), 'resource'), 'getElemByPath2').not.undefined;
 
         });
 
         function createSampleModel(): IRootModelElement {
-            const root = ModelSerializer.createRootElement();
+            const root = ModelUtils.createRootElement();
             root.name = 'RootElement';
             root.description = 'Root description';
             root.primaryLanguage = 'sk';
@@ -336,8 +335,8 @@ setTimeout(async () => {
             expect(result).to.be.true;
             expect(resource1.parent).to.equal(category2);
 
-            expect(category1.getElementByPath(ModelSerializer.createTreePaths('Resource1'), 'resource')).be.undefined;
-            expect(category2.getElementByPath(ModelSerializer.createTreePaths('Resource1'), 'resource')).not.undefined;
+            expect(category1.getElementByPath(ModelUtils.createTreePaths('Resource1'), 'resource')).be.undefined;
+            expect(category2.getElementByPath(ModelUtils.createTreePaths('Resource1'), 'resource')).not.undefined;
 
             expect(resource1.paths.getParentPath('/', true), 'path2').to.equal('/RootElement/Category2/Resource1');
 
@@ -350,8 +349,8 @@ setTimeout(async () => {
             result = category2.changeParent(category1);
             expect(result).to.be.true;
             expect(category2.parent).to.equal(category1);
-            expect(category1.getElementByPath(ModelSerializer.createTreePaths('Category2'), 'category')).not.undefined;
-            expect(root.getElementByPath(ModelSerializer.createTreePaths('Category2'), 'category')).be.undefined;
+            expect(category1.getElementByPath(ModelUtils.createTreePaths('Category2'), 'category')).not.undefined;
+            expect(root.getElementByPath(ModelUtils.createTreePaths('Category2'), 'category')).be.undefined;
         });
     });
 
