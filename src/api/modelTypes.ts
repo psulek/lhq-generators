@@ -452,6 +452,16 @@ export interface IResourceElement extends ITreeElement {
     getValue(language: string, trim?: boolean): string;
 
     /**
+     * Sets the value of the resource element for a specific language.
+     * @param language - The language for which to set the value.
+     * @param value - The value to set for the specified language.
+     * @remarks
+     * If the resource element already has a value for the specified language, it will be replaced.
+     * If the resource element does not have a value for the specified language, a new value will be added.
+     */
+    setValue(language: string, value: string): void;
+
+    /**
      * Checks if the resource element has a value for a specific language.
      * @param language - The language to check.
      * @returns True if the resource element has a value for the specified language, otherwise false.

@@ -90,6 +90,22 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         }
     }
 
+    public setValue(language: string, value: string): void {
+        if (isNullOrEmpty(language)) {
+            throw new Error('Language name cannot be null or empty.');
+        }
+
+        if (this._values) {
+            const item = this._values.find(x => x.languageName === language);
+            if (item) {
+                item.value = value;
+                return;
+            }
+        }
+
+        this.addValue(language, value);
+    }
+
     public addValue(languageName: string, value: string): IResourceValueElement {
         if (isNullOrEmpty(languageName)) {
             throw new Error('Language name cannot be null or empty.');
