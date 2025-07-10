@@ -17,6 +17,21 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         super(root, 'resource', name, parent);
     }
 
+    protected internalToJson(obj: Record<string, unknown>, options?: { includeData?: boolean }): void {
+        obj.state = this.state;
+        if (this._parameters && this._parameters.length > 0) {
+            obj.parameters = this._parameters
+                .sort((a, b) => a.order - b.order)
+                .map(param => param.toJson());
+        } else {
+            obj.parameters = [];
+        }
+        obj.values = this.values?.map(value => value.toJson()) ?? [];
+        obj.hasParameters = this.hasParameters;
+        obj.hasValues = this.hasValues;
+        obj.comment = this.comment ?? '';
+    }
+
     public populate(source: LhqModelResource | undefined): void {
         if (source) {
             this._state = source.state;
@@ -58,6 +73,51 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         };
     }
 
+    public addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }
+    ): void {
+        if (isNullOrEmpty(parameters)) {
+            throw new Error('Parameters cannot be null or empty.');
+        }
+
+        if (!Array.isArray(parameters)) {
+            throw new Error('Parameters must be an array.');
+        }
+
+        options = options ?? { existing: 'skip' };
+
+        if (parameters.length === 0) {
+            return;
+        }
+
+        this._parameters ??= [];
+        let paramIdx = 0;
+        parameters
+            .sort((a, b) => (a.order ?? Number.MAX_VALUE) - (b.order ?? Number.MAX_VALUE))
+            .forEach(param => {
+                if (isNullOrEmpty(param.name)) {
+                    throw new Error('Parameter name cannot be null or empty.');
+                }
+
+                const existing = this._parameters!.find(p => p.name === param.name);
+
+                if (existing) {
+                    if (options.existing === 'skip') {
+                        return;
+                    }
+
+                    existing.description = param.description ?? existing.description;
+                    existing.order = paramIdx++;
+                    return;
+                }
+
+                const order = paramIdx++;
+                const resourceParam = new ResourceParameterElement(param.name, { description: param.description, order }, this);
+                this._parameters!.push(resourceParam);
+            });
+
+        this._hasParameters = true;
+    }
+
     public addParameter(name: string): IResourceParameterElement {
         if (isNullOrEmpty(name)) {
             throw new Error('Parameter name cannot be null or empty.');
@@ -78,6 +138,13 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         this._parameters.push(parameter);
         this._hasParameters = true;
         return parameter;
+    }
+
+    public removeParameters(): void {
+        if (this._parameters) {
+            this._parameters = [];
+            this._hasParameters = false;
+        }
     }
 
     public removeParameter(name: string): void {
@@ -106,7 +173,7 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         this.addValue(language, value);
     }
 
-    public addValue(languageName: string, value: string): IResourceValueElement {
+    public addValue(languageName: string, value: string, locked?: boolean, auto?: boolean): IResourceValueElement {
         if (isNullOrEmpty(languageName)) {
             throw new Error('Language name cannot be null or empty.');
         }
@@ -115,12 +182,53 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             throw new Error(`Language name "${languageName}" already exists.`);
         }
 
-        const resourceValue = new ResourceValueElement(languageName, undefined, this);
-        resourceValue.value = value;
+        const resourceValue = new ResourceValueElement(languageName, { value, locked, auto }, this);
         this._values ??= [];
         this._values.push(resourceValue);
         this._hasValues = true;
         return resourceValue;
+    }
+
+    public addValues(values: Array<Partial<IResourceValueElement>>, options?: { existing: 'skip' | 'update' }): void {
+        if (isNullOrEmpty(values)) {
+            throw new Error('Values cannot be null or empty.');
+        }
+
+        if (!Array.isArray(values)) {
+            throw new Error('Values must be an array.');
+        }
+
+        options = options ?? { existing: 'skip' };
+
+        if (values.length === 0) {
+            return;
+        }
+
+        this._values ??= [];
+        values.forEach(value => {
+            if (isNullOrEmpty(value.languageName)) {
+                throw new Error('Language name cannot be null or empty.');
+            }
+
+            const existing = this._values!.find(v => v.languageName === value.languageName);
+
+            if (existing) {
+                if (options.existing === 'skip') {
+                    return;
+                }
+
+                existing.value = value.value ?? existing.value;
+                existing.locked = value.locked ?? existing.locked;
+                existing.auto = (value.auto ?? existing.auto) ?? false;
+                return;
+            }
+
+            const resourceValue = new ResourceValueElement(value.languageName,
+                { value: value.value, locked: value.locked, auto: value.auto }, this);
+            this._values!.push(resourceValue);
+        });
+
+        this._hasValues = true;
     }
 
     public removeValue(language: string): void {
@@ -130,6 +238,13 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
                 this._values.splice(index, 1);
                 this._hasValues = this._values.length > 0;
             }
+        }
+    }
+
+    public removeValues(): void {
+        if (this._values) {
+            this._values = [];
+            this._hasValues = false;
         }
     }
 

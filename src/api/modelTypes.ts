@@ -11,6 +11,17 @@ export type TreeElementType = 'model' | 'category' | 'resource';
 export type CategoryOrResourceType = Exclude<TreeElementType, 'model'>;
 
 /**
+ * Options for the conversion, such as whether to include data, etc.
+ * 
+ */
+export type TreeElementToJsonOptions = {
+    /**
+     *  Whether to include the data in the JSON representation.
+     */
+    includeData?: boolean
+};
+
+/**
  * Represents a tree element (root, category or resource) from `*.lhq` model file.
  */
 export interface ITreeElement {
@@ -84,7 +95,41 @@ export interface ITreeElement {
      * @returns The level of the tree element, where 0 is the root level.
      */
     getLevel(): number;
+
+    /**
+     * Converts the tree element to a plain JSON object.
+     * @param options - Options for the conversion, such as whether to include data, etc.
+     * @returns A plain JSON object representing the tree element.
+     * @remarks
+     * This method will skip properties `parent`, `root` as they reference to the parent and root element which can cause circular references.
+     */
+    toJson<TOptions extends TreeElementToJsonOptions>(options?: TOptions): Record<string, unknown>;
+
+    /**
+     * Updates the tree element from a plain JSON object that was created by `toJson` method.
+     * @param json - A plain JSON object representing the tree element.
+     * @remarks
+     * This method does not update the `parent`, `root`, `elementType`, `paths` properties , only changable properties like `name`, `description`, `data` are updated.
+     */
+    //updateFromJson(json: Record<string, unknown>): void;
 }
+
+/**
+ * Options for converting a category-like tree element to JSON.
+ */
+export type CategoryLikeTreeElementToJsonOptions = TreeElementToJsonOptions & {
+    /**
+     * Whether to include categories in the JSON representation.
+     * Default is true.
+     */
+    includeCategories?: boolean;
+
+    /**
+     * Whether to include resources in the JSON representation.
+     * Default is true.
+     */
+    includeResources?: boolean;
+};
 
 /**
  * Represents a category-like tree element.
@@ -197,7 +242,16 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
     find(name: string, elementType: 'category'): ICategoryElement | undefined;
     find(name: string, elementType: 'resource'): IResourceElement | undefined;
     find(name: string, elementType: CategoryOrResourceType): ITreeElement | undefined;
+
+    /**
+     * Removes all child elements (categories and/or resources) from the current element.
+     * @param categories - Flag indicating whether to remove child categories.
+     * @param resources - Flag indicating whether to remove child resources.
+     */
+    removeChilds(categories: boolean, resources: boolean): void;
 }
+
+//export type BoolStringType = 'true' | 'false';
 
 /**
  * Basic settings for the code generator.
@@ -227,6 +281,68 @@ export interface CodeGeneratorBasicSettings {
      * Indicates whether the code generator is enabled.
      */
     Enabled: boolean;
+}
+
+export interface CodeGeneratorResXSettings extends CodeGeneratorBasicSettings {
+    /**
+     * Resx file for primary language will also (like foreign language files) includes language code.
+     */
+    CultureCodeInFileNameForPrimaryLanguage: boolean;
+
+    /**
+     * Compatible text encoding, When enabled, text will be encoded using compatibility mode (System.Web.HttpUtility.HtmlEncode),
+     * otherwise only subset of characters (required for xml encoding) will be encoded.
+     */
+    CompatibleTextEncoding: boolean;
+}
+
+export interface CodeGeneratorCsharpSettingsBase extends CodeGeneratorBasicSettings {
+    /**
+     * Indicates whether to use expression body syntax for properties and methods.
+     */
+    UseExpressionBodySyntax: boolean;
+
+    /**
+     * C# Namespace for the generated code.
+     */
+    Namespace: string;
+}
+
+export interface CodeGeneratorCsharpSettings extends CodeGeneratorCsharpSettingsBase {
+    /**
+     * Indicates whether to fallback to primary language for missing translations.
+     */
+    MissingTranslationFallbackToPrimary: boolean;
+}
+
+export interface CodeGeneratorTypescriptSettings extends CodeGeneratorBasicSettings {
+    /**
+     * Ambient namespace name used in typescript definition.
+     */
+    AmbientNamespaceName: string;
+
+    /**
+     * Prefix for interface type used in typescript definition.
+     */
+    InterfacePrefix: string;
+}
+
+export interface CodeGeneratorTypescriptJsonSettings extends CodeGeneratorBasicSettings {
+    /**
+     * File name for primary language includes language code.
+     * Json file for primary language will also (like foreign language files) includes language code.
+     */
+    CultureCodeInFileNameForPrimaryLanguage: boolean;
+
+    /**
+     * Suffix for metadata file name.
+     */
+    MetadataFileNameSuffix: string;
+
+    /**
+     * Write key value pair even on empty translations.
+     */
+    WriteEmptyValues: boolean;
 }
 
 /**
@@ -476,24 +592,50 @@ export interface IResourceElement extends ITreeElement {
     addParameter(name: string): IResourceParameterElement;
 
     /**
+     * Adds multiple parameters to the resource element.
+     * @param parameters - The list of parameters to add to the resource element.
+     * @param options - Options for adding parameters, such as whether to skip existing parameters or update them.
+     */
+    addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }): void;
+
+    /**
      * Removes a parameter from the resource element.
      * @param name - The name of the parameter to remove.
      */
     removeParameter(name: string): void;
 
     /**
+     * Removes all parameters from the resource element.
+     */
+    removeParameters(): void;
+
+    /**
      * Adds new resource value to the resource element.
      * @param languageName - The name of the language for the resource value.
      * @param value - The value of the resource.
+     * @param locked - Indicates whether the resource value is locked (optional, default - false).
+     * @param auto - Indicates whether the resource value is auto-generated (optional, default - false).
      * @returns The created resource value element.
      */
-    addValue(languageName: string, value: string): IResourceValueElement;
+    addValue(languageName: string, value: string, locked?: boolean, auto?: boolean): IResourceValueElement;
+
+    /**
+     * Adds multiple resource values to the resource element.
+     * @param values - The list of resource values to add to the resource element.
+     * @param options - Options for adding resource values, such as whether to skip existing values or update them.
+     */
+    addValues(values: Array<Partial<IResourceValueElement>>, options?: { existing: 'skip' | 'update' }): void;
 
     /**
      * Removes a resource value specified by `language` from the resource element.
      * @param language - The language of the resource value to remove.
      */
     removeValue(language: string): void;
+
+    /**
+     * Removes all resource values from the resource element.
+     */
+    removeValues(): void;
 }
 
 /**
@@ -534,6 +676,11 @@ export interface IResourceParameterElement {
      * Gets the parent resource element of the parameter.
      */
     get parent(): Readonly<IResourceElement>;
+
+    /**
+     * Converts the tree element to a plain JSON object.
+     */
+    toJson(): Record<string, unknown>;
 }
 
 /**
@@ -553,7 +700,7 @@ export interface IResourceValueElement {
     /**
      * Sets the value of the resource value.
      */
-    set value(value: string);
+    set value(value: string | undefined);
 
     /**
      * Indicates whether the resource value is locked (optional).
@@ -563,7 +710,7 @@ export interface IResourceValueElement {
     /**
      * Sets the locked state of the resource value.
      */
-    set locked(value: boolean);
+    set locked(value: boolean | undefined);
 
     /**
      * Indicates whether the resource value is auto-generated (optional).
@@ -573,12 +720,17 @@ export interface IResourceValueElement {
     /**
      * Sets the auto-generated state of the resource value.
      */
-    set auto(value: boolean);
+    set auto(value: boolean | undefined);
 
     /**
      * Gets the parent resource element of the value.
      */
     get parent(): Readonly<IResourceElement>;
+
+    /**
+     * Converts the tree element to a plain JSON object.
+     */
+    toJson(): Record<string, unknown>;
 }
 
 /**
@@ -599,6 +751,11 @@ export interface ITreeElementPaths {
      * @returns The parent path of the tree element.
      */
     getParentPath(separator: string, includeRoot?: boolean): string;
+
+    /**
+     * Converts the tree element to a plain JSON object.
+     */
+    toJson(): string[];
 }
 
 /**

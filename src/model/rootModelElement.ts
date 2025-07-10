@@ -1,5 +1,5 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
-import type { LhqModelProperties } from '../api/schemas';
+import type { LhqModelDataNode, LhqModelProperties } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
 import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
@@ -9,10 +9,12 @@ import { ResourceElement } from './resourceElement';
 
 const CodeGenUID = 'b40c8a1d-23b7-4f78-991b-c24898596dd2';
 
+const defaultModelOptions: LhqModelOptions = { categories: true, resources: 'All' };
+
 export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implements IRootModelElement {
     private _uid: LhqModelUid = LhqModelUidSchema.value;
     private _version: LhqModelVersion = ModelVersions.model;
-    private _options: LhqModelOptions = { categories: true, resources: 'All' };
+    private _options: LhqModelOptions = defaultModelOptions;
     private _primaryLanguage = 'en';
     private _languages: string[] = [];
     private _metadatas: Readonly<LhqModelMetadata> | undefined;
@@ -24,6 +26,21 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         // @ts-ignore
         super(undefined, 'model', model?.model?.name ?? '', undefined);
         this.populate(model);
+    }
+
+    protected internalToJson(obj: Record<string, unknown>, options?: { includeData?: boolean; }): void {
+        super.internalToJson(obj, options);
+        obj.uid = this.uid ?? LhqModelUidSchema.value;
+        obj.version = this.version ?? ModelVersions.model;
+        obj.options = this.options ?? defaultModelOptions;
+        obj.primaryLanguage = this.primaryLanguage ?? '';
+        obj.languages = this.languages ? [...this._languages] : [];
+        obj.hasLanguages = this.hasLanguages;
+
+        const includeData = options?.includeData ?? false;
+        obj.metadatas = this.metadatas && includeData ? JSON.parse(JSON.stringify(this.metadatas)) : undefined;
+        // skip 'codeGenerator' ? 
+        // obj.codeGenerator = this._codeGenerator ? { ...this._codeGenerator } : undefined;
     }
 
     public populate(model: LhqModel | undefined): void {
@@ -139,7 +156,30 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         contentElem.attrs['version'] = codeGenVersion.toFixed(0);
         contentElem.childs ??= [];
 
+        /**
+         * Corrects the attribute values of the node and its children to ensure they are strings.
+         */
+        function correctAttrsValues(node: LhqModelDataNode): void {
+            if (node.attrs) {
+                for (const key of Object.keys(node.attrs)) {
+                    const value = node.attrs[key] as unknown;
+                    if (value !== undefined && value !== null && typeof value !== 'string') {
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        node.attrs[key] = value.toString()?.toLowerCase();
+                    }
+                }
+            }
+
+            if (node.childs) {
+                for (const child of node.childs) {
+                    correctAttrsValues(child);
+                }
+            }
+        }
+
         settings.name = 'Settings';
+        correctAttrsValues(settings);
+
         const settingsIdx = contentElem.childs.findIndex(x => x.name === 'Settings');
         if (settingsIdx === -1) {
             contentElem.childs.push(settings);
@@ -180,7 +220,16 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
     }
 
     set languages(languages: string[]) {
+        if (isNullOrUndefined(languages)) {
+            throw new Error('Languages cannot be null or undefined.');
+        }
+
+        if (!Array.isArray(languages)) {
+            throw new Error('Languages must be an array of strings.');
+        }
+
         this._languages = [...languages];
+        this._hasLanguages = this._languages.length > 0;
     }
 
     get hasLanguages(): boolean {

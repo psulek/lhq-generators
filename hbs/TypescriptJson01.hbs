@@ -1,3 +1,5 @@
+{{! template-id: TypescriptJson01 }}
+{{! template-name: Template which generates JSON file to be consumed by javascript with typescript (*.d.ts) type definition. Usable in web projects. }}
 {{~#output fileName=(x-concat model.name ".d.ts") ~}}
 childs[?name=='Typescript'].attrs | [0].merge(@, {
     OutputFolder: (OutputFolder||'Resources'),

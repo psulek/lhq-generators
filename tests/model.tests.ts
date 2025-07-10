@@ -10,6 +10,7 @@ import { ICodeGeneratorElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
 import { FormattingOptions, ModelUtils } from '../src';
+import { RootModelElement } from '../src/model/rootModelElement';
 
 setTimeout(async () => {
 
@@ -47,11 +48,15 @@ setTimeout(async () => {
                 }
 
                 if (ident === 'NetCoreResxCsharp01\\Strings') {
-                    const rp = root.paths.getPaths(true);
+                    // const rp = root.paths.getPaths(true);
 
-                    const paths = ModelUtils.createTreePaths('/Cars/Diesel/Old', '/');
-                    const f1 = root.getElementByPath(paths, 'resource');
-                    console.log('f1', f1);
+                    // const paths = ModelUtils.createTreePaths('/Cars/Diesel/Old', '/');
+                    // const f1 = root.getElementByPath(paths, 'resource');
+                    // console.log('f1', f1);
+
+                    // const res = root.resources[0];
+                    // const json1 = (res as ResourceElement).debugSerialize();
+                    // console.log('json1', json1);
                 }
 
                 const changedModelJson = ModelUtils.serializeModel(model, formatOptions);
@@ -244,6 +249,16 @@ setTimeout(async () => {
             await verify('model', `serialize07`, modelJson, 'text', 'json');
         });
 
+        it('serialize LHQ model to plain JSON object', async function () {
+
+            const file = path.join(folders().templates, lhqFile);
+            const content = await safeReadFile(file);
+            const root = ModelUtils.createRootElement(content);
+
+            const plainJson = root.toJson();
+            // await verify('model', `toJson01`, JSON.stringify(plainJson, null, 2), 'text', 'json');
+            await verify('model', `toJson01`, JSON.stringify(plainJson, null, 2), 'json', 'json');
+        });
     });
 
     describe('LHQ Model operations', () => {
@@ -303,6 +318,11 @@ setTimeout(async () => {
             root.primaryLanguage = 'sk';
 
             expect(root.paths.getParentPath('/', true), 'root_path1').to.equal(`/RootElement`);
+
+            root.name = 'RootElement2';
+            expect(root.paths.getParentPath('/', true), 'root_path1').to.equal(`/RootElement2`);
+            
+            root.name = 'RootElement';
 
             const category1 = root.addCategory('Category1');
             category1.description = 'Category 1 description';

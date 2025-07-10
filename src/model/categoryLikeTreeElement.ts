@@ -1,4 +1,4 @@
-import type { CategoryOrResourceType, ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementType } from '../api/modelTypes';
+import type { CategoryLikeTreeElementToJsonOptions, CategoryOrResourceType, ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementToJsonOptions, TreeElementType } from '../api/modelTypes';
 import type { ILhqCategoryLikeModelType } from '../api/schemas';
 import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
 import { ResourceElement } from './resourceElement';
@@ -22,6 +22,22 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         const model: Partial<TModel> = {};
         this.bindToModel(model);
         return model as TModel;
+    }
+
+    // public updateFromJson(json: Record<string, unknown>): void {
+    //     super.updateFromJson(json);
+    // }
+
+
+
+    protected internalToJson<TOptions extends CategoryLikeTreeElementToJsonOptions>(obj: Record<string, unknown>, options?: TOptions): void {
+        const includeCategories = options?.includeCategories ?? true;
+        const includeResources = options?.includeResources ?? true;
+
+        obj.categories = (includeCategories ? this._categories?.map(x => x.toJson(options)) : undefined) ?? [];
+        obj.resources = (includeResources ? this._resources?.map(x => x.toJson(options)) : undefined) ?? [];
+        obj.hasCategories = this._hasCategories;
+        obj.hasResources = this._hasResources;
     }
 
     protected bindToModel(model: Partial<TModel>): void {
@@ -200,6 +216,18 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
                 this._categories.splice(index, 1);
                 this._hasCategories = this._categories.length > 0;
             }
+        }
+    }
+
+    public removeChilds(categories: boolean, resources: boolean): void {
+        if (categories && this._categories) {
+            this._categories = [];
+            this._hasCategories = false;
+        }
+
+        if (resources && this._resources) {
+            this._resources = [];
+            this._hasResources = false;
         }
     }
 

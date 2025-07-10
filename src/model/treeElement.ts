@@ -1,5 +1,5 @@
 import { isNullOrEmpty } from '../utils';
-import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths, CategoryOrResourceType } from '../api/modelTypes';
+import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths, CategoryOrResourceType, TreeElementToJsonOptions } from '../api/modelTypes';
 import { TreeElementPaths } from './treeElementPaths';
 import type { ILhqModelType } from '../api/schemas';
 import type { ICategoryLikeTreeElementOperations } from './types';
@@ -22,22 +22,32 @@ export abstract class TreeElementBase implements ITreeElement {
     abstract addToTempData(key: string, value: unknown): void;
     abstract clearTempData(): void;
 
+    protected abstract internalToJson<TOptions extends TreeElementToJsonOptions>(obj: Record<string, unknown>, options?: TOptions): void;
+
+    //public abstract updateFromJson(json: Record<string, unknown>): void;
+
+    public toJson<TOptions extends TreeElementToJsonOptions>(options?: TOptions): Record<string, unknown> {
+        const obj: Record<string, unknown> = {
+            isRoot: this.isRoot,
+            // skip: root: undefined, 
+            // skip: parent: undefined,
+            name: this.name ?? '',
+            elementType: this.elementType,
+            description: this.description ?? '',
+            paths: this.paths ? this.paths.toJson() : {}
+        };
+
+        if (options?.includeData === true) {
+            obj.data = JSON.parse(JSON.stringify(this.data));
+        }
+
+        this.internalToJson(obj, options);
+
+        return obj;
+    }
+
     public debugSerialize(): string {
-        const seen = new WeakSet<ITreeElement>();
-        return JSON.stringify(this, (key, value) => {
-            if (key === '_parent' || key === '_root') {
-                return undefined; // Exclude parent and root from serialization
-            }
-
-            if (typeof value === 'object' && value !== null) {
-                if (seen.has(value as ITreeElement)) {
-                    return `[Circular: ${(value as ITreeElement).name}]`;
-                }
-                seen.add(value as ITreeElement);
-            }
-
-            return value as ITreeElement;
-        }, 2);
+        return JSON.stringify(this.toJson({ includeData: true }), null, 2);
     }
 }
 
@@ -63,6 +73,12 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         this._paths = new TreeElementPaths(this);
         this._data = {};
     }
+
+    // public updateFromJson(json: Record<string, unknown>): void {
+    //     this._name = json.name as string ?? '';
+    //     this._description = json.description as string | undefined;
+    //     this._data = json.data as Record<string, unknown> ?? {};
+    // }
 
     public abstract populate(source: TModel | undefined): void;
 

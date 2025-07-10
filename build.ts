@@ -11,6 +11,7 @@ import type { IPackageJson } from 'package-json-type';
 import pc from 'picocolors'
 
 import { generateLhqSchema } from './src/generatorUtils';
+import type { HbsMetadata } from './src/hbsMetadata';
 
 const distFolder = path.join(__dirname, 'dist');
 const sourcePackageFile = path.join(__dirname, 'package.json');
@@ -22,11 +23,17 @@ type EsBuildOptions = Parameters<NonNullable<Options['esbuildOptions']>>[0];
 const compileOnly = process.argv.findIndex(arg => arg === '--compile') > -1;
 const incVersion = process.argv.findIndex(arg => arg === '--version') > -1;
 
+const hbsMetadata: HbsMetadata = {
+    templates: []
+};
+
 void (async () => {
     try {
         await fse.ensureDir(distFolder);
 
         await readPackageJson();
+
+        await readHbsMetadata();
 
         if (compileOnly) {
             await Promise.all([
@@ -62,6 +69,7 @@ void (async () => {
 function updateBuildOptions(opts: EsBuildOptions): void {
     opts.define = {
         'PKG_VERSION': `'${packageJson.version}'`,
+        'HBS_METADATA': JSON.stringify(hbsMetadata)
     };
 }
 
@@ -235,11 +243,13 @@ async function copyPackageJson() {
 }
 
 async function copyExtraFiles() {
+    // hbs
     let targetHbsDir = path.join('dist', 'hbs');
     console.log('Copying hbs templates to ' + pc.blueBright(targetHbsDir));
     targetHbsDir = path.join(__dirname, targetHbsDir);
     await fse.copy(path.join(__dirname, 'hbs'), targetHbsDir);
 
+    // copy LICENSE files
     const mdFiles = await glob('{*.md,LICENSE}', { cwd: __dirname, nodir: true });
     console.log(`Copying ${mdFiles.length} MD files to ` + pc.blueBright('dist'));
 
@@ -342,4 +352,39 @@ export function spawnAsync(command: string, args: string[], options: SpawnOption
             return reject(err);
         })
     });
+}
+
+async function readHbsMetadata() {
+    const hbsFiles = await glob('*.hbs', { cwd: path.join(__dirname, 'hbs'), nodir: true });
+
+    // regex match for string: {{! template-id: NetCoreResxCsharp01 }}, result text is eg: NetCoreResxCsharp01
+    const templateIdRegex = /{{!\s*template-id:\s*([a-zA-Z0-9_-]+)\s*}}/;
+    
+    // regex match for string: {{! template-name: Description }}, result text is eg: Description
+    const templateNameRegex = /{{!\s*template-name:\s*([\s\S]+?)\s*}}/;
+
+    // regex match for string: {{! template-type: child }}, result text is eg: child
+    const templateTypeRegex = /{{!\s*template-type:\s*([a-zA-Z0-9_-]+)\s*}}/;
+
+    await Promise.all(hbsFiles.map(async (file) => {
+        const filePath = path.join(__dirname, 'hbs', file);
+        const content = await fse.readFile(filePath, { encoding: 'utf-8' });
+        const matchId = content.match(templateIdRegex);
+        const templateId = matchId ? matchId[1] : undefined;
+
+        const matchName = content.match(templateNameRegex);
+        const templateName = matchName ? matchName[1] : undefined;
+
+        if (!templateId || !templateName) {
+            throw new Error(`Template file ${file} is missing template-id or template-name comment.`);
+        }
+
+        const matchType = content.match(templateTypeRegex);
+        const type = matchType ? matchType[1] : 'root';
+        if (type !== 'root' && type !== 'child') {
+            throw new Error(`Template file ${file} has invalid template-type: ${type}. Expected 'root' or 'child'.`);
+        }
+
+        hbsMetadata.templates.push({ id: templateId, name: templateName, type: type});
+    }));
 }

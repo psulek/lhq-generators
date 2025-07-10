@@ -16,6 +16,16 @@ export class ResourceValueElement implements IResourceValueElement {
         this._auto = source?.auto;
     }
 
+    public toJson(): Record<string, unknown> {
+        return {
+            languageName: this.languageName ?? '',
+            value: this.value ?? '',
+            locked: this.locked ?? false,
+            auto: this.auto ?? false,
+            // skip: parent: undefined,
+        };
+    }
+
     public mapToModel(): LhqModelResourceValue {
         return {
             value: this._value,
@@ -40,7 +50,7 @@ export class ResourceValueElement implements IResourceValueElement {
         return this._locked;
     }
 
-    set locked(locked: boolean) {
+    set locked(locked: boolean | undefined) {
         this._locked = locked;
     }
 
@@ -48,7 +58,7 @@ export class ResourceValueElement implements IResourceValueElement {
         return this._auto;
     }
 
-    set auto(value: boolean) {
+    set auto(value: boolean | undefined) {
         this._auto = value;
     }
 

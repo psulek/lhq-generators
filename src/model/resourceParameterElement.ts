@@ -14,6 +14,15 @@ export class ResourceParameterElement implements IResourceParameterElement, ILhq
         this._parent = parent;
     }
 
+    public toJson(): Record<string, unknown> {
+        return {
+            name: this.name ?? '',
+            description: this.description ?? '',
+            order: this.order
+            // skip: parent: undefined,
+        };
+    }
+
     public mapToModel(): LhqModelResourceParameter {
         return {            
             description: this._description,

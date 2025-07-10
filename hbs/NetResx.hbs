@@ -1,3 +1,6 @@
+{{! template-id: NetResx }}
+{{! template-name: Template which generates resource (*.resx) files. Usable in classic desktop applications (Console, Windows Service, etc.) }}
+{{! template-type: child }}
 {{! '@root.host.lang' contain language code (eg: 'en', 'sk') }}
 {{~#output fileName=(x-concat model.name "." @root.host.lang ".resx") ~}}
 childs[?name=='ResX'].attrs | [0].merge(@, {

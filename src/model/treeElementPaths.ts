@@ -8,6 +8,10 @@ export class TreeElementPaths implements ITreeElementPaths {
         this.refresh(element)
     }
 
+    public toJson(): string[] {
+        return this.paths ?? [];
+    }
+
     public refresh(element: ITreeElement): void {
         this.paths = [];
         if (element) {
