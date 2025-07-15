@@ -10,5 +10,8 @@ export * as fileUtils from './fileUtils';
 export * from './utils';
 export * from './types';
 export * from './api/index';
-export { getHbsMetadata } from './hbsMetadata';
-export {BuildinTemplateId, TemplateSettings, TemplateSettingsType} from './templates';
+
+export { HbsTemplateManager } from './hbsManager';
+
+// export { getHbsMetadata } from './hbsMetadata';
+// export {BuildinTemplateId, TemplateSettings, TemplateSettingsType} from './templates';

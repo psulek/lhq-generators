@@ -10,17 +10,7 @@
       * result of this query is stored in @root.settings (eg: @root.settings.OutputFolder)
       * more about jmespath query expressions - https://jmespath.org/
 }}
-{{~#output fileName=(x-concat model.name ".gen.cs") ~}}
-childs[?name=='CSharp'].attrs | [0].merge(@, {
-    OutputFolder: (OutputFolder||'Resources'),
-    EncodingWithBOM: (EncodingWithBOM||'false')=='true',
-    LineEndings: (LineEndings||'LF'),
-    Enabled: (Enabled||'true')=='true',
-    Namespace: (Namespace||''),
-    UseExpressionBodySyntax: (UseExpressionBodySyntax||'false')=='true',
-    MissingTranslationFallbackToPrimary: (MissingTranslationFallbackToPrimary||'false')=='true'
-})
-{{~/output~}}
+{{~#output fileName=(x-concat model.name ".gen.cs") ~}}CSharp{{~/output~}}
 {{! for each language generate resx file
     * sets templateId to 'NetResx'
     * sets host.lang to iterated language code (using jmespath query, where @ represents currently iterated language code)

@@ -1,7 +1,7 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
 import type { LhqModelDataNode, LhqModelProperties } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
-import type { ICategoryLikeTreeElement, ICodeGeneratorElement, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
+import type { DataNodeToCodeGeneratorGroupSettingsDelegate, ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
@@ -20,11 +20,19 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
     private _metadatas: Readonly<LhqModelMetadata> | undefined;
     private _codeGenerator: ICodeGeneratorElement | undefined;
     private _hasLanguages = true;
+    private _codeGenSettingsConvertor: ICodeGeneratorSettingsConvertor;
 
-    constructor(model: LhqModel | undefined) {
+    constructor(model: LhqModel | undefined, codeGenSettingsConvertor: ICodeGeneratorSettingsConvertor) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         super(undefined, 'model', model?.model?.name ?? '', undefined);
+
+        if (isNullOrEmpty(codeGenSettingsConvertor)) {
+            throw new Error('Parameter "codeGenSettingsConvertor" cannot be null or undefined.');
+        }
+        
+        this._codeGenSettingsConvertor = codeGenSettingsConvertor;
+
         this.populate(model);
     }
 
@@ -116,7 +124,13 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
 
         if (!isNullOrEmpty(templateId) && !isNullOrEmpty(node)) {
-            return { templateId, settings: node, version: codeGenVersion };
+            const settings = this._codeGenSettingsConvertor.nodeToSettings(templateId, node);
+            if (isNullOrUndefined(settings)) {
+                throw new Error('Conversion from node to "CodeGeneratorGroupSettings" failed.');
+            }
+
+            return { templateId, settings, version: codeGenVersion };
+            // return { templateId, settings: node, version: codeGenVersion };
         }
 
         return undefined;
@@ -128,7 +142,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
 
         const templateId = codeGeneratorElement.templateId;
-        const settings = Object.assign({}, codeGeneratorElement.settings ?? {});
+        //const settings = Object.assign({}, codeGeneratorElement.settings ?? {});
         const codeGenVersion = codeGeneratorElement.version > 0 && codeGeneratorElement.version <= ModelVersions.codeGenerator
             ? codeGeneratorElement.version
             : ModelVersions.codeGenerator;
@@ -177,7 +191,8 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
             }
         }
 
-        settings.name = 'Settings';
+        const settings = this._codeGenSettingsConvertor.settingsToNode(templateId, codeGeneratorElement.settings ?? {});
+        //settings.name = 'Settings';
         correctAttrsValues(settings);
 
         const settingsIdx = contentElem.childs.findIndex(x => x.name === 'Settings');
@@ -188,7 +203,8 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
 
         this._metadatas = Object.freeze(metadata);
-        return { templateId, settings, version: codeGenVersion };
+        return { templateId, settings: codeGeneratorElement.settings, version: codeGenVersion };
+        // return { templateId, settings, version: codeGenVersion };
     }
 
     get uid(): LhqModelUid {

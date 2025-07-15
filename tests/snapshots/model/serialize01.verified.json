@@ -41,11 +41,36 @@
             "name": "content",
             "childs": [
               {
-                "name": "Settings"
+                "name": "Settings",
+                "childs": [
+                  {
+                    "name": "CSharp",
+                    "attrs": {
+                      "Enabled": "false",
+                      "OutputFolder": "Resources",
+                      "EncodingWithBOM": "false",
+                      "LineEndings": "LF",
+                      "UseExpressionBodySyntax": "false",
+                      "MissingTranslationFallbackToPrimary": "false",
+                      "Namespace": ""
+                    }
+                  },
+                  {
+                    "name": "ResX",
+                    "attrs": {
+                      "Enabled": "true",
+                      "OutputFolder": "Resources",
+                      "EncodingWithBOM": "false",
+                      "LineEndings": "LF",
+                      "CultureCodeInFileNameForPrimaryLanguage": "true",
+                      "CompatibleTextEncoding": "true"
+                    }
+                  }
+                ]
               }
             ],
             "attrs": {
-              "templateId": "123",
+              "templateId": "NetCoreResxCsharp01",
               "version": "1"
             }
           }

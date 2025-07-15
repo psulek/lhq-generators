@@ -10,6 +10,7 @@ import type { GeneratedFile, GenerateResult } from './api/types';
 import { validateLhqModel } from './generatorUtils';
 import type { GeneratorInitialization, IHostEnvironment } from './types';
 import type { LhqModel } from './api';
+import { codeGeneratorSettingsConvertor } from './settingsConvertor';
 
 declare let PKG_VERSION: string;
 
@@ -69,11 +70,19 @@ export class Generator {
                 throw new Error('Handlebars templates cannot be empty are required (initialization.hbsTemplates) !');
             }
 
+            if (isNullOrEmpty(initialization.templatesMetadata)) {
+                throw new Error('Templates metadata is required (initialization.templatesMetadata) !');
+            }
+
+            if (Object.keys(initialization.templatesMetadata).length === 0) {
+                throw new Error('Templates metadata cannot be empty (initialization.templatesMetadata) !');
+            }
+
             if (isNullOrEmpty(initialization.hostEnvironment)) {
                 throw new Error('Host environment is required (initialization.hostEnvironment) !');
             }
 
-            HbsTemplateManager.init(initialization.hbsTemplates);
+            HbsTemplateManager.init(initialization.hbsTemplates, initialization.templatesMetadata);
 
             Generator.hostEnv = initialization.hostEnvironment;
             registerHelpers(initialization.hostEnvironment);
@@ -150,7 +159,7 @@ export class Generator {
         }
 
         const model = validation.model as LhqModel;
-        const rootModel = new RootModelElement(model);
+        const rootModel = new RootModelElement(model, codeGeneratorSettingsConvertor);
 
         const templateId = rootModel.codeGenerator?.templateId ?? '';
         if (isNullOrEmpty(rootModel.codeGenerator) || isNullOrEmpty(templateId)) {

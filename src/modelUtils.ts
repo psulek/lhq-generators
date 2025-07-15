@@ -1,12 +1,18 @@
-import type { IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
-import type { ILhqModelType, LhqModel } from './api/schemas';
+import type { CodeGeneratorGroupSettings, ICodeGeneratorElement, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
+import type { ILhqModelType, LhqModel, LhqModelDataNode } from './api/schemas';
+import type { TemplateMetadataSettings } from './api/templates';
 import { validateLhqModel } from './generatorUtils';
-import { CategoryLikeTreeElement } from './model/categoryLikeTreeElement';
+import { HbsTemplateManager } from './hbsManager';
+import { ModelVersions } from './model/modelConst';
 import { RootModelElement } from './model/rootModelElement';
 import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
+import { codeGeneratorSettingsConvertor } from './settingsConvertor';
 import type { FormattingOptions } from './types';
-import { serializeJson } from './utils';
+import { isNullOrEmpty, serializeJson } from './utils';
+
+
+
 
 export class ModelUtils {
     /**
@@ -21,7 +27,74 @@ export class ModelUtils {
             model = validation.success ? validation.model : undefined;
         }
 
-        return new RootModelElement(model);
+        return new RootModelElement(model, codeGeneratorSettingsConvertor);
+    }
+
+    /**
+     * Creates a new code generator element for the specified template ID and settings.
+     * @param templateId - The ID of the template to be used for the code generator element.
+     * @param settings - The settings to be applied to the code generator element.
+     */
+    public static createCodeGeneratorElement(templateId: string, settings?: CodeGeneratorGroupSettings): ICodeGeneratorElement {
+        if (isNullOrEmpty(templateId)) {
+            throw new Error('Template Id cannot be empty !');
+        }
+
+        const definition = HbsTemplateManager.getTemplateDefinition(templateId);
+        if (!definition) {
+            throw new Error(`Template definition for '${templateId}' not found.`);
+        }
+
+        settings = settings || {};
+
+        function validateValue(group: string, name: string, value: unknown, definitionSettings: TemplateMetadataSettings[]): unknown {
+            const setting = definitionSettings.find(x => x.name === name);
+            if (!setting) {
+                throw new Error(`Setting '${name}' (group: '${group}') not found in template definition for '${templateId}'.`);
+            }
+
+            if (setting.type === 'boolean' && typeof value !== 'boolean') {
+                throw new Error(`Setting '${name}' (group: '${group}') must be a boolean value in template definition for '${templateId}'.`);
+            }
+
+            if (setting.type === 'string' && typeof value !== 'string') {
+                throw new Error(`Setting '${name}' (group: '${group}') must be a string value in template definition for '${templateId}'.`);
+            }
+
+            if (setting.type === 'list' && !Array.isArray(value)) {
+                const listVals = (setting.values?.map(x => x.value || x.name) || []).join(', ');
+                throw new Error(`Setting '${name}' (group: '${group}') must be an value from list (${listVals}) in template definition for '${templateId}'.`);
+            }
+
+            return value === undefined ? setting.default : value;
+        }
+
+        // group -> eg: 'Typescript', 'CSharp', 'Json', etc.
+        for (const group of Object.keys(definition.settings)) {
+            if (!Object.prototype.hasOwnProperty.call(settings, group)) {
+                settings[group] = {};
+            }
+
+            const groupSettings = definition.settings[group];
+            for (const definitionSetting of groupSettings) {
+                if (!Object.prototype.hasOwnProperty.call(settings[group], definitionSetting.name)) {
+                    if (definitionSetting.default !== null) {
+                        settings[group][definitionSetting.name] = definitionSetting.default;
+                    }
+                } else {
+                    const settingValue = validateValue(group, definitionSetting.name,
+                        settings[group][definitionSetting.name], groupSettings);
+
+                    settings[group][definitionSetting.name] = settingValue;
+                }
+            }
+        }
+
+        return {
+            templateId,
+            version: ModelVersions.codeGenerator,
+            settings
+        };
     }
 
     // /**

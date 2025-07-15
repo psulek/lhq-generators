@@ -1,15 +1,6 @@
 ﻿{{! template-id: WpfResxCsharp01 }}
 {{! template-name: Template which generates strongly typed C# and resource (*.resx) files. Usable in WPF desktop applications. }}
-{{~#output fileName=(x-concat model.name ".gen.cs") ~}}
-childs[?name=='CSharp'].attrs | [0].merge(@, {
-    OutputFolder: (OutputFolder||'Resources'),
-    EncodingWithBOM: (EncodingWithBOM||'false')=='true',
-    LineEndings: (LineEndings||'LF'),
-    Enabled: (Enabled||'true')=='true',
-    UseExpressionBodySyntax: (UseExpressionBodySyntax||'false')=='true',
-    MissingTranslationFallbackToPrimary: (MissingTranslationFallbackToPrimary||'false')=='true'
-})
-{{~/output~}}
+{{~#output fileName=(x-concat model.name ".gen.cs") ~}}CSharp{{~/output~}}
 
 {{! for each language generate resx file }}
 {{~#each model.languages ~}}

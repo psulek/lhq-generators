@@ -3,16 +3,16 @@ import { expect } from 'chai';
 import { glob } from 'glob';
 import fse from 'fs-extra';
 
-import { folders, safeReadFile, verify } from './testUtils';
+import { folders, initGenerator, safeReadFile, verify } from './testUtils';
 import { detectFormatting, updateEOL } from '../src/utils';
 import { LhqModel } from '../src/api/schemas';
-import { ICodeGeneratorElement, IRootModelElement } from '../src/api';
+import { IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
 import { FormattingOptions, ModelUtils } from '../src';
-import { RootModelElement } from '../src/model/rootModelElement';
 
 setTimeout(async () => {
+    await initGenerator();
 
     const defaultFormatting: FormattingOptions = {
         indentation: { amount: 2, type: 'space' },
@@ -164,7 +164,8 @@ setTimeout(async () => {
             testResource1.description = 'Test resource 1 description';
             testResource1.addValue('sk', 'Test hodnota 1');
 
-            const newCodeGenerator: ICodeGeneratorElement = { templateId: '123', version: 1, settings: { name: 'Settings2' } };
+            //const newCodeGenerator: ICodeGeneratorElement = { templateId: 'NetCoreResxCsharp01', version: 1, settings: {} };
+            const newCodeGenerator = ModelUtils.createCodeGeneratorElement('NetCoreResxCsharp01', {CSharp: {Enabled: false}})
             root.codeGenerator = newCodeGenerator;
 
             const model = ModelUtils.rootElementToModel(root);

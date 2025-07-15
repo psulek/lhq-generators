@@ -1,3 +1,4 @@
+import type { ZodError } from 'zod';
 import * as zodToJsonSchema from 'zod-to-json-schema';
 import { fromZodError, createMessageBuilder } from 'zod-validation-error';
 
@@ -5,6 +6,50 @@ import { type LhqModel, LhqModelSchema } from './api/schemas';
 import { isNullOrEmpty, updateEOL, tryJsonParse } from './utils';
 import type { LhqValidationResult } from './types';
 import type { GeneratedFile } from './api/types';
+import { type TemplateMetadataValidationResult, templatesMetadataSchema, type TemplatesMetadata } from './api/templates';
+
+export function getZodError(error: ZodError): string {
+    const messageBuilder = createMessageBuilder({
+        prefix: '',
+        prefixSeparator: '',
+        issueSeparator: '\n'
+    });
+    const err = fromZodError(error, { messageBuilder });
+    return err.toString();
+}
+
+export function validateTemplateMetadata(data: TemplatesMetadata | string): TemplateMetadataValidationResult { 
+    if (typeof data === 'string') {
+        const parseResult = tryJsonParse(data, true);
+
+        if (!parseResult.success) {
+            return { success: false, error: parseResult.error };
+        }
+
+        data = parseResult.data as TemplatesMetadata;
+    }
+
+    if (data === undefined || data === null || typeof data !== 'object') {
+        return { success: false, error: 'Specified "data" must be an object!' };
+    }
+
+    const parseResult = templatesMetadataSchema.safeParse(data);
+    const success = parseResult.success && !isNullOrEmpty(parseResult.data);
+
+    let error: string | undefined = undefined;
+    if (!parseResult.success) {
+        // const messageBuilder = createMessageBuilder({
+        //     prefix: '',
+        //     prefixSeparator: '',
+        //     issueSeparator: '\n'
+        // });
+        // const err = fromZodError(parseResult.error, { messageBuilder });
+        // error = err.toString();
+        error = getZodError(parseResult.error);
+    }
+
+    return { success, error, metadata: success ? parseResult.data : undefined };
+}
 
 /**
  * Validates the specified data (as JSON object or JSON as string) against the defined `LhqModel` schema.

@@ -3,9 +3,9 @@ import { glob } from 'glob';
 import fse from 'fs-extra';
 
 import { getGeneratedFileContent } from '../src/generatorUtils.js';
-import { GeneratedFile, GeneratorInitialization, HostEnvironment, isNullOrUndefined, LhqModel } from '../src/index.js';
+import { GeneratedFile, LhqModel } from '../src/index.js';
 import { Generator } from '../src/generator.js';
-import { safeReadFile, verifyFile } from './testUtils.js';
+import { initGenerator, verifyFile } from './testUtils.js';
 import * as fileUtils from './fileUtils.js';
 
 import { folders } from './testUtils.js';
@@ -78,29 +78,42 @@ async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): P
 }
 
 
-async function initGenerator() {
-    const generatorInit: GeneratorInitialization = {
-        hbsTemplates: {},
-        hostEnvironment: new HostEnvironmentCli()
-    };
+// async function initGenerator() {
+//     try {
+//         const hbsTemplatesDir = folders().hbs;
 
-    const hbsTemplatesDir = folders().hbs;
+//         const metadataFile = path.join(hbsTemplatesDir, 'metadata.json');
+//         const metadataContent = await fse.readFile(metadataFile, { encoding: 'utf-8' });
+//         const result = validateTemplateMetadata(metadataContent);
+//         if (!result.success) {
+//             throw new Error(`Validation of ${metadataFile} failed: ${result.error}`);
+//         }
 
-    const hbsFiles = await glob('*.hbs', { cwd: hbsTemplatesDir, nodir: true });
+//         const generatorInit: GeneratorInitialization = {
+//             hbsTemplates: {},
+//             templatesMetadata: result.metadata!,
+//             hostEnvironment: new HostEnvironmentCli()
+//         };
 
-    const templateLoaders = hbsFiles.map(async (hbsFile) => {
-        const templateId = path.basename(hbsFile, path.extname(hbsFile));
-        const fullFilePath = path.join(hbsTemplatesDir, hbsFile);
-        generatorInit.hbsTemplates[templateId] = await safeReadFile(fullFilePath);
-    });
 
-    await Promise.all(templateLoaders);
+//         const hbsFiles = await glob('*.hbs', { cwd: hbsTemplatesDir, nodir: true });
 
-    Generator.initialize(generatorInit);
-}
+//         const templateLoaders = hbsFiles.map(async (hbsFile) => {
+//             const templateId = path.basename(hbsFile, path.extname(hbsFile));
+//             const fullFilePath = path.join(hbsTemplatesDir, hbsFile);
+//             generatorInit.hbsTemplates[templateId] = await safeReadFile(fullFilePath);
+//         });
 
-class HostEnvironmentCli extends HostEnvironment {
-    public pathCombine(path1: string, path2: string): string {
-        return path.join(path1, path2);
-    }
-}
+//         await Promise.all(templateLoaders);
+
+//         Generator.initialize(generatorInit);
+//     } catch (error) {
+//         console.error('Error initializing generator:', error);
+//     }
+// }
+
+// class HostEnvironmentCli extends HostEnvironment {
+//     public pathCombine(path1: string, path2: string): string {
+//         return path.join(path1, path2);
+//     }
+// }

@@ -2,16 +2,7 @@
 {{! template-name: Template which generates resource (*.resx) files. Usable in classic desktop applications (Console, Windows Service, etc.) }}
 {{! template-type: child }}
 {{! '@root.host.lang' contain language code (eg: 'en', 'sk') }}
-{{~#output fileName=(x-concat model.name "." @root.host.lang ".resx") ~}}
-childs[?name=='ResX'].attrs | [0].merge(@, {
-    OutputFolder: (OutputFolder||'Resources'),
-    EncodingWithBOM: (EncodingWithBOM||'false')=='true',
-    LineEndings: (LineEndings||'LF'),
-    Enabled: (Enabled||'true')=='true',
-    CultureCodeInFileNameForPrimaryLanguage: (CultureCodeInFileNameForPrimaryLanguage||'true')=='true',
-    CompatibleTextEncoding: (CompatibleTextEncoding||'true')=='true'
-})
-{{~/output~}}
+{{~#output fileName=(x-concat model.name "." @root.host.lang ".resx") ~}}ResX{{~/output~}}
 <?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 

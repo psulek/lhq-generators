@@ -1,5 +1,5 @@
 import type { LhqModel, LhqModelLineEndings } from './api/schemas';
-//import type detectIndent from 'detect-indent';
+import type { TemplatesMetadata } from './api/templates';
 
 export type IndentationType = {
 	/**
@@ -33,7 +33,6 @@ export interface IHostEnvironment {
     stopwatchStart(): number;
     stopwatchEnd(start: number): string;
     pathCombine(path1: string, path2: string): string;
-    //readonly path: IPathProvider;
 }
 
 export type GeneratorInitialization = {
@@ -41,6 +40,11 @@ export type GeneratorInitialization = {
      * Handlebars templates, where each key represents 'templateId' (unique identifier) and value represents handlebars template content.
      */
     hbsTemplates: HbsTemplatesData;
+
+    /**
+     * Metadata of available templates, including settings and templates definitions.
+     */
+    templatesMetadata: TemplatesMetadata;
 
     /**
      * Host environment with which generator interacts when running code templates.

@@ -8,6 +8,11 @@ import chaiBytes from 'chai-bytes';
 use(chaiBytes);
 
 import { isNullOrEmpty, tryJsonParse, tryRemoveBOM } from '../src/utils.js';
+import { validateTemplateMetadata } from '../src/generatorUtils.js';
+import { glob } from 'glob';
+import { Generator } from '../src/generator.js';
+import { GeneratorInitialization } from '../src/types.js';
+import { HostEnvironment } from '../src/index.js';
 //import { FilePath } from '../src/types.js';
 
 export type TestFolders = {
@@ -157,3 +162,44 @@ export const formatRelativePath = (p: string): string => {
     const res = h === '.' ? p : (h === '/' ? `.${p}` : `./${p}`);
     return res.replace('\\', '/');
 };
+
+
+export async function initGenerator() {
+    try {
+        const hbsTemplatesDir = folders().hbs;
+
+        const metadataFile = path.join(hbsTemplatesDir, 'metadata.json');
+        const metadataContent = await fse.readFile(metadataFile, { encoding: 'utf-8' });
+        const result = validateTemplateMetadata(metadataContent);
+        if (!result.success) {
+            throw new Error(`Validation of ${metadataFile} failed: ${result.error}`);
+        }
+
+        const generatorInit: GeneratorInitialization = {
+            hbsTemplates: {},
+            templatesMetadata: result.metadata!,
+            hostEnvironment: new HostEnvironmentCli()
+        };
+
+
+        const hbsFiles = await glob('*.hbs', { cwd: hbsTemplatesDir, nodir: true });
+
+        const templateLoaders = hbsFiles.map(async (hbsFile) => {
+            const templateId = path.basename(hbsFile, path.extname(hbsFile));
+            const fullFilePath = path.join(hbsTemplatesDir, hbsFile);
+            generatorInit.hbsTemplates[templateId] = await safeReadFile(fullFilePath);
+        });
+
+        await Promise.all(templateLoaders);
+
+        Generator.initialize(generatorInit);
+    } catch (error) {
+        console.error('Error initializing generator:', error);
+    }
+}
+
+class HostEnvironmentCli extends HostEnvironment {
+    public pathCombine(path1: string, path2: string): string {
+        return path.join(path1, path2);
+    }
+}

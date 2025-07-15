@@ -251,8 +251,6 @@ export interface ICategoryLikeTreeElement extends ITreeElement {
     removeChilds(categories: boolean, resources: boolean): void;
 }
 
-//export type BoolStringType = 'true' | 'false';
-
 /**
  * Basic settings for the code generator.
  */
@@ -283,67 +281,75 @@ export interface CodeGeneratorBasicSettings {
     Enabled: boolean;
 }
 
-export interface CodeGeneratorResXSettings extends CodeGeneratorBasicSettings {
-    /**
-     * Resx file for primary language will also (like foreign language files) includes language code.
-     */
-    CultureCodeInFileNameForPrimaryLanguage: boolean;
+// export interface CodeGeneratorResXSettings extends CodeGeneratorBasicSettings {
+//     /**
+//      * Resx file for primary language will also (like foreign language files) includes language code.
+//      */
+//     CultureCodeInFileNameForPrimaryLanguage: boolean;
 
-    /**
-     * Compatible text encoding, When enabled, text will be encoded using compatibility mode (System.Web.HttpUtility.HtmlEncode),
-     * otherwise only subset of characters (required for xml encoding) will be encoded.
-     */
-    CompatibleTextEncoding: boolean;
-}
+//     /**
+//      * Compatible text encoding, When enabled, text will be encoded using compatibility mode (System.Web.HttpUtility.HtmlEncode),
+//      * otherwise only subset of characters (required for xml encoding) will be encoded.
+//      */
+//     CompatibleTextEncoding: boolean;
+// }
 
-export interface CodeGeneratorCsharpSettingsBase extends CodeGeneratorBasicSettings {
-    /**
-     * Indicates whether to use expression body syntax for properties and methods.
-     */
-    UseExpressionBodySyntax: boolean;
+// export interface CodeGeneratorCsharpSettingsBase extends CodeGeneratorBasicSettings {
+//     /**
+//      * Indicates whether to use expression body syntax for properties and methods.
+//      */
+//     UseExpressionBodySyntax: boolean;
 
-    /**
-     * C# Namespace for the generated code.
-     */
-    Namespace: string;
-}
+//     /**
+//      * C# Namespace for the generated code.
+//      */
+//     Namespace: string;
+// }
 
-export interface CodeGeneratorCsharpSettings extends CodeGeneratorCsharpSettingsBase {
-    /**
-     * Indicates whether to fallback to primary language for missing translations.
-     */
-    MissingTranslationFallbackToPrimary: boolean;
-}
+// export interface CodeGeneratorCsharpSettings extends CodeGeneratorCsharpSettingsBase {
+//     /**
+//      * Indicates whether to fallback to primary language for missing translations.
+//      */
+//     MissingTranslationFallbackToPrimary: boolean;
+// }
 
-export interface CodeGeneratorTypescriptSettings extends CodeGeneratorBasicSettings {
-    /**
-     * Ambient namespace name used in typescript definition.
-     */
-    AmbientNamespaceName: string;
+// export interface CodeGeneratorTypescriptSettings extends CodeGeneratorBasicSettings {
+//     /**
+//      * Ambient namespace name used in typescript definition.
+//      */
+//     AmbientNamespaceName: string;
 
-    /**
-     * Prefix for interface type used in typescript definition.
-     */
-    InterfacePrefix: string;
-}
+//     /**
+//      * Prefix for interface type used in typescript definition.
+//      */
+//     InterfacePrefix: string;
+// }
 
-export interface CodeGeneratorTypescriptJsonSettings extends CodeGeneratorBasicSettings {
-    /**
-     * File name for primary language includes language code.
-     * Json file for primary language will also (like foreign language files) includes language code.
-     */
-    CultureCodeInFileNameForPrimaryLanguage: boolean;
+// export interface CodeGeneratorTypescriptJsonSettings extends CodeGeneratorBasicSettings {
+//     /**
+//      * File name for primary language includes language code.
+//      * Json file for primary language will also (like foreign language files) includes language code.
+//      */
+//     CultureCodeInFileNameForPrimaryLanguage: boolean;
 
-    /**
-     * Suffix for metadata file name.
-     */
-    MetadataFileNameSuffix: string;
+//     /**
+//      * Suffix for metadata file name.
+//      */
+//     MetadataFileNameSuffix: string;
 
+//     /**
+//      * Write key value pair even on empty translations.
+//      */
+//     WriteEmptyValues: boolean;
+// }
+
+export type CodeGeneratorGroupSettings = {
     /**
-     * Write key value pair even on empty translations.
+     * settingsGroup is a name of the group of settings, e.g. 'CSharp', 'ResX', 'Typescript', 'Json'.
+     * value - is a dictionary of settings for the group, e.g. 'OutputFolder': '/path/to/output', 'EncodingWithBOM': true, ...
      */
-    WriteEmptyValues: boolean;
-}
+    [settingsGroup: string]: Record<string, unknown>;
+};
 
 /**
  * Represents a code generator element.
@@ -361,7 +367,8 @@ export interface ICodeGeneratorElement {
     /**
      * Settings for the code generator.
      */
-    readonly settings: LhqModelDataNode;
+    // readonly settings: LhqModelDataNode;
+    readonly settings: CodeGeneratorGroupSettings;
 }
 
 /**
@@ -775,4 +782,11 @@ export type ModelVersionsType = {
 
 export type ICodeGeneratorCsharpBase = {
     Namespace: string;
+}
+
+export type DataNodeToCodeGeneratorGroupSettingsDelegate = (node: LhqModelDataNode) => CodeGeneratorGroupSettings;
+
+export interface ICodeGeneratorSettingsConvertor {
+    nodeToSettings(templateId: string, node: LhqModelDataNode): CodeGeneratorGroupSettings;
+    settingsToNode(templateId: string, settings: CodeGeneratorGroupSettings): LhqModelDataNode;
 }
