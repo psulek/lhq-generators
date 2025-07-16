@@ -164,16 +164,19 @@ setTimeout(async () => {
             testResource1.description = 'Test resource 1 description';
             testResource1.addValue('sk', 'Test hodnota 1');
 
-            //const newCodeGenerator: ICodeGeneratorElement = { templateId: 'NetCoreResxCsharp01', version: 1, settings: {} };
             const newCodeGenerator = ModelUtils.createCodeGeneratorElement('NetCoreResxCsharp01', {CSharp: {Enabled: false}})
             root.codeGenerator = newCodeGenerator;
 
             const model = ModelUtils.rootElementToModel(root);
-            //const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
-
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
-
             await verify('model', `serialize01`, modelJson, 'text', 'json');
+
+            newCodeGenerator.settings['CSharp']['Enabled'] = true;
+            root.codeGenerator = newCodeGenerator;
+
+            const model2 = ModelUtils.rootElementToModel(root);
+            const modelJson2 = ModelUtils.serializeModel(model2, defaultFormatting);
+            await verify('model', `serialize01b`, modelJson2, 'text', 'json');
         });
 
         it('should handle root element without description', async () => {

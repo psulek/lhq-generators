@@ -159,7 +159,8 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         metadataElem.attrs ??= {};
         metadataElem.attrs['descriptorUID'] = CodeGenUID;
 
-        let contentElem = metadata.childs?.find(x => x.name === 'content');
+        //let contentElem = metadata.childs?.find(x => x.name === 'content');
+        let contentElem = metadataElem.childs?.find(x => x.name === 'content');
         if (!contentElem) {
             contentElem = { name: 'content', childs: [], attrs: {} };
             metadataElem.childs.push(contentElem);

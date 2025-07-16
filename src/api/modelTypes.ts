@@ -5,6 +5,7 @@ import type {
     LhqModelLineEndings,
     LhqModelDataNode
 } from './schemas';
+import type { TemplateMetadataSettings } from './templates';
 
 export type TreeElementType = 'model' | 'category' | 'resource';
 
@@ -354,7 +355,7 @@ export type CodeGeneratorGroupSettings = {
 /**
  * Represents a code generator element.
  */
-export interface ICodeGeneratorElement {
+export type ICodeGeneratorElement = {
     /**
      * Identifier of the template used by the code generator.
      */
@@ -789,4 +790,6 @@ export type DataNodeToCodeGeneratorGroupSettingsDelegate = (node: LhqModelDataNo
 export interface ICodeGeneratorSettingsConvertor {
     nodeToSettings(templateId: string, node: LhqModelDataNode): CodeGeneratorGroupSettings;
     settingsToNode(templateId: string, settings: CodeGeneratorGroupSettings): LhqModelDataNode;
+
+    convertValueForProperty(value: unknown, property: TemplateMetadataSettings): unknown;
 }

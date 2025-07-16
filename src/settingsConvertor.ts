@@ -5,6 +5,53 @@ import { HbsTemplateManager } from './hbsManager';
 import { isNullOrEmpty } from './utils';
 
 export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsConvertor {
+    public convertValueForProperty(value: unknown, property: TemplateMetadataSettings): unknown {
+        if (value === undefined || value === null) {
+            return property.default;
+        }
+
+        const valueType = typeof value;
+        switch (property.type) {
+            case 'boolean':
+                {
+                    //return valueType === 'string' ? (value === 'true') : value;
+                    switch (valueType) {
+                        case 'string':
+                            if (value === 'true') {
+                                return true;
+                            } else if (value === 'false') {
+                                return false;
+                            }
+                            break;
+                        case 'boolean':
+                            return value;
+                        case 'number':
+                            return value !== 0;
+                        default:
+                            return property.default;
+                    }
+
+                    break;
+                }
+            case 'string':
+                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                return valueType === 'string' ? value : String(value);
+            case 'list':
+                {
+                    if (Array.isArray(property.values)) {
+                        const found = property.values.find(pv => typeof pv.value === valueType && pv.value === value);
+                        return found ? found.value : property.default;
+                    }
+
+                    return property.default;
+                }
+            case 'number':
+                return valueType === 'number' ? value : Number(value);
+            default:
+                throw new Error(`Unsupported setting type!`);
+        }
+    }
+
     public nodeToSettings(templateId: string, node: LhqModelDataNode): CodeGeneratorGroupSettings {
         if (isNullOrEmpty(templateId)) {
             throw new Error('Template id cannot be null or empty.');
@@ -21,7 +68,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
 
         const result: CodeGeneratorGroupSettings = {};
 
-        const convertValue = (value: unknown, property: TemplateMetadataSettings): unknown => {
+      /*   const convertValue = (value: unknown, property: TemplateMetadataSettings): unknown => {
             if (value === undefined || value === null) {
                 return property.default;
             }
@@ -67,7 +114,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                     throw new Error(`Unsupported setting type!`);
             }
         };
-
+ */
         if (node && node.childs) {
             node.childs.forEach(child => {
                 const groupName = child.name;
@@ -84,7 +131,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                                 value = gs.default;
                             }
 
-                            settings[gs.name] = convertValue(value, gs);
+                            settings[gs.name] = this.convertValueForProperty(value, gs);
                         });
 
                         // for (const [name, value] of Object.entries(child.attrs)) {
@@ -155,4 +202,4 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
     }
 }
 
-export const codeGeneratorSettingsConvertor = new CodeGeneratorSettingsConvertor();
+//export const codeGeneratorSettingsConvertor = new CodeGeneratorSettingsConvertor();

@@ -5,12 +5,12 @@ import { registerHelpers } from './helpers';
 import { type OutputFileData, type OutputInlineData, TemplateRootModel } from './model/templateRootModel';
 import { HbsTemplateManager } from './hbsManager';
 import { DefaultCodeGenSettings } from './model/modelConst';
-import type { CodeGeneratorBasicSettings } from './api/modelTypes';
+import type { CodeGeneratorBasicSettings, ICodeGeneratorSettingsConvertor } from './api/modelTypes';
 import type { GeneratedFile, GenerateResult } from './api/types';
 import { validateLhqModel } from './generatorUtils';
 import type { GeneratorInitialization, IHostEnvironment } from './types';
 import type { LhqModel } from './api';
-import { codeGeneratorSettingsConvertor } from './settingsConvertor';
+import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 
 declare let PKG_VERSION: string;
 
@@ -47,6 +47,7 @@ export class Generator {
     // private static regexLF = new RegExp('\\r\\n|\\r', 'g');
     // private static regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
     private static hostEnv: IHostEnvironment;
+    private static settingsConvertor: ICodeGeneratorSettingsConvertor;
 
     private _generatedFiles: GeneratedFile[] = [];
 
@@ -83,6 +84,8 @@ export class Generator {
             }
 
             HbsTemplateManager.init(initialization.hbsTemplates, initialization.templatesMetadata);
+
+            Generator.settingsConvertor = new CodeGeneratorSettingsConvertor();
 
             Generator.hostEnv = initialization.hostEnvironment;
             registerHelpers(initialization.hostEnvironment);
@@ -159,7 +162,7 @@ export class Generator {
         }
 
         const model = validation.model as LhqModel;
-        const rootModel = new RootModelElement(model, codeGeneratorSettingsConvertor);
+        const rootModel = new RootModelElement(model, Generator.settingsConvertor);
 
         const templateId = rootModel.codeGenerator?.templateId ?? '';
         if (isNullOrEmpty(rootModel.codeGenerator) || isNullOrEmpty(templateId)) {

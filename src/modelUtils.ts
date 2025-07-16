@@ -1,5 +1,5 @@
-import type { CodeGeneratorGroupSettings, ICodeGeneratorElement, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
-import type { ILhqModelType, LhqModel, LhqModelDataNode } from './api/schemas';
+import type { CodeGeneratorGroupSettings, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
+import type { ILhqModelType, LhqModel } from './api/schemas';
 import type { TemplateMetadataSettings } from './api/templates';
 import { validateLhqModel } from './generatorUtils';
 import { HbsTemplateManager } from './hbsManager';
@@ -7,14 +7,20 @@ import { ModelVersions } from './model/modelConst';
 import { RootModelElement } from './model/rootModelElement';
 import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
-import { codeGeneratorSettingsConvertor } from './settingsConvertor';
+import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 import type { FormattingOptions } from './types';
 import { isNullOrEmpty, serializeJson } from './utils';
 
-
-
-
 export class ModelUtils {
+    private static codeGeneratorSettingsConvertor = new CodeGeneratorSettingsConvertor();
+
+    /**
+     * Returns an instance of `ICodeGeneratorSettingsConvertor` for converting code generator settings.
+     */
+    public static getCodeGeneratorSettingsConvertor(): ICodeGeneratorSettingsConvertor {
+        return ModelUtils.codeGeneratorSettingsConvertor;
+    }
+
     /**
      * Creates a new root element for the specified LHQ model data.
      * @param data - The LHQ model data to be used for creating the root element.
@@ -27,7 +33,7 @@ export class ModelUtils {
             model = validation.success ? validation.model : undefined;
         }
 
-        return new RootModelElement(model, codeGeneratorSettingsConvertor);
+        return new RootModelElement(model, ModelUtils.codeGeneratorSettingsConvertor);
     }
 
     /**
@@ -61,9 +67,13 @@ export class ModelUtils {
                 throw new Error(`Setting '${name}' (group: '${group}') must be a string value in template definition for '${templateId}'.`);
             }
 
-            if (setting.type === 'list' && !Array.isArray(value)) {
-                const listVals = (setting.values?.map(x => x.value || x.name) || []).join(', ');
-                throw new Error(`Setting '${name}' (group: '${group}') must be an value from list (${listVals}) in template definition for '${templateId}'.`);
+            if (setting.type === 'list') {
+                const settingValues = setting.values || [];
+
+                if (!settingValues.some(x => x.value === value) || typeof value !== 'string') {
+                    const listVals = settingValues.map(x => x.value || x.name).join(', ');
+                    throw new Error(`Setting '${name}' (group: '${group}') must be an value from list (${listVals}) in template definition for '${templateId}'.`);
+                }
             }
 
             return value === undefined ? setting.default : value;
