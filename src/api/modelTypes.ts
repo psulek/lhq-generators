@@ -787,9 +787,16 @@ export type ICodeGeneratorCsharpBase = {
 
 export type DataNodeToCodeGeneratorGroupSettingsDelegate = (node: LhqModelDataNode) => CodeGeneratorGroupSettings;
 
+export type CodeGeneratorValidateResult = {
+    group: string;
+    property: string;
+    error: string | undefined;
+}
+
 export interface ICodeGeneratorSettingsConvertor {
     nodeToSettings(templateId: string, node: LhqModelDataNode): CodeGeneratorGroupSettings;
     settingsToNode(templateId: string, settings: CodeGeneratorGroupSettings): LhqModelDataNode;
 
     convertValueForProperty(value: unknown, property: TemplateMetadataSettings): unknown;
+    validateSettings(templateId: string, settings: CodeGeneratorGroupSettings): CodeGeneratorValidateResult;
 }

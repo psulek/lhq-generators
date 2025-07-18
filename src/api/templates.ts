@@ -4,6 +4,17 @@ export const templateMetadataSettingTypeSchema = z.union([
     z.literal('boolean'), z.literal('string'), z.literal('list'), z.literal('number')
 ]);
 
+export const templateMetadataSettingValidatorSchema = z.object({
+    /**
+    * Regular expression for validating the setting value (for type 'string').
+    */
+    regex: z.string(),
+    /**
+     * Error message if validation fails.
+     */
+    error: z.string()
+});
+
 /**
  * Represents a single setting option for a generator (CSharp, ResX, Typescript, Json).
  */
@@ -28,6 +39,14 @@ export const templateMetadataSettingsSchema = z.object({
      * Default value for the setting.
      */
     default: z.union([z.boolean(), z.string(), z.number()]).nullable(),
+    /**
+     * Indicates if the setting is required. Default is true.
+     */
+    required: z.boolean().optional().default(true),
+    /**
+     * Regular expression for validating the setting value (for type 'string').
+     */
+    validators: z.array(templateMetadataSettingValidatorSchema).optional(),
     /**
      * List of possible values (for type 'list').
      */
@@ -61,9 +80,6 @@ export const templatesMetadataSchema = z.object({
     templates: z.record(templateMetadataSchema)
 });
 
-// Transform templateMetadataSchema to remove 'settings' property
-//export const templateMetadataWithoutSettingsSchema = templateMetadataSchema.transform(({ settings, ...rest }) => rest);
-
 export const templateMetadataDefinitionSchema = templateMetadataSchema
     .omit({ settings: true })
     .extend({
@@ -87,3 +103,5 @@ export type TemplateMetadataValidationResult = {
 export type TemplateMetadataSettingType = z.infer<typeof templateMetadataSettingTypeSchema>;
 
 export type TemplateMetadataDefinition = z.infer<typeof templateMetadataDefinitionSchema>;
+
+export type TemplateMetadataSettingValidator = z.infer<typeof templateMetadataSettingValidatorSchema>;

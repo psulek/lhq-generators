@@ -6,21 +6,24 @@
         "displayName": "Enable C# Code Generation",
         "description": "Enable or disable C# code generation",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "OutputFolder",
         "displayName": "Output Folder",
         "description": "The folder where the generated C# files will be placed",
         "type": "string",
-        "default": "Resources"
+        "default": "Resources",
+        "required": true
       },
       {
         "name": "EncodingWithBOM",
         "displayName": "Encoding with BOM",
         "description": "Whenever the encoding contains BOM (Byte Order Mark)",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "LineEndings",
@@ -31,28 +34,38 @@
           { "name": "LF", "value": "LF" },
           { "name": "CRLF", "value": "CRLF" }
         ],
-        "default": "LF"
+        "default": "LF",
+        "required": true
       },
       {
         "name": "UseExpressionBodySyntax",
         "displayName": "Use Expression Body Syntax",
         "description": "Use expression body syntax for properties and methods in generated C# code",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "MissingTranslationFallbackToPrimary",
         "displayName": "Return primary language text on missing foreign translation",
         "description": "Return primary language text in case of missing translation in foreign language.",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "Namespace",
         "displayName": "Namespace name for generated C# code",
         "description": "The namespace to use for the generated C# code",
         "type": "string",
-        "default": ""
+        "default": "",
+        "required": true,
+        "validators": [
+          {
+            "regex": "^(?![\\d\\._])(?!.*\\.$)[A-Za-z0-9._]*$",
+            "error": "Value must start with a letter, can only contain letters, digits, and dots (cannot start/end with a dot)."
+          }
+        ]
       }
     ],
     "CSharpWinForms": [
@@ -61,21 +74,24 @@
         "displayName": "Enable C# Code Generation",
         "description": "Enable or disable C# code generation",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "OutputFolder",
         "displayName": "Output Folder",
         "description": "The folder where the generated C# files will be placed",
         "type": "string",
-        "default": "Resources"
+        "default": "Resources",
+        "required": true
       },
       {
         "name": "EncodingWithBOM",
         "displayName": "Encoding with BOM",
         "description": "Whenever the encoding contains BOM (Byte Order Mark)",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "LineEndings",
@@ -86,41 +102,60 @@
           { "name": "LF", "value": "LF" },
           { "name": "CRLF", "value": "CRLF" }
         ],
-        "default": "LF"
+        "default": "LF",
+        "required": true
       },
       {
         "name": "UseExpressionBodySyntax",
         "displayName": "Use Expression Body Syntax",
         "description": "Use expression body syntax for properties and methods in generated C# code",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "MissingTranslationFallbackToPrimary",
         "displayName": "Return primary language text on missing foreign translation",
         "description": "Return primary language text in case of missing translation in foreign language.",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "Namespace",
         "displayName": "Namespace name for generated C# code",
         "description": "The namespace to use for the generated C# code",
         "type": "string",
-        "default": ""
-      },{
+        "default": "",
+        "required": true,
+        "validators": [
+          {
+            "regex": "^(?![\\d\\._])(?!.*\\.$)[A-Za-z0-9._]*$",
+            "error": "Value must start with a letter, can only contain letters, digits, and dots (cannot start/end with a dot)."
+          }
+        ]
+      },
+      {
         "name": "GenerateParamsMethods",
         "displayName": "Generate methods with parameters",
         "description": "Generate methods for resources with parameters",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "ParamsMethodsSuffix",
         "displayName": "Suffix for methods with parameters",
         "description": "Suffix used to append to name of method with parameters",
         "type": "string",
-        "default": "WithParams"
+        "default": "WithParams",
+        "required": true,
+        "validators": [
+          {
+            "regex": "^(?![\\d])[A-Za-z0-9_]*$",
+            "error": "Value cannot start with a digit, can only contain letters, digits, and underscores."
+          }
+        ]
       }
     ],
     "ResX": [
@@ -129,21 +164,24 @@
         "displayName": "Enable ResX Files Generation",
         "description": "Enable or disable ResX files generation",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "OutputFolder",
         "displayName": "Output Folder",
         "description": "The folder where the generated ResX files will be placed",
         "type": "string",
-        "default": "Resources"
+        "default": "Resources",
+        "required": true
       },
       {
         "name": "EncodingWithBOM",
         "displayName": "Encoding with BOM",
         "description": "Whenever the encoding contains BOM (Byte Order Mark)",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "LineEndings",
@@ -154,21 +192,24 @@
           { "name": "LF", "value": "LF" },
           { "name": "CRLF", "value": "CRLF" }
         ],
-        "default": "LF"
+        "default": "LF",
+        "required": true
       },
       {
         "name": "CultureCodeInFileNameForPrimaryLanguage",
         "displayName": "Culture Code in File Name for Primary Language",
         "description": "Include the culture code in the file name for the primary language ResX file",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "CompatibleTextEncoding",
         "displayName": "Compatible Text Encoding",
         "description": "Use compatible text encoding for ResX files",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       }
     ],
     "Typescript": [
@@ -177,21 +218,24 @@
         "displayName": "Enable TypeScript Code Generation",
         "description": "Enable or disable TypeScript code generation",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "OutputFolder",
         "displayName": "Output Folder",
         "description": "The folder where the generated TypeScript files will be placed",
         "type": "string",
-        "default": "Resources"
+        "default": "Resources",
+        "required": true
       },
       {
         "name": "EncodingWithBOM",
         "displayName": "Encoding with BOM",
         "description": "Whenever the encoding contains BOM (Byte Order Mark)",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "LineEndings",
@@ -202,21 +246,36 @@
           { "name": "LF", "value": "LF" },
           { "name": "CRLF", "value": "CRLF" }
         ],
-        "default": "LF"
+        "default": "LF",
+        "required": true
       },
       {
         "name": "AmbientNamespaceName",
         "displayName": "Ambient namespace name",
         "description": "Ambient namespace name used in typescript definition.",
         "type": "string",
-        "default": ""
+        "default": "",
+        "required": true,
+        "validators": [
+          {
+            "regex": "^(?![\\d])[A-Za-z0-9_]*$",
+            "error": "Value cannot start with a digit, can only contain letters, digits, and underscores."
+          }
+        ]
       },
       {
         "name": "InterfacePrefix",
         "displayName": "Prefix for interface type",
         "description": "Prefix for interface type in typescript definition.",
         "type": "string",
-        "default": ""
+        "default": "",
+        "required": true,
+        "validators": [
+          {
+            "regex": "^(?![\\d])[A-Za-z0-9_]*$",
+            "error": "Value cannot start with a digit, can only contain letters, digits, and underscores."
+          }
+        ]
       }
     ],
     "Json": [
@@ -225,21 +284,24 @@
         "displayName": "Enable JSON Code Generation",
         "description": "Enable or disable JSON code generation",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "OutputFolder",
         "displayName": "Output Folder",
         "description": "The folder where the generated JSON files will be placed",
         "type": "string",
-        "default": "Resources"
+        "default": "Resources",
+        "required": true
       },
       {
         "name": "EncodingWithBOM",
         "displayName": "Encoding with BOM",
         "description": "Whenever the encoding contains BOM (Byte Order Mark)",
         "type": "boolean",
-        "default": false
+        "default": false,
+        "required": true
       },
       {
         "name": "LineEndings",
@@ -250,28 +312,38 @@
           { "name": "LF", "value": "LF" },
           { "name": "CRLF", "value": "CRLF" }
         ],
-        "default": "LF"
+        "default": "LF",
+        "required": true
       },
       {
         "name": "CultureCodeInFileNameForPrimaryLanguage",
         "displayName": "Culture Code in File Name for Primary Language",
         "description": "Include the culture code in the file name for the primary language ResX file",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       },
       {
         "name": "MetadataFileNameSuffix",
         "displayName": "Metadata file name suffix",
         "description": "Suffix to append to the metadata file name",
         "type": "string",
-        "default": "metadata"
+        "default": "metadata",
+        "required": true,
+        "validators": [
+          {
+            "regex": "^(?!.*\\.$)[A-Za-z0-9_.]*$",
+            "error": "Value can only contain letters, digits, underscores and dot (which cannot be at the end)."
+          }
+        ]
       },
       {
         "name": "WriteEmptyValues",
         "displayName": "Write empty translations",
         "description": "Write key value pair even on empty translations.",
         "type": "boolean",
-        "default": true
+        "default": true,
+        "required": true
       }
     ]
   },
