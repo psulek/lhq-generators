@@ -4,6 +4,7 @@ import { ResourceValueElement } from './resourceValueElement';
 import { type LhqModelResource, type LhqModelResourceTranslationState } from '../api/schemas';
 import type { IResourceElement, IResourceParameterElement, IResourceValueElement, IRootModelElement, ICategoryLikeTreeElement } from '../api/modelTypes';
 import { TreeElement } from './treeElement';
+import type { MapToModelOptions } from './types';
 
 export class ResourceElement extends TreeElement<LhqModelResource> implements IResourceElement {
     private _state: LhqModelResourceTranslationState = 'New';
@@ -59,18 +60,31 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         this._comment = this.getComment();
     }
 
-    public mapToModel(): LhqModelResource {
-        return {
-            state: this._state,
-            description: this._description,
-            parameters: (this._parameters === undefined) || this._parameters.length === 0
-                ? undefined
-                : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()])),
+    // public mapToModel(options?: MapToModelOptions): LhqModelResource {
+    //     return {
+    //         state: this._state,
+    //         description: this._description,
+    //         parameters: (this._parameters === undefined) || this._parameters.length === 0
+    //             ? undefined
+    //             : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()])),
 
-            values: (this._values === undefined) || this._values.length === 0
-                ? undefined
-                : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]))
-        };
+    //         values: (this._values === undefined) || this._values.length === 0
+    //             ? undefined
+    //             : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]))
+    //     };
+    // }
+
+    protected bindToModel(model: Partial<LhqModelResource>, options?: MapToModelOptions): void {
+        model.state = this._state;
+        model.description = this._description;
+        
+        model.parameters = (this._parameters === undefined) || this._parameters.length === 0
+            ? undefined
+            : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()]));
+
+        model.values = (this._values === undefined) || this._values.length === 0
+            ? undefined
+            : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]));
     }
 
     public addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }

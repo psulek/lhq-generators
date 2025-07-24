@@ -1,5 +1,6 @@
 import type { LhqModelResourceValue } from '../api/schemas';
 import type { IResourceElement, IResourceValueElement } from '../api/modelTypes';
+import type { MapToModelOptions } from './types';
 
 export class ResourceValueElement implements IResourceValueElement {
     private _languageName: string;
@@ -33,6 +34,12 @@ export class ResourceValueElement implements IResourceValueElement {
             auto: this._auto
         };
     }
+
+    // protected bindToModel(model: Partial<LhqModelResourceValue>): void {
+    //     model.value = this._value;
+    //     model.locked = this._locked;
+    //     model.auto = this._auto;
+    // }
 
     get languageName(): string {
         return this._languageName;

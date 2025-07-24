@@ -3,7 +3,7 @@ import type { ILhqCategoryLikeModelType } from '../api/schemas';
 import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
 import { ResourceElement } from './resourceElement';
 import { TreeElement } from './treeElement';
-import type { ICategoryLikeTreeElementOperations } from './types';
+import type { ICategoryLikeTreeElementOperations, MapToModelOptions } from './types';
 
 export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeModelType = ILhqCategoryLikeModelType> extends TreeElement<TModel> implements ICategoryLikeTreeElement, ICategoryLikeTreeElementOperations {
     protected _categories: CategoryLikeTreeElement[] | undefined;
@@ -18,17 +18,11 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     protected abstract createCategory(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement;
 
-    public mapToModel(): TModel {
-        const model: Partial<TModel> = {};
-        this.bindToModel(model);
-        return model as TModel;
-    }
-
-    // public updateFromJson(json: Record<string, unknown>): void {
-    //     super.updateFromJson(json);
+    // public mapToModel(options?: MapToModelOptions): TModel {
+    //     const model: Partial<TModel> = {};
+    //     this.bindToModel(model);
+    //     return model as TModel;
     // }
-
-
 
     protected internalToJson<TOptions extends CategoryLikeTreeElementToJsonOptions>(obj: Record<string, unknown>, options?: TOptions): void {
         const includeCategories = options?.includeCategories ?? true;
@@ -40,16 +34,14 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         obj.hasResources = this._hasResources;
     }
 
-    protected bindToModel(model: Partial<TModel>): void {
-        if (model) {
-            model.categories = (this._categories === undefined) || this._categories.length === 0
-                ? undefined
-                : Object.fromEntries(this._categories.map(x => [x.name, x.mapToModel()]));
+    protected bindToModel(model: Partial<TModel>, options?: MapToModelOptions): void {
+        model.categories = (this._categories === undefined) || this._categories.length === 0
+            ? undefined
+            : Object.fromEntries(this._categories.map(x => [x.name, x.mapToModel(options)]));
 
-            model.resources = (this._resources === undefined) || this._resources.length === 0
-                ? undefined
-                : Object.fromEntries(this._resources.map(x => [x.name, x.mapToModel()]));
-        }
+        model.resources = (this._resources === undefined) || this._resources.length === 0
+            ? undefined
+            : Object.fromEntries(this._resources.map(x => [x.name, x.mapToModel(options)]));
     }
 
     public populate(source: TModel | undefined): void {

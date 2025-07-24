@@ -2,7 +2,7 @@ import { isNullOrEmpty } from '../utils';
 import type { ITreeElement, ICategoryLikeTreeElement, IRootModelElement, TreeElementType, ITreeElementPaths, CategoryOrResourceType, TreeElementToJsonOptions } from '../api/modelTypes';
 import { TreeElementPaths } from './treeElementPaths';
 import type { ILhqModelType } from '../api/schemas';
-import type { ICategoryLikeTreeElementOperations } from './types';
+import type { ICategoryLikeTreeElementOperations, MapToModelOptions } from './types';
 
 export abstract class TreeElementBase implements ITreeElement {
     abstract get isRoot(): boolean;
@@ -74,15 +74,30 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         this._data = {};
     }
 
-    // public updateFromJson(json: Record<string, unknown>): void {
-    //     this._name = json.name as string ?? '';
-    //     this._description = json.description as string | undefined;
-    //     this._data = json.data as Record<string, unknown> ?? {};
-    // }
-
     public abstract populate(source: TModel | undefined): void;
 
-    public abstract mapToModel(): TModel;
+    // public abstract mapToModel(options?: MapToModelOptions): TModel;
+
+    public mapToModel(options?: MapToModelOptions): TModel {
+        const model: Partial<TModel> = {};
+        this.bindToModel(model, options);
+
+        if (options?.keepData === true && !isNullOrEmpty(this._data)) {
+            const dataKeys = options?.keepDataKeys ?? Object.keys(this._data);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            (model as any)._data = {};
+            
+            for (const [key, value] of Object.entries(this._data)) {
+                if (dataKeys.includes(key)) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+                    (model as any)._data[key] = value;
+                }
+            }
+        }
+        return model as TModel;
+    }
+
+    protected abstract bindToModel(model: Partial<TModel>, options?: MapToModelOptions): void;
 
     public addToTempData = (key: string, value: unknown): void => {
         this._data[key] = value;

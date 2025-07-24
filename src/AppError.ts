@@ -18,4 +18,8 @@ export class AppError extends Error {
             this.stack = stack;
         }
     }
+
+    public toString(): string {
+        return `${this.name} [${this.kind}/${this.code}]: ${this.message}`;
+    }
 }

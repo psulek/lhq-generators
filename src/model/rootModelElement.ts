@@ -6,6 +6,7 @@ import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
 import { ResourceElement } from './resourceElement';
+import { MapToModelOptions } from './types';
 
 const CodeGenUID = 'b40c8a1d-23b7-4f78-991b-c24898596dd2';
 
@@ -74,7 +75,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         super.populate(model);
     }
 
-    protected bindToModel(model: Partial<LhqModel>): void {
+    protected bindToModel(model: Partial<LhqModel>, options?: MapToModelOptions): void {
         let primaryLang = this._primaryLanguage;
         if (isNullOrEmpty(primaryLang) && this._languages.length > 0) {
             primaryLang = this._languages[0] ?? '';
@@ -96,7 +97,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         model.model = properties as LhqModelProperties;
         model.languages = this._languages;
 
-        super.bindToModel(model);
+        super.bindToModel(model, options);
         model.metadatas = this._metadatas;
     }
 

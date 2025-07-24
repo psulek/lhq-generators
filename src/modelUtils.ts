@@ -7,6 +7,7 @@ import { ModelVersions } from './model/modelConst';
 import { RootModelElement } from './model/rootModelElement';
 import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
+import { MapToModelOptions } from './model/types';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 import type { FormattingOptions } from './types';
 import { isNullOrEmpty, serializeJson } from './utils';
@@ -238,9 +239,9 @@ export class ModelUtils {
      * @returns The converted model (ILhqModelType).
      * @throws Error if the element is not an instance of TreeElementBase.
      */
-    public static elementToModel<TModel extends ILhqModelType>(element: ITreeElement): TModel {
+    public static elementToModel<TModel extends ILhqModelType>(element: ITreeElement, options?: MapToModelOptions): TModel {
         if (element instanceof TreeElementBase) {
-            return (element as TreeElement<TModel>).mapToModel();
+            return (element as TreeElement<TModel>).mapToModel(options);
         } else {
             throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
         }
