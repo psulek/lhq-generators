@@ -22,7 +22,7 @@ setTimeout(async () => {
     const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
     // const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
 
-    describe('serialize and deserialize in memory', () => {
+    describe('serialize and deserialize in memory (model)', () => {
         lhqFiles.forEach(lhqFile => {
             const ident = lhqFile.replace('.lhq', '');
             it(`serialize and deserialize file ${ident}`, async function () {

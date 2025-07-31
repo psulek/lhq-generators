@@ -56,8 +56,6 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
             const newCategories: CategoryLikeTreeElement[] = [];
             const newResources: ResourceElement[] = [];
 
-            //const root = this.getRoot();
-
             if (!isNullOrEmpty(sourceCategories)) {
                 iterateObject(sortObjectByKey(sourceCategories), (category, name) => {
                     const newCategory = this.createCategory(this.root, name, this);
@@ -173,16 +171,14 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
     addElement(element: ITreeElement): void {
         if (element instanceof ResourceElement) {
             this._resources ??= [];
-            if (!this._resources.includes(element)) {
-                this._resources.push(element);
-                this._hasResources = true;
+            if (!this._resources.includes(element) && !this._resources.some(x => strCompare(x.name, element.name, true))) {
+                this.internalAddResource(element);
             }
         } else if (element instanceof CategoryLikeTreeElement) {
             this._categories ??= [];
             const categElement = element as CategoryLikeTreeElement<ILhqCategoryLikeModelType>;
-            if (!this._categories.includes(categElement)) {
-                this._categories.push(categElement);
-                this._hasCategories = true;
+            if (!this._categories.includes(categElement) && !this._categories.some(x => strCompare(x.name, categElement.name, true))) {
+                this.internalAddCategory(categElement);
             }
         } else {
             throw new Error(`Could not add element of type ${element.elementType}.`);
@@ -195,10 +191,20 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         }
 
         const category = this.createCategory(this.root, name, this);
-        this._categories ??= [];
-        this._categories.push(category);
-        this._hasCategories = true;
+        this.internalAddCategory(category);
         return category;
+    }
+
+    private internalAddCategory(category: CategoryLikeTreeElement): void {
+        this._categories ??= [];
+        // Insert the category in sorted order by name
+        const idx = this._categories.findIndex(x => x.name > category.name);
+        if (idx === -1) {
+            this._categories.push(category);
+        } else {
+            this._categories.splice(idx, 0, category);
+        }
+        this._hasCategories = true;
     }
 
     public removeCategory(name: string): void {
@@ -247,10 +253,21 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         }
 
         const resource = new ResourceElement(this.root, name, this);
-        this._resources ??= [];
-        this._resources.push(resource);
-        this._hasResources = true;
+        this.internalAddResource(resource);
         return resource;
+    }
+
+    private internalAddResource(resource: ResourceElement) {
+        this._resources ??= [];
+
+        // Insert the resource in sorted order by name
+        const idx = this._resources.findIndex(x => x.name > resource.name);
+        if (idx === -1) {
+            this._resources.push(resource);
+        } else {
+            this._resources.splice(idx, 0, resource);
+        }
+        this._hasResources = true;
     }
 
     public removeResource(name: string): void {

@@ -14,7 +14,7 @@ setTimeout(async () => {
         eol: 'LF'
     };
 
-    describe('serialize and deserialize in memory', () => {
+    describe('serialize and deserialize in memory (mapping)', () => {
         it('serialize all properties and values', async function () {
             const root = createSampleModel();
             const data = ModelUtils.serializeTreeElement(root, defaultFormatting);
