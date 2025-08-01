@@ -21,10 +21,9 @@ export abstract class TreeElementBase implements ITreeElement {
 
     abstract addToTempData(key: string, value: unknown): void;
     abstract clearTempData(): void;
-
+    
+    protected abstract nameChanged(): void;
     protected abstract internalToJson<TOptions extends TreeElementToJsonOptions>(obj: Record<string, unknown>, options?: TOptions): void;
-
-    //public abstract updateFromJson(json: Record<string, unknown>): void;
 
     public toJson<TOptions extends TreeElementToJsonOptions>(options?: TOptions): Record<string, unknown> {
         const obj: Record<string, unknown> = {
@@ -76,8 +75,6 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
 
     public abstract populate(source: TModel | undefined): void;
 
-    // public abstract mapToModel(options?: MapToModelOptions): TModel;
-
     public mapToModel(options?: MapToModelOptions): TModel {
         const model: Partial<TModel> = {};
         this.bindToModel(model, options);
@@ -108,7 +105,7 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
     }
 
     public changeParent(newParent: ICategoryLikeTreeElement | undefined): boolean {
-        // cant change if its the root or if its resource element
+        // cant change if its the root or if new parent is resource
         if (this.isRoot || (newParent?.elementType === 'resource')) {
             return false;
         }
@@ -120,6 +117,10 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         // Check if the new parent is the same as the current parent
         if (newParent === this._parent) {
             return true;
+        }
+
+        if (this.elementType !== 'resource' && Object.is(newParent, this)) {
+            return false;
         }
 
         const elemType = this.elementType as CategoryOrResourceType;
@@ -175,6 +176,7 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         if (this._name !== name) {
             this._name = name;
             (this._paths as TreeElementPaths).refresh(this);
+            this.nameChanged();
         }
     }
 

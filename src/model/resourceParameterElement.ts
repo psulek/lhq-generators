@@ -1,6 +1,6 @@
 import type { ILhqModelType, LhqModelResourceParameter } from '../api/schemas';
 import type { IResourceElement, IResourceParameterElement } from '../api/modelTypes';
-import type { MapToModelOptions } from './types';
+import { isNullOrEmpty } from '../utils';
 
 export class ResourceParameterElement implements IResourceParameterElement, ILhqModelType {
     private _name: string;
@@ -26,15 +26,10 @@ export class ResourceParameterElement implements IResourceParameterElement, ILhq
 
     public mapToModel(): LhqModelResourceParameter {
         return {
-            description: this._description,
+            description: isNullOrEmpty(this._description) ? undefined : this._description,
             order: this._order
         };
     }
-
-    // protected bindToModel(model: Partial<LhqModelResourceParameter>): void {
-    //     model.description = this._description;
-    //     model.order = this._order;
-    // }
 
     public get name(): string {
         return this._name;
@@ -64,4 +59,3 @@ export class ResourceParameterElement implements IResourceParameterElement, ILhq
         this._order = order;
     }
 }
-

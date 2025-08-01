@@ -105,7 +105,6 @@ export class TemplateRootModel {
         }
 
         this.clearTempData();
-        //this._childOutputs = [];
         this._inlineOutputs = [];
         this._host = Object.assign({}, childData.host ?? {}, this._rootHost);
         this._output = undefined;

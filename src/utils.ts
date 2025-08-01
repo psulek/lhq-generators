@@ -320,11 +320,12 @@ export function stringCompare(a: string, b: string, caseSensitive: boolean): boo
  * @param source - The array to sort.
  * @param key - The key to sort by. If undefined, the raw value is used.
  * @param sortOrder - The order to sort, either 'asc' for ascending or 'desc' for descending. Default is 'asc'.
+ * @param mutate - Whether to mutate the original array or return a new sorted array. Default is `false` - returns a new array.
  * @returns A new array sorted by the specified key and order.
  */
-export function sortBy<T>(source: T[], key: KeysMatching<T, string | number> | undefined, sortOrder: 'asc' | 'desc' = 'asc'): T[] {
+export function sortBy<T>(source: T[], key: KeysMatching<T, string | number> | undefined, sortOrder: 'asc' | 'desc' = 'asc', mutate: boolean = false): T[] {
     // NOTE: dirty hack as unknown to be able to use raw x value when key is undefined
-    return arraySortBy(source, x => (key === undefined ? x : x[key]) as unknown as number, sortOrder);
+    return arraySortBy(source, x => (key === undefined ? x : x[key]) as unknown as number, sortOrder, mutate);
 }
 
 /**
@@ -334,10 +335,12 @@ export function sortBy<T>(source: T[], key: KeysMatching<T, string | number> | u
  * @param source - The array to sort.
  * @param predicate - A function that returns the value to sort by.
  * @param sortOrder - The order to sort, either 'asc' for ascending or 'desc' for descending. Default is 'asc'.
+ * @param mutate - Whether to mutate the original array or return a new sorted array. Default is `false` - returns a new array.
  * @returns A new array sorted by the predicate function and order.
  */
-export function arraySortBy<T>(source: T[], predicate: (item: T) => number | string, sortOrder: 'asc' | 'desc' = 'asc'): T[] {
-    return source.concat([]).sort((a, b) => {
+export function arraySortBy<T>(source: T[], predicate: (item: T) => number | string, sortOrder: 'asc' | 'desc' = 'asc', mutate: boolean = false): T[] {
+    const result = mutate ? source : [...source];
+    return result.sort((a, b) => {
         const v1 = predicate(a);
         const v2 = predicate(b);
         const res = v1 > v2 ? 1 : ((v2 > v1) ? -1 : 0);

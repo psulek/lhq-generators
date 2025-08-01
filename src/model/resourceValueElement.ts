@@ -1,6 +1,6 @@
 import type { LhqModelResourceValue } from '../api/schemas';
 import type { IResourceElement, IResourceValueElement } from '../api/modelTypes';
-import type { MapToModelOptions } from './types';
+import { isNullOrEmpty } from '../utils';
 
 export class ResourceValueElement implements IResourceValueElement {
     private _languageName: string;
@@ -29,17 +29,11 @@ export class ResourceValueElement implements IResourceValueElement {
 
     public mapToModel(): LhqModelResourceValue {
         return {
-            value: this._value,
+            value: isNullOrEmpty(this._value) ? undefined : this._value,
             locked: this._locked,
             auto: this._auto
         };
     }
-
-    // protected bindToModel(model: Partial<LhqModelResourceValue>): void {
-    //     model.value = this._value;
-    //     model.locked = this._locked;
-    //     model.auto = this._auto;
-    // }
 
     get languageName(): string {
         return this._languageName;

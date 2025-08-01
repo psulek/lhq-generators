@@ -1,13 +1,16 @@
 import type { CodeGeneratorGroupSettings, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
-import type { ILhqModelType, LhqModel } from './api/schemas';
+import type { ILhqModelType, LhqModel, LhqModelCategory, LhqModelResource } from './api/schemas';
 import type { TemplateMetadataSettings } from './api/templates';
 import { validateLhqModel } from './generatorUtils';
 import { HbsTemplateManager } from './hbsManager';
+import { CategoryElement } from './model/categoryElement';
+import type { CategoryLikeTreeElement } from './model/categoryLikeTreeElement';
 import { ModelVersions } from './model/modelConst';
+import { ResourceElement } from './model/resourceElement';
 import { RootModelElement } from './model/rootModelElement';
 import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
-import { MapToModelOptions } from './model/types';
+import type { MapToModelOptions } from './model/types';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 import type { FormattingOptions } from './types';
 import { isNullOrEmpty, serializeJson } from './utils';
@@ -224,12 +227,6 @@ export class ModelUtils {
      */
     public static serializeTreeElement(element: ITreeElement, options: FormattingOptions): string {
         const model = ModelUtils.elementToModel(element);
-        // if (model instanceof RootModelElement && model.metadatas) {
-        //     const metadatas = model.metadatas;
-        //     model.metadatas = undefined;
-        //     const metadatasJson = serializeJson(metadatas, options);
-        // }
-
         return serializeJson(model, options);
     }
 
@@ -245,5 +242,53 @@ export class ModelUtils {
         } else {
             throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
         }
+    }
+
+    public static cloneElement(element: ITreeElement, newName?: string): ITreeElement {
+        if (!ModelUtils.isTreeElementInstance(element)) {
+            throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
+        }
+
+        if (element instanceof RootModelElement || element.isRoot) {
+            throw new Error('Cannot clone root element. Please use a child element instead.');
+        }
+
+        if (!element.parent) {
+            throw new Error('Cannot clone element without a parent. Please ensure the element is part of a tree structure.');
+        }
+
+        const parentElements = element.elementType === 'category' ? element.parent.categories : element.parent.resources;
+
+        newName = newName ?? element.name;
+        const newName2 = newName.toLowerCase();
+        let existingElems = parentElements.filter(x => x.name.toLowerCase() === newName2);
+        if (existingElems.length === 0) {
+            existingElems = parentElements.filter(x => x.name.toLowerCase().startsWith(newName2));
+        }
+
+        if (existingElems.length > 0) {
+            let i = 1;
+            while (existingElems.some(x => x.name.toLowerCase() === `${newName2}${i}`)) {
+                i++;
+            }
+            newName = `${newName}${i}`;
+        }
+
+        //const serialized = ModelUtils.serializeTreeElement(element, { eol: 'LF' });
+        const model = ModelUtils.elementToModel(element);
+        let newElement: ITreeElement;
+        if (element.elementType === 'category') {
+            newElement = new CategoryElement(element.root, newName, element.parent);
+            (newElement as CategoryElement).populate(model as LhqModelCategory);
+        } else if (element.elementType === 'resource') {
+            newElement = new ResourceElement(element.root, newName, element.parent);
+            (newElement as ResourceElement).populate(model as LhqModelResource);
+        } else {
+            throw new Error(`Unsupported element type: ${element.elementType}`);
+        }
+
+        (element.parent as CategoryLikeTreeElement).addElement(newElement);
+
+        return newElement;
     }
 }

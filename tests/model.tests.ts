@@ -6,7 +6,7 @@ import fse from 'fs-extra';
 import { folders, initGenerator, safeReadFile, verify } from './testUtils';
 import { detectFormatting, updateEOL } from '../src/utils';
 import { LhqModel } from '../src/api/schemas';
-import { IRootModelElement } from '../src/api';
+import { IResourceElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
 import { FormattingOptions, ModelUtils } from '../src';
@@ -104,6 +104,17 @@ setTimeout(async () => {
             expect(testResource1.name).to.equal('TestResource1');
             expect(testResource1.description).to.equal('Test resource 1 description');
             expect(testResource1.getValue('sk')).to.equal('Test hodnota 1');
+
+            expect(testResource1.changeParent(root)).to.be.true;
+            expect(testResource1.parent).to.equal(root);
+
+            expect(testCategory1.changeParent(testCategory1)).to.be.false; // cannot change parent to itself
+
+
+            const clonedResource = ModelUtils.cloneElement(testResource1, 'TestResource1') as IResourceElement;
+            expect(clonedResource.name).to.equal('TestResource11');
+
+            expect(testResource1.parent?.resources.includes(clonedResource)).to.be.true;
         });
 
         it('should add a category to the root element', () => {

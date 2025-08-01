@@ -1,6 +1,7 @@
+import type { Mutable } from '../api';
 import type { CategoryLikeTreeElementToJsonOptions, CategoryOrResourceType, ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementToJsonOptions, TreeElementType } from '../api/modelTypes';
 import type { ILhqCategoryLikeModelType } from '../api/schemas';
-import { isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
+import { arraySortBy, isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
 import { ResourceElement } from './resourceElement';
 import { TreeElement } from './treeElement';
 import type { ICategoryLikeTreeElementOperations, MapToModelOptions } from './types';
@@ -18,11 +19,11 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     protected abstract createCategory(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement;
 
-    // public mapToModel(options?: MapToModelOptions): TModel {
-    //     const model: Partial<TModel> = {};
-    //     this.bindToModel(model);
-    //     return model as TModel;
-    // }
+    protected nameChanged(): void {
+        if (this.isRoot) { return; }
+
+        arraySortBy(this.parent!.categories as Mutable<ICategoryElement[]>, x => x.name, 'asc', true);
+    }
 
     protected internalToJson<TOptions extends CategoryLikeTreeElementToJsonOptions>(obj: Record<string, unknown>, options?: TOptions): void {
         const includeCategories = options?.includeCategories ?? true;
@@ -97,7 +98,6 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
     }
 
     public getCategory(name: string): ICategoryElement | undefined {
-        //return isNullOrEmpty(name) ? undefined : this.categories.find(x => x.name === name);
         return isNullOrEmpty(name) ? undefined : this.categories.find(x => strCompare(x.name, name, true));
     }
 

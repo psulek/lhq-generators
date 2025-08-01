@@ -2,6 +2,7 @@ import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
 import type { LhqModelCategory } from '../api/schemas';
 import type { ICategoryElement, ICategoryLikeTreeElement, IRootModelElement } from '../api/modelTypes';
 import type { MapToModelOptions } from './types';
+import { isNullOrEmpty } from '../utils';
 
 export class CategoryElement extends CategoryLikeTreeElement<LhqModelCategory> implements ICategoryElement {
     constructor(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement | undefined) {
@@ -18,7 +19,7 @@ export class CategoryElement extends CategoryLikeTreeElement<LhqModelCategory> i
 
     protected bindToModel(model: Partial<LhqModelCategory>, options?: MapToModelOptions): void {
         super.bindToModel(model, options);
-        model.description = this._description;
+        model.description = isNullOrEmpty(this._description) ? undefined : this._description;
     }
 
     protected createCategory(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement | undefined): CategoryLikeTreeElement {

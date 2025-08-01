@@ -57,6 +57,5 @@ export class TreeElementPaths implements ITreeElementPaths {
         }
 
         return separator + p.join(separator);
-        //return p.join(separator);
     }
 }

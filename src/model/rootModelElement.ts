@@ -1,12 +1,12 @@
 import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
 import type { LhqModelDataNode, LhqModelProperties } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
-import type { DataNodeToCodeGeneratorGroupSettingsDelegate, ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
+import type { ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
 import { isNullOrEmpty, isNullOrUndefined } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
 import { ResourceElement } from './resourceElement';
-import { MapToModelOptions } from './types';
+import type { MapToModelOptions } from './types';
 
 const CodeGenUID = 'b40c8a1d-23b7-4f78-991b-c24898596dd2';
 
@@ -31,7 +31,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         if (isNullOrEmpty(codeGenSettingsConvertor)) {
             throw new Error('Parameter "codeGenSettingsConvertor" cannot be null or undefined.');
         }
-        
+
         this._codeGenSettingsConvertor = codeGenSettingsConvertor;
 
         this.populate(model);
@@ -86,10 +86,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
             version: this._version,
         };
 
-        if (!isNullOrEmpty(this._description)) {
-            properties.description = this._description;
-        }
-
+        properties.description = isNullOrEmpty(this._description) ? undefined : this._description;
         properties.options = this._options;
         properties.name = this._name
         properties.primaryLanguage = primaryLang;
@@ -131,7 +128,6 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
             }
 
             return { templateId, settings, version: codeGenVersion };
-            // return { templateId, settings: node, version: codeGenVersion };
         }
 
         return undefined;
@@ -143,7 +139,6 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
 
         const templateId = codeGeneratorElement.templateId;
-        //const settings = Object.assign({}, codeGeneratorElement.settings ?? {});
         const codeGenVersion = codeGeneratorElement.version > 0 && codeGeneratorElement.version <= ModelVersions.codeGenerator
             ? codeGeneratorElement.version
             : ModelVersions.codeGenerator;
@@ -160,7 +155,6 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         metadataElem.attrs ??= {};
         metadataElem.attrs['descriptorUID'] = CodeGenUID;
 
-        //let contentElem = metadata.childs?.find(x => x.name === 'content');
         let contentElem = metadataElem.childs?.find(x => x.name === 'content');
         if (!contentElem) {
             contentElem = { name: 'content', childs: [], attrs: {} };
@@ -194,7 +188,6 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
 
         const settings = this._codeGenSettingsConvertor.settingsToNode(templateId, codeGeneratorElement.settings ?? {});
-        //settings.name = 'Settings';
         correctAttrsValues(settings);
 
         const settingsIdx = contentElem.childs.findIndex(x => x.name === 'Settings');
@@ -206,7 +199,6 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
 
         this._metadatas = Object.freeze(metadata);
         return { templateId, settings: codeGeneratorElement.settings, version: codeGenVersion };
-        // return { templateId, settings, version: codeGenVersion };
     }
 
     get uid(): LhqModelUid {

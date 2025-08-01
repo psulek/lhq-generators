@@ -1,10 +1,11 @@
-import { isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue } from '../utils';
+import { arraySortBy, isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue } from '../utils';
 import { ResourceParameterElement } from './resourceParameterElement';
 import { ResourceValueElement } from './resourceValueElement';
 import { type LhqModelResource, type LhqModelResourceTranslationState } from '../api/schemas';
 import type { IResourceElement, IResourceParameterElement, IResourceValueElement, IRootModelElement, ICategoryLikeTreeElement } from '../api/modelTypes';
 import { TreeElement } from './treeElement';
 import type { MapToModelOptions } from './types';
+import type { Mutable } from '../api/types';
 
 export class ResourceElement extends TreeElement<LhqModelResource> implements IResourceElement {
     private _state: LhqModelResourceTranslationState = 'New';
@@ -16,6 +17,10 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
 
     constructor(root: IRootModelElement, name: string, parent: ICategoryLikeTreeElement) {
         super(root, 'resource', name, parent);
+    }
+
+    protected nameChanged(): void {
+        arraySortBy(this.parent!.resources as Mutable<IResourceElement[]>, x => x.name, 'asc', true);
     }
 
     protected internalToJson(obj: Record<string, unknown>, options?: { includeData?: boolean }): void {
@@ -60,24 +65,10 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         this._comment = this.getComment();
     }
 
-    // public mapToModel(options?: MapToModelOptions): LhqModelResource {
-    //     return {
-    //         state: this._state,
-    //         description: this._description,
-    //         parameters: (this._parameters === undefined) || this._parameters.length === 0
-    //             ? undefined
-    //             : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()])),
-
-    //         values: (this._values === undefined) || this._values.length === 0
-    //             ? undefined
-    //             : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]))
-    //     };
-    // }
-
     protected bindToModel(model: Partial<LhqModelResource>, options?: MapToModelOptions): void {
         model.state = this._state;
-        model.description = this._description;
-        
+        model.description = isNullOrEmpty(this._description) ? undefined : this._description;
+
         model.parameters = (this._parameters === undefined) || this._parameters.length === 0
             ? undefined
             : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()]));
@@ -87,8 +78,7 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]));
     }
 
-    public addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }
-    ): void {
+    public addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }): void {
         if (isNullOrEmpty(parameters)) {
             throw new Error('Parameters cannot be null or empty.');
         }
