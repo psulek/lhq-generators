@@ -1,0 +1,44 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "model1",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en",
+    "sk"
+  ],
+  "categories": {
+    "Buttons": {
+      "resources": {
+        "Accept": {
+          "state": "New",
+          "values": {
+            "en": {
+              "value": "Accept"
+            },
+            "sk": {
+              "value": "Prijať"
+            }
+          }
+        },
+        "Cancel": {
+          "state": "New",
+          "values": {
+            "en": {
+              "value": "Cancel"
+            },
+            "sk": {
+              "value": "Zrušiť"
+            }
+          }
+        }
+      }
+    }
+  }
+}

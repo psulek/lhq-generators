@@ -1,4 +1,4 @@
-import type { CodeGeneratorGroupSettings, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
+import type { CodeGeneratorGroupSettings, ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IResourceElement, IResourceValueElement, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
 import type { ILhqModelType, LhqModel, LhqModelCategory, LhqModelResource } from './api/schemas';
 import type { TemplateMetadataSettings } from './api/templates';
 import { validateLhqModel } from './generatorUtils';
@@ -12,8 +12,9 @@ import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
 import type { MapToModelOptions } from './model/types';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
-import type { FormattingOptions } from './types';
-import { isNullOrEmpty, serializeJson } from './utils';
+import type { FormattingOptions, ImportModelErrorKind, ImportModelMode, ImportModelOptions, ImportModelResult, ImportResourceItem } from './types';
+import { arraySortBy, isNullOrEmpty, serializeJson, strCompare } from './utils';
+import type { Mutable } from './api';
 
 export class ModelUtils {
     private static codeGeneratorSettingsConvertor = new CodeGeneratorSettingsConvertor();
@@ -249,46 +250,386 @@ export class ModelUtils {
             throw new Error('Invalid element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
         }
 
-        if (element instanceof RootModelElement || element.isRoot) {
-            throw new Error('Cannot clone root element. Please use a child element instead.');
-        }
+        const isRoot = element instanceof RootModelElement || element.isRoot;
 
-        if (!element.parent) {
+        if (!element.parent && !isRoot) {
             throw new Error('Cannot clone element without a parent. Please ensure the element is part of a tree structure.');
         }
 
-        const parentElements = element.elementType === 'category' ? element.parent.categories : element.parent.resources;
+        newName = (newName ?? element.name) ?? '';
 
-        newName = newName ?? element.name;
-        const newName2 = newName.toLowerCase();
-        let existingElems = parentElements.filter(x => x.name.toLowerCase() === newName2);
-        if (existingElems.length === 0) {
-            existingElems = parentElements.filter(x => x.name.toLowerCase().startsWith(newName2));
-        }
+        if (!isRoot) {
+            const parentElements = element.elementType === 'category' ? element.parent!.categories : element.parent!.resources;
 
-        if (existingElems.length > 0) {
-            let i = 1;
-            while (existingElems.some(x => x.name.toLowerCase() === `${newName2}${i}`)) {
-                i++;
+            const newName2 = newName.toLowerCase();
+            let existingElems = parentElements.filter(x => x.name.toLowerCase() === newName2);
+            if (existingElems.length === 0) {
+                existingElems = parentElements.filter(x => x.name.toLowerCase().startsWith(newName2));
             }
-            newName = `${newName}${i}`;
+
+            if (existingElems.length > 0) {
+                let i = 1;
+                while (existingElems.some(x => x.name.toLowerCase() === `${newName2}${i}`)) {
+                    i++;
+                }
+                newName = `${newName}${i}`;
+            }
         }
 
-        //const serialized = ModelUtils.serializeTreeElement(element, { eol: 'LF' });
         const model = ModelUtils.elementToModel(element);
         let newElement: ITreeElement;
-        if (element.elementType === 'category') {
-            newElement = new CategoryElement(element.root, newName, element.parent);
-            (newElement as CategoryElement).populate(model as LhqModelCategory);
-        } else if (element.elementType === 'resource') {
-            newElement = new ResourceElement(element.root, newName, element.parent);
-            (newElement as ResourceElement).populate(model as LhqModelResource);
+
+        if (isRoot) {
+            // If the element is a root element, we need to create a new root element
+            newElement = ModelUtils.createRootElement(model as LhqModel);
+            newElement.name = newName!;
         } else {
-            throw new Error(`Unsupported element type: ${element.elementType}`);
+            if (element.elementType === 'category') {
+                newElement = new CategoryElement(element.root, newName, element.parent);
+                (newElement as CategoryElement).populate(model as LhqModelCategory);
+            } else if (element.elementType === 'resource') {
+                newElement = new ResourceElement(element.root, newName, element.parent!);
+                (newElement as ResourceElement).populate(model as LhqModelResource);
+            } else {
+                throw new Error(`Unsupported element type: ${element.elementType}`);
+            }
+
+            (element.parent as CategoryLikeTreeElement).addElement(newElement);
         }
 
-        (element.parent as CategoryLikeTreeElement).addElement(newElement);
-
         return newElement;
+    }
+
+    public static importModel(model: IRootModelElement, mode: ImportModelMode, options: ImportModelOptions): ImportModelResult {
+        if (!(model instanceof RootModelElement)) {
+            throw new Error('Invalid model. Expected objects created by calling fn "ModelUtils.createRootElement".');
+        }
+
+        if (options.sourceKind === 'model' && (!(options.source instanceof RootModelElement))) {
+            throw new Error('Invalid model to import. Expected an object created by calling fn "ModelUtils.createRootElement".');
+        }
+
+        if (options.sourceKind === 'rows' && (isNullOrEmpty(options.source) || !Array.isArray(options.source))) {
+            throw new Error('Invalid model to import (rows). Expected an array of rows.');
+        }
+
+        if (!options) {
+            throw new Error('Import options must be provided.');
+        }
+
+        const importNewLanguages = options.importNewLanguages ?? true;
+        const importNewElements = options.importNewElements ?? true;
+        const importAsNew = mode === 'importAsNew';
+        const cloneSource = options.cloneSource ?? true;
+
+        if (mode !== 'merge' && mode !== 'importAsNew') {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            throw new Error(`Invalid mode: ${mode}. Expected 'merge' or 'importAsNew'.`);
+        }
+
+        const result: ImportModelResult = {
+            error: undefined,
+            errorKind: undefined,
+            newCategories: 0,
+            updateCategories: 0,
+            newResources: 0,
+            updateResources: 0,
+            newLanguages: 0,
+            resultModel: model
+        };
+
+        const returnError = (kind: ImportModelErrorKind, message: string): ImportModelResult => {
+            result.error = message;
+            result.errorKind = kind;
+            return result;
+        };
+
+        const modelToImport = options.sourceKind === 'rows'
+            ? ModelUtils.rowsToModel(options.source)
+            : options.source;
+
+        if (!modelToImport.hasLanguages || (!modelToImport.hasCategories && !modelToImport.hasResources)) {
+            return returnError('emptyModel', 'The model to import does not contain any languages, categories, or resources.');
+        }
+
+        const isTreeStructure = model.options.categories === true;
+
+        if (modelToImport.hasCategories && !isTreeStructure) {
+            return returnError('categoriesForFlatStructure', 'The model to import contains categories, but the current model does not support tree structure (categories).');
+        }
+
+        const backupRootCategoriesNames = model.categories.map(x => x.name);
+        let backupModel: ILhqModelType | undefined;
+
+        if (cloneSource) {
+            model = ModelUtils.cloneElement(model) as IRootModelElement;
+            result.resultModel = model;
+        } else {
+            backupModel = ModelUtils.elementToModel(model);
+        }
+
+        try {
+            // add missing languages
+            if (importNewLanguages && modelToImport.languages.length > 0) {
+                modelToImport.languages.forEach(otherLang => {
+                    if (!model.containsLanguage(otherLang)) {
+                        model.addLanguage(otherLang);
+                        result.newLanguages++;
+                    }
+                });
+            }
+
+            const modelLanguages = new Set<string>(model.languages);
+
+            let targetCategoryForImport: ICategoryLikeTreeElement;
+            if (importAsNew) {
+                const newCateg = model.addCategory(`Imported_${Date.now()}`);
+                let idx = 0;
+                // unique name
+                while (backupRootCategoriesNames.some(x => strCompare(x, newCateg.name))) {
+                    newCateg.name += '_' + (++idx);
+                }
+
+                targetCategoryForImport = newCateg;
+                result.newCategories++;
+                result.newCategoryPaths = targetCategoryForImport.paths.clone(true);
+            } else {
+                targetCategoryForImport = model;
+            }
+
+            let primaryLanguage = model.primaryLanguage;
+            recursiveImport(modelToImport, targetCategoryForImport);
+
+            primaryLanguage = model.primaryLanguage;
+
+            if (isNullOrEmpty(primaryLanguage)) {
+                const enLanguage = model.languages.find(x => strCompare(x, 'en'));
+                primaryLanguage = enLanguage ?? model.languages[0];
+                model.primaryLanguage = primaryLanguage;
+            }
+
+            function importResources(resources: IResourceElement[], target: ICategoryLikeTreeElement): void {
+                resources.forEach(sourceResource => {
+                    let targetResource = target.find(sourceResource.name, 'resource');
+                    let updatedResource = false;
+
+                    if (targetResource) {
+                        if (sourceResource.description !== targetResource.description) {
+                            targetResource.description = sourceResource.description;
+                            result.updateResources++;
+                            updatedResource = true;
+                        }
+                    } else {
+                        if (importNewElements) {
+                            targetResource = target.addResource(sourceResource.name);
+                            targetResource.description = sourceResource.description;
+                            result.newResources++;
+                            updatedResource = true;
+                        } else {
+                            return;
+                        }
+                    }
+
+                    sourceResource.values.forEach(sourceResourceValue => {
+                        const languageName = sourceResourceValue.languageName;
+                        const targetModelHasLanguage = modelLanguages.has(languageName);
+
+                        let targetResourceValue = (targetModelHasLanguage || importNewLanguages) // if target model has language or importing new is allowed...
+                            ? targetResource.findValue(languageName)
+                            : undefined;
+
+                        // target model does not have the language, but importing new languages is allowed
+                        if (!targetModelHasLanguage && importNewLanguages) {
+                            modelLanguages.add(languageName);
+                        }
+
+                        if (!targetResourceValue) {
+                            if (modelLanguages.has(languageName)) {
+                                targetResourceValue = targetResource.setValue(languageName, sourceResourceValue.value ?? '');
+                                targetResourceValue.assign(sourceResourceValue);
+                                if (!updatedResource) {
+                                    result.updateResources++;
+                                    updatedResource = true;
+                                }
+                            }
+                        } else {
+                            const changed = targetResourceValue.assign(sourceResourceValue);
+                            if (changed && !updatedResource) {
+                                result.updateResources++;
+                                updatedResource = true;
+                            }
+                        }
+                    });
+
+                    sourceResource.parameters.forEach(sourceParam => {
+                        let targetParameter = targetResource.parameters.find(x => strCompare(x.name, sourceParam.name));
+
+                        if (!targetParameter) {
+                            targetParameter = targetResource.addParameter(sourceParam.name);
+                            const changed = targetParameter.assign(sourceParam);
+                            if (!updatedResource && changed) {
+                                result.updateResources++;
+                                updatedResource = true;
+                            }
+                        } else {
+                            const changed = targetParameter.assign(sourceParam);
+                            if (!updatedResource && changed) {
+                                result.updateResources++;
+                                updatedResource = true;
+                            }
+                        }
+                    });
+                });
+            }
+
+            function recursiveImport(source: ICategoryLikeTreeElement, target: ICategoryLikeTreeElement): void {
+                source.categories.forEach(sourceCategory => {
+                    let targetCategory = target.find(sourceCategory.name, 'category');
+
+                    let categoryAdded = false;
+                    if (!targetCategory) {
+                        targetCategory = target.addCategory(sourceCategory.name);
+                        categoryAdded = true;
+                        result.newCategories++;
+                    }
+
+                    if (targetCategory) {
+                        if (targetCategory.description !== sourceCategory.description) {
+                            targetCategory.description = sourceCategory.description;
+                            if (!categoryAdded) {
+                                result.updateCategories++;
+                            }
+                        }
+
+                        // if source category has some child categories or child resources, do recursive import on that source category
+                        if (sourceCategory.categories.length > 0 || sourceCategory.resources.length > 0) {
+                            recursiveImport(sourceCategory, targetCategory);
+                        }
+                    }
+                });
+
+                // iterate source resources
+                importResources(source.resources as Mutable<IResourceElement[]>, target);
+            }
+
+            modelLanguages.forEach(language => {
+                if (!model.containsLanguage(language)) {
+                    model.addLanguage(language);
+                    result.newLanguages++;
+                }
+            });
+
+            if (result.newResources === 0 && result.updateResources === 0) {
+                return returnError('noResourcesToImport', 'The model to import does not contain any resources.');
+            }
+
+        } finally {
+            // if there was error during import, restore the model from backup (if was not cloned)
+            if (!isNullOrEmpty(result.errorKind) && backupModel) {
+                (model as RootModelElement).populate(backupModel as LhqModel);
+            }
+        }
+        return result;
+    }
+
+    private static rowsToModel(lineItems: ImportResourceItem[]): IRootModelElement {
+        const rootModel = ModelUtils.createRootElement();
+
+        const getModelPaths = (paths: ITreeElementPaths): string[] => paths.getPaths(true);
+        const getPath = (item: ImportResourceItem, countOfParts: number): string => {
+            const paths = item.paths.getPaths(true);
+            if (paths.length >= countOfParts) {
+                return paths.slice(0, countOfParts).join('/');
+            }
+            return '';
+        }
+
+        arraySortBy(lineItems, x => getModelPaths(x.paths).length, 'desc', true);
+        const categoryCache = new Map<string, ICategoryLikeTreeElement>();
+
+        const languages = new Set<string>();
+
+        lineItems.forEach(lineItem => {
+            const modelPath = lineItem.paths;
+            const elementKey = lineItem.paths.getParentPath('/', true);
+            const partsCount = getModelPaths(modelPath).length;
+            const isResource = partsCount <= 1;
+
+            let categoryForNewResource: ICategoryLikeTreeElement = rootModel;
+            let newResourceName: string;
+
+            if (isResource) {
+                newResourceName = elementKey; //lineItem.elementKey;
+            } else {
+                const categoryPath = getPath(lineItem, partsCount - 1);
+                let category = categoryCache.has(categoryPath)
+                    ? categoryCache.get(categoryPath)
+                    : ModelUtils.findCategoryByPaths(rootModel, modelPath, partsCount - 1);
+
+                if (isNullOrEmpty(category)) {
+                    let parentCategory: ICategoryLikeTreeElement = rootModel;
+                    getModelPaths(modelPath).slice(0, partsCount - 1).forEach(categoryName => {
+                        parentCategory = parentCategory.find(categoryName, 'category') ?? parentCategory.addCategory(categoryName);
+                    });
+
+                    if (parentCategory !== rootModel) {
+                        category = parentCategory;
+                        categoryCache.set(categoryPath, category);
+                    }
+                }
+
+                categoryForNewResource = category ?? rootModel;
+                newResourceName = getModelPaths(modelPath)[partsCount - 1];
+            }
+
+            if (!categoryForNewResource.find(newResourceName, 'resource')) {
+                const newResource = categoryForNewResource.addResource(newResourceName);
+                const values = lineItem.values.map<Partial<IResourceValueElement>>(x => ({ languageName: x.language, value: x.value }));
+                lineItem.values.forEach(value => {
+                    languages.add(value.language);
+                });
+
+                newResource.addValues(values, { existing: 'update' });
+            }
+        });
+
+        languages.forEach(language => {
+            if (!rootModel.containsLanguage(language)) {
+                rootModel.addLanguage(language);
+            }
+        });
+
+        return rootModel;
+    }
+
+    private static findCategoryByPaths(rootModel: IRootModelElement,
+        elementPaths: ITreeElementPaths, deep: number): ICategoryLikeTreeElement | undefined {
+
+        if (!rootModel || !elementPaths) {
+            return undefined;
+        }
+
+        const paths = elementPaths.getPaths(true);
+        if (paths.length === 0 || paths.length < deep) {
+            return undefined;
+        }
+
+        let result: ICategoryLikeTreeElement | undefined;
+        const pathParts = paths.slice(0, deep);
+        if (pathParts.length > 1) {
+            let parentCategory: ICategoryLikeTreeElement | undefined = undefined;
+            for (const findByName of pathParts) {
+                parentCategory = (parentCategory ?? rootModel).find(findByName, 'category');
+                if (!parentCategory) {
+                    break;
+                }
+            }
+
+            result = parentCategory;
+        } else {
+            result = rootModel.find(pathParts[0], 'category');
+        }
+
+        return result;
     }
 }

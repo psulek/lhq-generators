@@ -1,4 +1,4 @@
-import { arraySortBy, isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue } from '../utils';
+import { arraySortBy, isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue, strCompare } from '../utils';
 import { ResourceParameterElement } from './resourceParameterElement';
 import { ResourceValueElement } from './resourceValueElement';
 import { type LhqModelResource, type LhqModelResourceTranslationState } from '../api/schemas';
@@ -76,6 +76,18 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         model.values = (this._values === undefined) || this._values.length === 0
             ? undefined
             : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]));
+    }
+
+    public findParameter(name: string, ignoreCase?: boolean): IResourceParameterElement | undefined {
+        if (isNullOrEmpty(name)) {
+            throw new Error('Parameter name cannot be null or empty.');
+        }
+
+        if (this._parameters) {
+            return this._parameters.find(param => strCompare(param.name, name, ignoreCase ?? true));
+        }
+
+        return undefined;
     }
 
     public addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }): void {
@@ -161,7 +173,8 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         }
     }
 
-    public setValue(language: string, value: string): void {
+    // public setValue(language: string, value: string, options?: { checkLanguage?: boolean }): IResourceValueElement {
+    public setValue(language: string, value: string): IResourceValueElement {
         if (isNullOrEmpty(language)) {
             throw new Error('Language name cannot be null or empty.');
         }
@@ -169,24 +182,34 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         if (this._values) {
             const item = this._values.find(x => x.languageName === language);
             if (item) {
+                // const checkLanguage = options?.checkLanguage ?? true;
+                // if (checkLanguage && !this.root.containsLanguage(language)) {
+                //     throw new Error(`Language "${language}" does not exist in the model.`);
+                // }
+
                 item.value = value;
-                return;
+                return item;
             }
         }
 
-        this.addValue(language, value);
+        return this.addValue(language, value);
     }
 
-    public addValue(languageName: string, value: string, locked?: boolean, auto?: boolean): IResourceValueElement {
-        if (isNullOrEmpty(languageName)) {
+    public addValue(language: string, value: string, locked?: boolean, auto?: boolean): IResourceValueElement {
+        if (isNullOrEmpty(language)) {
             throw new Error('Language name cannot be null or empty.');
         }
 
-        if (this._values && this._values.some(x => x.languageName === languageName)) {
-            throw new Error(`Language name "${languageName}" already exists.`);
+        if (this._values && this._values.some(x => x.languageName === language)) {
+            throw new Error(`Language "${language}" already exists in resource values.`);
         }
 
-        const resourceValue = new ResourceValueElement(languageName, { value, locked, auto }, this);
+        // const checkLanguage = options?.checkLanguage ?? true;
+        // if (checkLanguage && !this.root.containsLanguage(language)) {
+        //     throw new Error(`Language "${language}" does not exist in the model.`);
+        // }
+
+        const resourceValue = new ResourceValueElement(language, { value, locked, auto }, this);
         this._values ??= [];
         this._values.push(resourceValue);
         this._hasValues = true;
@@ -208,11 +231,17 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             return;
         }
 
+        // const checkLanguage = options.checkLanguage ?? true;
+
         this._values ??= [];
         values.forEach(value => {
             if (isNullOrEmpty(value.languageName)) {
                 throw new Error('Language name cannot be null or empty.');
             }
+
+            // if (checkLanguage && !this.root.containsLanguage(value.languageName)) {
+            //     throw new Error(`Language "${value.languageName}" does not exist in the model.`);
+            // }
 
             const existing = this._values!.find(v => v.languageName === value.languageName);
 
@@ -305,6 +334,14 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
         }
 
         return trim === true ? result.trim() : result;
+    }
+
+    public findValue = (language: string): IResourceValueElement | undefined => {
+        if (!isNullOrEmpty(language) && this.values) {
+            return this.values.find(x => x.languageName === language);
+        }
+
+        return undefined;
     }
 
     public hasValue = (language: string): boolean => {

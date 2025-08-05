@@ -1,0 +1,55 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "description": "Root description",
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "RootElement",
+    "primaryLanguage": "sk"
+  },
+  "languages": [
+    "sk"
+  ],
+  "categories": {
+    "Category1": {
+      "resources": {
+        "ClonedResource": {
+          "state": "New",
+          "description": "Resource 1 description",
+          "values": {
+            "sk": {
+              "value": "Value 1"
+            }
+          }
+        },
+        "Resource1": {
+          "state": "New",
+          "description": "Resource 1 description",
+          "values": {
+            "sk": {
+              "value": "Value 1"
+            }
+          }
+        }
+      },
+      "description": "Category 1 description"
+    },
+    "Category2": {
+      "resources": {
+        "Resource2": {
+          "state": "New",
+          "description": "Resource 2 description",
+          "values": {
+            "sk": {
+              "value": "Value 2"
+            }
+          }
+        }
+      },
+      "description": "Category 2 description"
+    }
+  }
+}

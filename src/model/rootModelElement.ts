@@ -2,7 +2,7 @@ import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
 import type { LhqModelDataNode, LhqModelProperties } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
 import type { ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
-import { isNullOrEmpty, isNullOrUndefined } from '../utils';
+import { isNullOrEmpty, isNullOrUndefined, strCompare } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
 import { ResourceElement } from './resourceElement';
@@ -16,7 +16,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
     private _uid: LhqModelUid = LhqModelUidSchema.value;
     private _version: LhqModelVersion = ModelVersions.model;
     private _options: LhqModelOptions = defaultModelOptions;
-    private _primaryLanguage = 'en';
+    private _primaryLanguage: string | undefined;
     private _languages: string[] = [];
     private _metadatas: Readonly<LhqModelMetadata> | undefined;
     private _codeGenerator: ICodeGeneratorElement | undefined;
@@ -57,8 +57,13 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
             this._uid = model.model.uid;
             this._version = model.model.version;
             this._options = { categories: model.model.options.categories, resources: model.model.options.resources };
+            this._languages = model.languages ? [...model.languages.filter(x => !isNullOrEmpty(x))] : [];
             this._primaryLanguage = model.model.primaryLanguage;
-            this._languages = [...model.languages];
+            // if (this.containsLanguage(model.model.primaryLanguage)) {
+            //     this._primaryLanguage = model.model.primaryLanguage;
+            // } else {
+            //     this._primaryLanguage = this._languages.length > 0 ? this._languages[0] : undefined;
+            // }
             this._hasLanguages = this._languages.length > 0;
             this._metadatas = model.metadatas ? Object.freeze({ ...model.metadatas }) : undefined;
             this._codeGenerator = this.getCodeGenerator(model);
@@ -67,8 +72,8 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
             this._uid = LhqModelUidSchema.value;
             this._version = ModelVersions.model;
             this._options = { categories: true, resources: 'All' };
-            this._primaryLanguage = 'en';
-            this._languages = ['en'];
+            this._languages = [];
+            //this._primaryLanguage = '';
             this._hasLanguages = true;
         }
 
@@ -217,12 +222,16 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         this._options = options;
     }
 
-    get primaryLanguage(): string {
+    get primaryLanguage(): string | undefined {
         return this._primaryLanguage;
     }
 
-    set primaryLanguage(primaryLanguage: string) {
-        this._primaryLanguage = primaryLanguage;
+    set primaryLanguage(value: string | undefined) {
+        // if (value && !this.containsLanguage(value, true)) {
+        //     throw new Error(`Cannot set language "${value}" as primary as this language does not exist in the model languages.`);
+        // }
+
+        this._primaryLanguage = value;
     }
 
     get languages(): readonly string[] {
@@ -266,21 +275,49 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         }
     }
 
-    public addLanguage(language: string): boolean {
-        const contains = this._languages.includes(language);
+    public addLanguages(languages: string[], primaryLanguage?: string): boolean {
+        if (isNullOrUndefined(languages) || languages.length === 0) {
+            return false;
+        }
+
+        if (isNullOrEmpty(primaryLanguage)) {
+            primaryLanguage = languages[0];
+        }
+
+        let added = false;
+        for (const language of languages.filter(lang => !isNullOrEmpty(lang))) {
+            if (this.addLanguage(language, primaryLanguage === language)) {
+                added = true;
+            }
+        }
+
+        return added;
+    }
+
+    public addLanguage(language: string, isPrimary?: boolean): boolean {
+        const contains = this.containsLanguage(language);
         if (!contains) {
             this._languages.push(language);
+            if (isPrimary === true) {
+                this.primaryLanguage = language;
+            }
             this._hasLanguages = true;
         }
         return !contains;
     }
 
-    public containsLanguage(language: string): boolean {
-        return this._languages.includes(language);
+    public findLanguage(language: string, ignoreCase?: boolean): string | undefined {
+        return this._languages.find(lang => strCompare(lang, language, ignoreCase ?? true));
     }
 
-    public removeLanguage(language: string): boolean {
-        const idx = this._languages.indexOf(language);
+    public containsLanguage(language: string, ignoreCase?: boolean): boolean {
+        return this._languages.some(lang => strCompare(lang, language, ignoreCase ?? true));
+    }
+
+    public removeLanguage(language: string, ignoreCase?: boolean): boolean {
+        // const idx = this._languages.indexOf(language);
+        const idx = this._languages.findIndex(lang => strCompare(lang, language, ignoreCase ?? true));
+
         const contains = idx > -1;
         if (contains) {
             this._languages.splice(idx, 1);

@@ -47,6 +47,12 @@ export class TreeElementPaths implements ITreeElementPaths {
         return [...this.paths.slice(1)];
     }
 
+    public clone(includeRoot?: boolean): ITreeElementPaths {
+        const result = new TreeElementPaths(undefined!);
+        result.paths = this.getPaths(includeRoot);
+        return result;
+    }
+
     public getParentPath = (separator: string, includeRoot?: boolean): string => {
         separator ??= '';
         includeRoot ??= false;

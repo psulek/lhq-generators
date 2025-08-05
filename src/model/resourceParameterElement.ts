@@ -24,6 +24,27 @@ export class ResourceParameterElement implements IResourceParameterElement, ILhq
         };
     }
 
+    public assign(sourceParam: IResourceParameterElement): boolean {
+        let changed = false;
+        
+        if (this._name !== sourceParam.name) {
+            this._name = sourceParam.name;
+            changed = true;
+        }
+
+        if (this._description !== sourceParam.description) {
+            this._description = sourceParam.description;
+            changed = true;
+        }
+        
+        if (this._order !== sourceParam.order) {
+            this._order = sourceParam.order;
+            changed = true;
+        }
+        
+        return changed;
+    }
+
     public mapToModel(): LhqModelResourceParameter {
         return {
             description: isNullOrEmpty(this._description) ? undefined : this._description,

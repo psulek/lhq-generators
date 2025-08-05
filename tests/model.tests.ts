@@ -9,7 +9,7 @@ import { LhqModel } from '../src/api/schemas';
 import { IResourceElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
-import { FormattingOptions, ModelUtils } from '../src';
+import { FormattingOptions, ImportResourceItem, ModelUtils } from '../src';
 
 setTimeout(async () => {
     await initGenerator();
@@ -85,7 +85,12 @@ setTimeout(async () => {
             const root = ModelUtils.createRootElement();
             root.name = 'TestRootElement';
             root.description = 'Test description';
+            root.addLanguage('sk');
+
+            expect(root.primaryLanguage).to.be.undefined;
+
             root.primaryLanguage = 'sk';
+            expect(root.primaryLanguage).to.equal('sk');
 
             const testCategory1 = root.addCategory('TestCategory1');
             testCategory1.description = 'Test category 1 description';
@@ -140,6 +145,7 @@ setTimeout(async () => {
 
         it('should add a value to a resource', () => {
             const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
             const testCategory = root.addCategory('TestCategory');
             const testResource = testCategory.addResource('TestResource');
             testResource.addValue('en', 'Test value');
@@ -149,6 +155,7 @@ setTimeout(async () => {
 
         it('should maintain hierarchy of root, category, and resource', () => {
             const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
             root.name = 'RootElement';
             const category = root.addCategory('Category1');
             const resource = category.addResource('Resource1');
@@ -166,7 +173,7 @@ setTimeout(async () => {
             const root = ModelUtils.createRootElement();
             root.name = 'TestRootElement';
             root.description = 'Test description';
-            root.primaryLanguage = 'sk';
+            root.addLanguage('sk', true);
 
             const testCategory1 = root.addCategory('TestCategory1');
             testCategory1.description = 'Test category 1 description';
@@ -175,7 +182,7 @@ setTimeout(async () => {
             testResource1.description = 'Test resource 1 description';
             testResource1.addValue('sk', 'Test hodnota 1');
 
-            const newCodeGenerator = ModelUtils.createCodeGeneratorElement('NetCoreResxCsharp01', {CSharp: {Enabled: false}})
+            const newCodeGenerator = ModelUtils.createCodeGeneratorElement('NetCoreResxCsharp01', { CSharp: { Enabled: false } })
             root.codeGenerator = newCodeGenerator;
 
             const model = ModelUtils.rootElementToModel(root);
@@ -193,7 +200,7 @@ setTimeout(async () => {
         it('should handle root element without description', async () => {
             const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
-            root.primaryLanguage = 'en';
+            root.addLanguage('en', true);
 
             const model = ModelUtils.rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
@@ -203,6 +210,7 @@ setTimeout(async () => {
 
         it('should handle category without description', async () => {
             const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
             root.name = 'RootWithoutDescription';
             root.addCategory('CategoryWithoutDescription');
 
@@ -213,6 +221,7 @@ setTimeout(async () => {
 
         it('should handle resource without description', async () => {
             const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
             root.name = 'RootWithoutDescription';
             const category = root.addCategory('Category');
             category.addResource('ResourceWithoutDescription');
@@ -225,6 +234,7 @@ setTimeout(async () => {
         it('should handle resource parameter without description', async () => {
             const root = ModelUtils.createRootElement();
             root.name = 'RootWithoutDescription';
+            root.addLanguage('en', true);
             const category = root.addCategory('Category');
             const resource = category.addResource('Resource');
             resource.addValue('en', 'ValueWithoutDescription');
@@ -236,6 +246,7 @@ setTimeout(async () => {
 
         it('serialize multiple elements with and without description', async () => {
             const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
             root.name = 'RootWithoutDescription';
             root.description = 'Root description';
             const category1 = root.addCategory('Category1');
@@ -330,13 +341,13 @@ setTimeout(async () => {
             const root = ModelUtils.createRootElement();
             root.name = 'RootElement';
             root.description = 'Root description';
-            root.primaryLanguage = 'sk';
+            root.addLanguage('sk', true);
 
             expect(root.paths.getParentPath('/', true), 'root_path1').to.equal(`/RootElement`);
 
             root.name = 'RootElement2';
             expect(root.paths.getParentPath('/', true), 'root_path1').to.equal(`/RootElement2`);
-            
+
             root.name = 'RootElement';
 
             const category1 = root.addCategory('Category1');
@@ -387,6 +398,183 @@ setTimeout(async () => {
             expect(category1.getElementByPath(ModelUtils.createTreePaths('Category2'), 'category')).not.undefined;
             expect(root.getElementByPath(ModelUtils.createTreePaths('Category2'), 'category')).be.undefined;
         });
+
+        it('clone element', async function () {
+            const root = createSampleModel();
+            const category1 = root.getCategory('Category1')!;
+            const resource1 = category1.getResource('Resource1')!;
+
+            expect(resource1.paths.getParentPath('/', true), 'path1').to.equal('/RootElement/Category1/Resource1');
+
+            const clonedResource = ModelUtils.cloneElement(resource1, 'ClonedResource') as IResourceElement;
+            expect(clonedResource.name).to.equal('ClonedResource');
+            expect(clonedResource.paths.getParentPath('/', true), 'path2').to.equal('/RootElement/Category1/ClonedResource');
+            expect(category1.resources).to.include(clonedResource);
+
+
+            const rootJson = ModelUtils.serializeTreeElement(root, defaultFormatting);
+            const clonedRoot = ModelUtils.cloneElement(root) as IRootModelElement;
+            const clonedRootJson = ModelUtils.serializeTreeElement(clonedRoot, defaultFormatting);
+
+            expect(clonedRootJson).to.eq(rootJson);
+
+            await verify('model', `cloned01-origin`, rootJson, 'text', 'json');
+            await verify('model', `cloned01-cloned`, clonedRootJson, 'text', 'json');
+
+            //expect(clonedRoot).to.deep.eq(root);
+        });
+
+        it('add multiple languages', async function () {
+            const root = ModelUtils.createRootElement();
+            root.addLanguages(['de', 'sk', 'en']);
+            expect(root.primaryLanguage).to.equal('de');
+
+            const root2 = ModelUtils.createRootElement();
+            root2.addLanguages(['sk', 'en', 'it'], 'it');
+            expect(root2.primaryLanguage).to.equal('it');
+        });
+
+        it('import model 01', async function () {
+            const model1 = ModelUtils.createRootElement();
+            model1.name = 'model1';
+            model1.addLanguages(['en', 'sk']);
+            expect(model1.primaryLanguage).to.equal('en');
+
+            const buttons = model1.addCategory('Buttons');
+            buttons.addResource('Accept').addValue('en', 'Accept');
+
+            const btnCancel = buttons.addResource('Cancel');
+            btnCancel.addValue('en', 'Cancel');
+            btnCancel.addValue('sk', '');
+
+            const model2 = ModelUtils.cloneElement(model1, 'model2') as IRootModelElement;
+            model2.find('Buttons', 'category')!.find('Accept', 'resource')?.setValue('sk', 'Prijať');
+            model2.find('Buttons', 'category')!.find('Cancel', 'resource')?.setValue('sk', 'Zrušiť');
+
+            const result = ModelUtils.importModel(model1, 'merge', { sourceKind: 'model', source: model2, cloneSource: false, importNewLanguages: true });
+            expect(result).not.undefined;
+            expect(result.error).to.be.undefined;
+            expect(result.resultModel).not.undefined;
+            expect(result.resultModel).to.be.eq(model1);
+
+            const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
+            await verify('model', `import01`, resultModelJson, 'text', 'json');
+        });
+
+        it('import model 02', async function () {
+            const model1 = ModelUtils.createRootElement();
+            model1.name = 'model1';
+            model1.addLanguage('en', true);
+            expect(model1.primaryLanguage).to.equal('en');
+
+            const buttons = model1.addCategory('Buttons');
+            buttons.addResource('Accept').addValue('en', 'Accept');
+
+            const btnCancel = buttons.addResource('Cancel');
+            btnCancel.addValue('en', '');
+
+            const model2 = ModelUtils.cloneElement(model1, 'model2') as IRootModelElement;
+            model2.addLanguage('sk');
+            model2.find('Buttons', 'category')!.find('Accept', 'resource')?.setValue('sk', 'Prijať');
+            model2.find('Buttons', 'category')!.find('Cancel', 'resource')?.setValue('sk', 'Zrušiť');
+            model2.find('Buttons', 'category')!.find('Cancel', 'resource')?.setValue('en', 'Cancel');
+
+            const result = ModelUtils.importModel(model1, 'merge', { sourceKind: 'model', source: model2, cloneSource: false, importNewLanguages: true });
+            expect(result).not.undefined;
+            expect(result.error).to.be.undefined;
+            expect(result.resultModel).not.undefined;
+            expect(result.resultModel).to.be.eq(model1);
+            expect(result.resultModel.languages).to.deep.equal(['en', 'sk']);
+            expect(result.resultModel.primaryLanguage).to.be.eq('en');
+
+            const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
+            await verify('model', `import02`, resultModelJson, 'text', 'json');
+        });
+        
+        it('import model 03', async function () {
+            const model1 = ModelUtils.createRootElement();
+            model1.name = 'model1';
+            model1.addLanguage('en', true);
+            expect(model1.primaryLanguage).to.equal('en');
+
+            const buttons = model1.addCategory('Buttons');
+            const btnAccept = buttons.addResource('Accept');
+            btnAccept.addValue('en', 'Accept');
+            const param1 = btnAccept.addParameter('param1');
+            param1.description = 'Parameter 1 description';
+            expect(param1.order).to.equal(0);
+
+            const btnCancel = buttons.addResource('Cancel');
+            btnCancel.addValue('en', '');
+
+            const model2 = ModelUtils.cloneElement(model1, 'model2') as IRootModelElement;
+            const btnAccept2 = model2.find('Buttons', 'category')!.find('Accept', 'resource')!;
+
+            btnAccept2.findParameter('param1')!.order = 2;
+
+            const result = ModelUtils.importModel(model1, 'merge', { sourceKind: 'model', source: model2, cloneSource: false, importNewLanguages: true });
+            expect(result).not.undefined;
+            expect(result.error).to.be.undefined;
+            expect(result.resultModel).not.undefined;
+            expect(result.resultModel).to.be.eq(model1);
+            
+            const importedParam1 = result.resultModel.find('Buttons', 'category')!.find('Accept', 'resource')!.findParameter('param1')!;
+            expect(importedParam1).not.undefined;
+            expect(importedParam1.order).to.equal(2);
+            
+
+            const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
+            await verify('model', `import03`, resultModelJson, 'text', 'json');
+        });
+
+        it('import model rows 01', async function () {
+            const model1 = ModelUtils.createRootElement();
+            model1.name = 'model1';
+            model1.addLanguage('en', true);
+            // model1.addLanguages(['en', 'sk']);
+            // expect(model1.primaryLanguage).to.equal('en');
+
+            const buttons = model1.addCategory('Buttons');
+            const btnAccept = buttons.addResource('Accept');
+            btnAccept.addValue('en', 'Accept');
+
+            const btnCancel = buttons.addResource('Cancel');
+            btnCancel.addValue('en', 'Cancel');
+            //btnCancel.addValue('sk', '');
+
+            const rows: ImportResourceItem[] = [
+                {
+                    //elementKey: btnCancel.paths.getParentPath('/', false),
+                    paths: btnCancel.paths.clone(false),
+                    values: [
+                        {
+                            language: 'sk',
+                            value: 'Zrušiť'
+                        }
+                    ]
+                },
+                {
+                    //elementKey: btnAccept.paths.getParentPath('/', false),
+                    paths: btnAccept.paths.clone(false),
+                    values: [
+                        {
+                            language: 'sk',
+                            value: 'Prijať'
+                        }
+                    ]
+                }
+            ];
+            
+            const result = ModelUtils.importModel(model1, 'merge', { sourceKind: 'rows', source: rows, cloneSource: false, importNewLanguages: true });
+            expect(result).not.undefined;
+            expect(result.error).to.be.undefined;
+            expect(result.resultModel).not.undefined;
+            expect(result.resultModel).to.be.eq(model1);
+
+            const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
+            await verify('model', `import-rows01`, resultModelJson, 'text', 'json');
+        });
+
     });
 
     run();

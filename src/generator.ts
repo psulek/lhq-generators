@@ -44,8 +44,6 @@ export function getLibraryVersion(): string {
  */
 export class Generator {
     private static _initialized = false;
-    // private static regexLF = new RegExp('\\r\\n|\\r', 'g');
-    // private static regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
     private static hostEnv: IHostEnvironment;
     private static settingsConvertor: ICodeGeneratorSettingsConvertor;
 
@@ -92,23 +90,6 @@ export class Generator {
             Generator._initialized = true;
         }
     }
-
-    // /**
-    //  * Returns the content of the generated file with the appropriate line endings.
-    //  * 
-    //  * @param generatedFile - The generated file.
-    //  * @param applyLineEndings - A flag indicating whether to apply line endings to the content. Line endings are determined by the `lineEndings` property of the `GeneratedFile`.
-    //  * @returns The content of the generated file with the appropriate line endings.
-    //  */
-    // public getFileContent(generatedFile: GeneratedFile, applyLineEndings: boolean): string {
-    //     if (!applyLineEndings || generatedFile.content.length === 0) {
-    //         return generatedFile.content;
-    //     }
-
-    //     return generatedFile.lineEndings === 'LF'
-    //         ? generatedFile.content.replace(Generator.regexLF, '\n')
-    //         : generatedFile.content.replace(Generator.regexCRLF, '\r\n');
-    // }
 
     /**
      * Generates code files based on the provided `LHQ` model and external host data.

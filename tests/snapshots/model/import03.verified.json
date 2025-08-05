@@ -1,0 +1,41 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "model1",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en"
+  ],
+  "categories": {
+    "Buttons": {
+      "resources": {
+        "Accept": {
+          "state": "New",
+          "parameters": {
+            "param1": {
+              "description": "Parameter 1 description",
+              "order": 2
+            }
+          },
+          "values": {
+            "en": {
+              "value": "Accept"
+            }
+          }
+        },
+        "Cancel": {
+          "state": "New",
+          "values": {
+            "en": {}
+          }
+        }
+      }
+    }
+  }
+}

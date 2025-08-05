@@ -516,9 +516,18 @@ export function removeProperties<T>(obj: T | undefined, ...propertiesToRemove: o
     return obj;
 }
 
-export function strCompare(str1: string, str2: string, ignoreCase: boolean = false): boolean {
+export function strCompare(str1: string | undefined, str2: string | undefined, ignoreCase: boolean = false): boolean {
+    if ((str1 === undefined && str2 !== undefined) || (str2 === undefined && str1 !== undefined)) {
+        return false;
+    }
+    
+    if (str1 === undefined && str2 === undefined) {
+        return true;
+    }
+
     if (ignoreCase) {
-        return str1.localeCompare(str2, 'en-US', { sensitivity: 'base' }) === 0;
+        //return str1!.localeCompare(str2!, 'en-US', { sensitivity: 'base' }) === 0;
+        return str1!.toLowerCase() === str2!.toLowerCase();
     } else {
         return str1 === str2;
     }

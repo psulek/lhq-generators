@@ -446,12 +446,12 @@ export interface IRootModelElement extends ICategoryLikeTreeElement {
     /**
      * Gets the primary language of the root model element.
      */
-    get primaryLanguage(): string;
+    get primaryLanguage(): string | undefined;
 
     /**
      * Sets the primary language of the root model element.
      */
-    set primaryLanguage(value: string);
+    set primaryLanguage(value: string | undefined);
 
     /**
      * Gets the list of languages supported by the root model element.
@@ -491,20 +491,42 @@ export interface IRootModelElement extends ICategoryLikeTreeElement {
     /**
      * Adds a new language to the root model element.
      * @param language - The language to add.
+     * @param isPrimary - Whether the language is the primary language (optional, default is false).
+     * @returns `true` if the language was added successfully, otherwise if already exist it returns `false`.
+     * @remarks value `isPrimary` is used to set the primary language only if that language is not already present in the model.
      */
-    addLanguage(language: string): boolean;
+    addLanguage(language: string, isPrimary?: boolean): boolean;
+
+    /**
+     * Adds multiple languages to the root model element.
+     * @param languages - The list of languages to add.
+     * @param primaryLanguage - The primary language to set (optional, default is the first language in the list).
+     * @returns `true` if at least one language was added, otherwise `false`.
+     * @remarks If a language already exists, it will not be added again.
+     */
+    addLanguages(languages: string[], primaryLanguage?: string): boolean;
+
+    /**
+     * Finds a language in the root model element.
+     * @param language - The language to find.
+     * @param ignoreCase - Whether to ignore case when finding the language (optional, default is true).
+     * @returns The language if found, otherwise undefined.
+     */
+    findLanguage(language: string, ignoreCase?: boolean): string | undefined;
 
     /**
      * Determines whether the root model element contains a specific language.
      * @param language - The language to check.
+     * @param ignoreCase - Whether to ignore case when checking for the language (optional, default is true).
      */
-    containsLanguage(language: string): boolean;
+    containsLanguage(language: string, ignoreCase?: boolean): boolean;
 
     /**
      * Removes a language from the root model element.
      * @param language - The language to remove.
+     * @param ignoreCase - Whether to ignore case when removing the language (optional, default is true).
      */
-    removeLanguage(language: string): boolean;
+    removeLanguage(language: string, ignoreCase?: boolean): boolean;
 
     /**
      * Iterates through the tree structure starting from the root element and applies the callback function to each element.
@@ -576,6 +598,13 @@ export interface IResourceElement extends ITreeElement {
     getValue(language: string, trim?: boolean): string;
 
     /**
+     * Finds a value in the resource element by language.
+     * @param language - The language to find the value for.
+     * @returns The resource value element if found, otherwise undefined.
+     */
+    findValue(language: string): IResourceValueElement | undefined;
+
+    /**
      * Sets the value of the resource element for a specific language.
      * @param language - The language for which to set the value.
      * @param value - The value to set for the specified language.
@@ -583,7 +612,7 @@ export interface IResourceElement extends ITreeElement {
      * If the resource element already has a value for the specified language, it will be replaced.
      * If the resource element does not have a value for the specified language, a new value will be added.
      */
-    setValue(language: string, value: string): void;
+    setValue(language: string, value: string): IResourceValueElement;
 
     /**
      * Checks if the resource element has a value for a specific language.
@@ -607,6 +636,14 @@ export interface IResourceElement extends ITreeElement {
     addParameters(parameters: Array<Partial<IResourceParameterElement>>, options?: { existing: 'skip' | 'update' }): void;
 
     /**
+     * Finds a parameter in the resource element by name.
+     * @param name - The name of the parameter to find.
+     * @param ignoreCase - Whether to ignore case when finding the parameter (optional, default is true).
+     * @returns The resource parameter element if found, otherwise undefined.
+     */
+    findParameter(name: string, ignoreCase?: boolean): IResourceParameterElement | undefined;
+
+    /**
      * Removes a parameter from the resource element.
      * @param name - The name of the parameter to remove.
      */
@@ -619,13 +656,14 @@ export interface IResourceElement extends ITreeElement {
 
     /**
      * Adds new resource value to the resource element.
-     * @param languageName - The name of the language for the resource value.
+     * @param language - The name of the language for the resource value.
      * @param value - The value of the resource.
      * @param locked - Indicates whether the resource value is locked (optional, default - false).
      * @param auto - Indicates whether the resource value is auto-generated (optional, default - false).
      * @returns The created resource value element.
      */
-    addValue(languageName: string, value: string, locked?: boolean, auto?: boolean): IResourceValueElement;
+    addValue(language: string, value: string, locked?: boolean, auto?: boolean): IResourceValueElement;
+    // addValue(language: string, value: string, locked?: boolean, auto?: boolean, options?: { checkLanguage?: boolean }): IResourceValueElement;
 
     /**
      * Adds multiple resource values to the resource element.
@@ -633,6 +671,7 @@ export interface IResourceElement extends ITreeElement {
      * @param options - Options for adding resource values, such as whether to skip existing values or update them.
      */
     addValues(values: Array<Partial<IResourceValueElement>>, options?: { existing: 'skip' | 'update' }): void;
+    // addValues(values: Array<Partial<IResourceValueElement>>, options?: { existing: 'skip' | 'update', checkLanguage?: boolean }): void;
 
     /**
      * Removes a resource value specified by `language` from the resource element.
@@ -684,6 +723,13 @@ export interface IResourceParameterElement {
      * Gets the parent resource element of the parameter.
      */
     get parent(): Readonly<IResourceElement>;
+
+    /**
+     * Assigns values to the resource parameter element from another resource parameter element.
+     * @param sourceParam - The source resource parameter element to assign values from.
+     * @returns `true` if any value was changed, otherwise `false`.
+     */
+    assign(sourceParam: IResourceParameterElement): boolean;
 
     /**
      * Converts the tree element to a plain JSON object.
@@ -739,6 +785,13 @@ export interface IResourceValueElement {
      * Converts the tree element to a plain JSON object.
      */
     toJson(): Record<string, unknown>;
+
+    /**
+     * Assigns values to the resource value element.
+     * @param other - 
+     * @returns `true` if any value was changed, otherwise `false`.
+     */
+    assign(other: Partial<IResourceValueElement>): boolean;
 }
 
 /**
@@ -751,6 +804,12 @@ export interface ITreeElementPaths {
      * @returns The paths of the tree element.
      */
     getPaths(includeRoot?: boolean): string[];
+
+    /**
+     * Clones the paths of the tree element.
+     * @param includeRoot - Whether to include the root in the paths (optional, default is false).
+     */
+    clone(includeRoot?: boolean): ITreeElementPaths;
 
     /**
      * Retrieves the parent path of the tree element.

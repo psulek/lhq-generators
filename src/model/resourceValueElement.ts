@@ -27,6 +27,36 @@ export class ResourceValueElement implements IResourceValueElement {
         };
     }
 
+    public assign(other: Partial<IResourceValueElement>): boolean {
+        if (!other) {
+            throw new Error('Cannot assign from undefined or null.');
+        }
+
+        let changed = false;
+
+        if (other.auto !== this.auto) {
+            this._auto = other.auto;
+            changed = true;
+        }
+
+        if (other.locked !== this.locked) {
+            this._locked = other.locked;
+            changed = true;
+        }
+
+        if (other.languageName !== this.languageName && !isNullOrEmpty(other.languageName)) {
+            this._languageName = other.languageName;
+            changed = true;
+        }
+
+        if (other.value !== this.value) {
+            this._value = other.value;
+            changed = true;
+        }
+
+        return changed;
+    }
+
     public mapToModel(): LhqModelResourceValue {
         return {
             value: isNullOrEmpty(this._value) ? undefined : this._value,
