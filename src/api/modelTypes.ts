@@ -376,9 +376,9 @@ export type ICodeGeneratorElement = {
  * Callback function type for iterating through the tree structure.
  * @param element - The current tree element being processed.
  * @param leaf - Indicates whether the current element is a leaf (i.e., has no children).
- * @returns void or false to stop the iteration.
+ * @returns void/undefined or false to stop the iteration.
  */
-export type IterateTreeCallback = (element: ITreeElement, leaf: boolean) => void | false;
+export type IterateTreeCallback = (element: ITreeElement, leaf: boolean) => void | undefined | false;
 
 
 /**

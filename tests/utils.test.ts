@@ -16,6 +16,7 @@ import {
     objCount,
     removeNewLines,
     removeProperties,
+    getIndexForSortedAdd,
     //formatJson,
     //copyObject
 } from '../src/utils';
@@ -341,19 +342,124 @@ describe('Utils Functions', () => {
     describe('removeProperties', () => {
         it('should remove specified properties from an object', () => {
             const input = { a: 1, b: 2, c: 3 };
-            const result = removeProperties(input, {b: undefined, c: undefined});
+            const result = removeProperties(input, { b: undefined, c: undefined });
             expect(result).to.deep.equal({ a: 1 });
         });
 
         it('should remove properties from multiple objects', () => {
             const input = { a: 1 };
 
-            Object.assign(input, {b: 2}, {c: 3});
+            Object.assign(input, { b: 2 }, { c: 3 });
 
-            const result = removeProperties(input, {b: 2}, {c: 3});
-            
+            const result = removeProperties(input, { b: 2 }, { c: 3 });
+
             expect(result).to.deep.equal({ a: 1 });
             expect(result).to.equal(input);
+        });
+    });
+
+    describe('getIndexForSortedAdd', () => {
+        it('should return the index for adding an item in sorted order', () => {
+            const list = [1, 3, 5];
+            const item = 4;
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(2); // should be inserted between 3 and 5
+        });
+        it('should return the index for adding an item at the end', () => {
+            const list = [1, 2, 3];
+            const item = 4;
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(3); // should be added at the end
+        });
+        it('should return the index for adding an item at the beginning', () => {
+            const list = [2, 3, 4];
+            const item = 1;
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(0); // should be added at the beginning
+        });
+        it('should return the index for adding an item in an empty list', () => {
+            const list: number[] = [];
+            const item = 1;
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(0); // should be added at the beginning
+        });
+        it('should return the index for adding an item that is equal to an existing item', () => {
+            const list = [1, 2, 3];
+            const item = 2;
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(1); // should be inserted at the position of 2
+        });
+
+        it('string comparison', () => {
+            const list = ['apple', 'banana', 'cherry'];
+            const item = 'blueberry';
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(2);
+        });
+
+        it('string comparison 2', () => {
+            const list = ['awp'];
+            const item = 'application';
+            const index = getIndexForSortedAdd(list, item);
+            expect(index).to.equal(0); // should be inserted before 'awp'
+        });
+    });
+
+    describe('arrayAddSorted', () => {
+        it('should add an item to an array in sorted order', () => {
+            const list = [1, 3, 5];
+            const item = 4;
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal([1, 3, 4, 5]); // should be inserted between 3 and 5
+        });
+
+        it('should add an item to an empty array', () => {
+            const list: number[] = [];
+            const item = 1;
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal([1]); // should be added at the beginning
+        });
+
+        it('should add an item at the end of the array', () => {
+            const list = [1, 2, 3];
+            const item = 4;
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal([1, 2, 3, 4]); // should be added at the end
+        });
+
+        it('should add an item at the beginning of the array', () => {
+            const list = [2, 3, 4];
+            const item = 1;
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal([1, 2, 3, 4]); // should be added at the beginning
+        });
+
+        it('should add an item that is equal to an existing item', () => {
+            const list = [1, 2, 3];
+            const item = 2;
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal([1, 2, 2, 3]); // should be inserted at the position of 2
+        });
+
+        it('add element should respect sorting by asc', () => {
+            const list = ['awp'];
+            const item = 'application';
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal(['application', 'awp']);
+        });
+
+        it('add element should respect sorting by asc', () => {
+            const list = ['AWP'];
+            const item = 'Application';
+            const index = getIndexForSortedAdd(list, item);
+            list.splice(index, 0, item);
+            expect(list).to.deep.equal(['Application', 'AWP']);
         });
     });
 

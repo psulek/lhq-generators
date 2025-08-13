@@ -30,10 +30,7 @@
           }
         },
         "Cancel": {
-          "state": "New",
-          "values": {
-            "en": {}
-          }
+          "state": "New"
         }
       }
     }

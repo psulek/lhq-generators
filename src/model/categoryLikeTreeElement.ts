@@ -1,7 +1,7 @@
 import type { Mutable } from '../api';
 import type { CategoryLikeTreeElementToJsonOptions, CategoryOrResourceType, ICategoryElement, ICategoryLikeTreeElement, IResourceElement, IRootModelElement, ITreeElement, ITreeElementPaths, TreeElementToJsonOptions, TreeElementType } from '../api/modelTypes';
 import type { ILhqCategoryLikeModelType } from '../api/schemas';
-import { arraySortBy, isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
+import { arrayAddSorted, arraySortBy, DefaultValueComparer, isNullOrEmpty, isNullOrUndefined, iterateObject, sortObjectByKey, strCompare } from '../utils';
 import { ResourceElement } from './resourceElement';
 import { TreeElement } from './treeElement';
 import type { ICategoryLikeTreeElementOperations, MapToModelOptions } from './types';
@@ -197,13 +197,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     private internalAddCategory(category: CategoryLikeTreeElement): void {
         this._categories ??= [];
-        // Insert the category in sorted order by name
-        const idx = this._categories.findIndex(x => x.name > category.name);
-        if (idx === -1) {
-            this._categories.push(category);
-        } else {
-            this._categories.splice(idx, 0, category);
-        }
+        arrayAddSorted(this._categories, category, x => DefaultValueComparer(x.name, category.name));
         this._hasCategories = true;
     }
 
@@ -259,14 +253,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
 
     private internalAddResource(resource: ResourceElement) {
         this._resources ??= [];
-
-        // Insert the resource in sorted order by name
-        const idx = this._resources.findIndex(x => x.name > resource.name);
-        if (idx === -1) {
-            this._resources.push(resource);
-        } else {
-            this._resources.splice(idx, 0, resource);
-        }
+        arrayAddSorted(this._resources, resource, x => DefaultValueComparer(x.name, resource.name));
         this._hasResources = true;
     }
 

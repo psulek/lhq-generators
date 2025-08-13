@@ -1,4 +1,4 @@
-import { arraySortBy, isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue, strCompare } from '../utils';
+import { arrayAddSorted, arraySortBy, DefaultValueComparer, isNullOrEmpty, iterateObject, sortObjectByKey, sortObjectByValue, strCompare } from '../utils';
 import { ResourceParameterElement } from './resourceParameterElement';
 import { ResourceValueElement } from './resourceValueElement';
 import { type LhqModelResource, type LhqModelResourceTranslationState } from '../api/schemas';
@@ -73,9 +73,11 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             ? undefined
             : Object.fromEntries(this._parameters.map(param => [param.name, param.mapToModel()]));
 
-        model.values = (this._values === undefined) || this._values.length === 0
+        const vals = (this._values === undefined) || this._values.length === 0
             ? undefined
-            : Object.fromEntries(this._values.map(value => [value.languageName, value.mapToModel()]));
+            : Object.fromEntries(this._values.filter(x => !x.isAllEmpty).map(value => [value.languageName, value.mapToModel(options)]));
+
+        model.values = vals === undefined ? undefined : Object.keys(vals).length === 0 ? undefined : vals;
     }
 
     public findParameter(name: string, ignoreCase?: boolean): IResourceParameterElement | undefined {
@@ -204,14 +206,11 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             throw new Error(`Language "${language}" already exists in resource values.`);
         }
 
-        // const checkLanguage = options?.checkLanguage ?? true;
-        // if (checkLanguage && !this.root.containsLanguage(language)) {
-        //     throw new Error(`Language "${language}" does not exist in the model.`);
-        // }
-
         const resourceValue = new ResourceValueElement(language, { value, locked, auto }, this);
         this._values ??= [];
-        this._values.push(resourceValue);
+        //this._values.push(resourceValue);
+        arrayAddSorted(this._values, resourceValue, x => DefaultValueComparer(x.languageName, language));
+
         this._hasValues = true;
         return resourceValue;
     }
@@ -231,17 +230,11 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             return;
         }
 
-        // const checkLanguage = options.checkLanguage ?? true;
-
         this._values ??= [];
         values.forEach(value => {
             if (isNullOrEmpty(value.languageName)) {
                 throw new Error('Language name cannot be null or empty.');
             }
-
-            // if (checkLanguage && !this.root.containsLanguage(value.languageName)) {
-            //     throw new Error(`Language "${value.languageName}" does not exist in the model.`);
-            // }
 
             const existing = this._values!.find(v => v.languageName === value.languageName);
 
@@ -261,7 +254,8 @@ export class ResourceElement extends TreeElement<LhqModelResource> implements IR
             this._values!.push(resourceValue);
         });
 
-        this._hasValues = true;
+        arraySortBy(this._values, x => x.languageName, 'asc', true);
+        this._hasValues = this._values.length > 0;
     }
 
     public removeValue(language: string): void {

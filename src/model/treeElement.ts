@@ -79,8 +79,11 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
         const model: Partial<TModel> = {};
         this.bindToModel(model, options);
 
-        if (options?.keepData === true && !isNullOrEmpty(this._data)) {
-            const dataKeys = options?.keepDataKeys ?? Object.keys(this._data);
+        const keepData = options?.keepData ?? false;
+        const keepDataKeys = options?.keepDataKeys;
+
+        if (keepData === true && !isNullOrEmpty(this._data)) {
+            const dataKeys = keepDataKeys ?? Object.keys(this._data);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             (model as any)._data = {};
             

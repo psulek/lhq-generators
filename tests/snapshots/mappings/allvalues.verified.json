@@ -49,11 +49,11 @@
       "state": "New",
       "description": "Root resource 1 description",
       "values": {
-        "sk": {
-          "value": "Root value 1 sk"
-        },
         "en": {
           "value": "Root value 1 en"
+        },
+        "sk": {
+          "value": "Root value 1 sk"
         }
       }
     }

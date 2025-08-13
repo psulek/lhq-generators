@@ -40,5 +40,18 @@
         }
       }
     }
+  },
+  "resources": {
+    "RootResource1": {
+      "state": "New",
+      "values": {
+        "en": {
+          "value": "Root value 1 updated en"
+        },
+        "sk": {
+          "value": "Root value 1 updated sk"
+        }
+      }
+    }
   }
 }

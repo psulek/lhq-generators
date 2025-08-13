@@ -102,7 +102,7 @@ export type FormattingOptions = {
     eol: LineEOL;
 }
 
-export type ImportModelErrorKind = 'emptyModel' | 'categoriesForFlatStructure' | 'noResourcesToImport';
+export type ImportModelErrorKind = 'emptyModel' | 'categoriesForFlatStructure' | 'noResourcesToMerge';
 export type ImportModelMode = 'merge' | 'importAsNew';
 
 /**
@@ -126,6 +126,13 @@ export type ImportModelOptionsBase = {
      * Default is `true`.
      */
     cloneSource?: boolean;
+
+    /**
+     * If set to `true`, the import will throw an error if the source model contains invalid names, 
+     * otherwise it will skip importing element(s) with invalid name.
+     * @defaultValue `false`
+     */
+    throwOnInvalidName?: boolean
 }
 
 export type ImportModelOptions = {

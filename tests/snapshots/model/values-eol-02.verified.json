@@ -1,0 +1,25 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en"
+  ],
+  "resources": {
+    "TestResource": {
+      "state": "New",
+      "values": {
+        "en": {
+          "value": "Test value with CRLF\nNew line"
+        }
+      }
+    }
+  }
+}

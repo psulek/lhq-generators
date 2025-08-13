@@ -2,7 +2,7 @@ import { CategoryLikeTreeElement } from './categoryLikeTreeElement';
 import type { LhqModelDataNode, LhqModelProperties } from '../api/schemas';
 import { LhqModelUidSchema, type LhqCodeGenVersion, type LhqModel, type LhqModelMetadata, type LhqModelOptions, type LhqModelUid, type LhqModelVersion } from '../api/schemas';
 import type { ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IRootModelElement, IterateTreeCallback, IterateTreeOptions, ITreeElement, TreeElementType } from '../api/modelTypes';
-import { isNullOrEmpty, isNullOrUndefined, strCompare } from '../utils';
+import { arrayAddSorted, arraySortBy, DefaultValueComparer, isNullOrEmpty, isNullOrUndefined, strCompare } from '../utils';
 import { ModelVersions } from './modelConst';
 import { CategoryElement } from './categoryElement';
 import { ResourceElement } from './resourceElement';
@@ -97,7 +97,17 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         properties.primaryLanguage = primaryLang;
 
         model.model = properties as LhqModelProperties;
-        model.languages = this._languages;
+
+        // const langs = [];
+        // if (this._hasLanguages) {
+        //     if (!isNullOrEmpty(primaryLang) && this._languages.includes(primaryLang)) {
+        //         langs.push(primaryLang);
+        //     }
+
+        //     langs.push(...arraySortBy(this._languages.filter(x => !isNullOrEmpty(x) && x !== primaryLang), x => x, 'asc'));
+        // }
+
+        model.languages = this._languages ?? [];
 
         super.bindToModel(model, options);
         model.metadatas = this._metadatas;
@@ -298,6 +308,9 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         const contains = this.containsLanguage(language);
         if (!contains) {
             this._languages.push(language);
+
+            //arrayAddSorted(this._languages, language, x => DefaultValueComparer(x, language));
+
             if (isPrimary === true) {
                 this.primaryLanguage = language;
             }

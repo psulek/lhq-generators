@@ -329,6 +329,21 @@ export function sortBy<T>(source: T[], key: KeysMatching<T, string | number> | u
 }
 
 /**
+ * Inserts an item into a sorted array at the correct position.
+ *
+ * @typeParam T - The type of the items in the array.
+ * @param list - The array to insert into.
+ * @param item - The item to insert.
+ * @param comparer - Optional comparer function. Should return negative if `a < b`, zero if a == b, positive if a `> b`.
+ * @returns The index at which the item was inserted.
+ */
+export function arrayAddSorted<T>(list: T[],item: T, comparer: ValueComparerPredicate<T> = DefaultValueComparer): number {
+    const index = getIndexForSortedAdd(list, item, comparer);
+    list.splice(index, 0, item);
+    return index;
+}
+
+/**
  * Sorts an array by a predicate function in ascending or descending order.
  *
  * @typeParam T - The type of the objects in the array.
@@ -520,7 +535,7 @@ export function strCompare(str1: string | undefined, str2: string | undefined, i
     if ((str1 === undefined && str2 !== undefined) || (str2 === undefined && str1 !== undefined)) {
         return false;
     }
-    
+
     if (str1 === undefined && str2 === undefined) {
         return true;
     }
@@ -531,4 +546,32 @@ export function strCompare(str1: string | undefined, str2: string | undefined, i
     } else {
         return str1 === str2;
     }
+}
+
+export type ValueComparerPredicate<T> = (a: T, b: T, ignoreCase: boolean) => number;
+
+export const DefaultValueComparer = <T>(a: T, b: T, ignoreCase: boolean = true): number => {
+    if (a === b) return 0;
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    if (typeof a === 'string' && typeof b === 'string') {
+        if (ignoreCase) {
+            const aStr = (a as string).toLowerCase();
+            const bStr = (b as string).toLowerCase();
+            return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
+        }
+        return a < b ? -1 : 1;
+    }
+    const av = (a as unknown)?.valueOf?.() ?? a;
+    const bv = (b as unknown)?.valueOf?.() ?? b;
+    if (av === bv) return 0;
+    return av < bv ? -1 : 1;
+};
+
+export function getIndexForSortedAdd<T>(list: T[], item: T, comparer?: ValueComparerPredicate<T>, ignoreCase: boolean = true): number {
+    comparer = comparer ?? DefaultValueComparer;
+    let index = 0;
+    while (index < list.length && comparer(list[index], item, ignoreCase) < 0) {
+        index++;
+    }
+    return index;
 }

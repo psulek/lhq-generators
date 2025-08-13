@@ -16,6 +16,13 @@ import type { FormattingOptions, ImportModelErrorKind, ImportModelMode, ImportMo
 import { arraySortBy, isNullOrEmpty, serializeJson, strCompare } from './utils';
 import type { Mutable } from './api';
 
+export type NameValidatorFlagsType = 'none' | 'allowEmpty';
+export type NameValidatorResultType = 'valid' | 'nameIsEmpty' | 'nameCannotBeginWithNumber' | 'nameCanContainOnlyAlphaNumeric';
+
+const regexStartedWithNumbers = /^[0-9]+[a-zA-Z0-9]*$/;
+const regexValidCharacters = /^[a-zA-Z]+[a-zA-Z0-9_]*$/;
+
+
 export class ModelUtils {
     private static codeGeneratorSettingsConvertor = new CodeGeneratorSettingsConvertor();
 
@@ -112,42 +119,6 @@ export class ModelUtils {
         };
     }
 
-    // /**
-    //  * Iterates through the tree structure starting from the root element and applies the callback function to each element.
-    //  * @param root - The root element of the tree to iterate through.
-    //  * @param callback - The callback function to apply to each tree element.
-    //  * @throws Error if the root element is not an instance of RootModelElement.
-    //  */
-    // public static iterateTree(root: IRootModelElement, callback: (element: ITreeElement, leaf: boolean) => void | boolean): void | false {
-    //     if (!(root instanceof RootModelElement)) {
-    //         throw new Error('Invalid root element. Expected an object that was created by calling fn "ModelUtils.createRootElement".');
-    //     }
-
-    //     const iterate = (element: ITreeElement, leaf: boolean): void | false => {
-    //         const result = callback(element, leaf);
-    //         if (result === false) {
-    //             return false;
-    //         }
-    //         if (element instanceof CategoryLikeTreeElement) {
-    //             const lastCategory = element.categories.length === 0 ? undefined : element.categories[element.categories.length - 1];
-    //             for (const category of element.categories) {
-    //                 if (iterate(category, category === lastCategory) === false) {
-    //                     return false;
-    //                 }
-    //             }
-
-    //             const lastResource = element.resources.length === 0 ? undefined : element.resources[element.resources.length - 1];
-    //             for (const resource of element.resources) {
-    //                 if (iterate(resource, resource === lastResource) === false) {
-    //                     return false;
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     return iterate(root, true);
-    // }
-
     /**
      * Sets temporary data for the specified tree element.
      * @param element - The tree element to set the temporary data for.
@@ -198,15 +169,16 @@ export class ModelUtils {
     /**
      * Converts the specified root element to an LHQ model (plain JSON object).
      * @param root - The root element to convert.
+     * @param options - Options for mapping the model, such as including data.
      * @returns The converted LHQ model.
      * @throws Error if the root element is not an instance of RootModelElement.
      */
-    public static rootElementToModel(root: IRootModelElement): LhqModel {
+    public static rootElementToModel(root: IRootModelElement, options?: MapToModelOptions): LhqModel {
         if (!(root instanceof RootModelElement)) {
             throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
         }
 
-        const str = JSON.stringify(root.mapToModel());
+        const str = JSON.stringify(root.mapToModel(options));
         return JSON.parse(str) as LhqModel;
     }
 
@@ -321,6 +293,7 @@ export class ModelUtils {
         const importNewElements = options.importNewElements ?? true;
         const importAsNew = mode === 'importAsNew';
         const cloneSource = options.cloneSource ?? true;
+        const throwOnInvalidName = options.throwOnInvalidName ?? false;
 
         if (mode !== 'merge' && mode !== 'importAsNew') {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -345,11 +318,17 @@ export class ModelUtils {
         };
 
         const modelToImport = options.sourceKind === 'rows'
-            ? ModelUtils.rowsToModel(options.source)
+            ? ModelUtils.rowsToModel(options.source, throwOnInvalidName)
             : options.source;
 
         if (!modelToImport.hasLanguages || (!modelToImport.hasCategories && !modelToImport.hasResources)) {
             return returnError('emptyModel', 'The model to import does not contain any languages, categories, or resources.');
+        }
+
+        // deep check for resources
+        const hasResources = modelToImport.iterateTree(x => x.elementType === 'resource' ? false : undefined, { resources: true }) === false;
+        if (!hasResources) {
+            return returnError('emptyModel', 'The model to import does not contain any resources.');
         }
 
         const isTreeStructure = model.options.categories === true;
@@ -519,8 +498,8 @@ export class ModelUtils {
                 }
             });
 
-            if (result.newResources === 0 && result.updateResources === 0) {
-                return returnError('noResourcesToImport', 'The model to import does not contain any resources.');
+            if (mode === 'merge' && result.newResources === 0 && result.updateResources === 0) {
+                return returnError('noResourcesToMerge', 'The model to import does not contain any resources.');
             }
 
         } finally {
@@ -532,7 +511,7 @@ export class ModelUtils {
         return result;
     }
 
-    private static rowsToModel(lineItems: ImportResourceItem[]): IRootModelElement {
+    private static rowsToModel(lineItems: ImportResourceItem[], throwOnInvalidName: boolean): IRootModelElement {
         const rootModel = ModelUtils.createRootElement();
 
         const getModelPaths = (paths: ITreeElementPaths): string[] => paths.getPaths(true);
@@ -551,15 +530,16 @@ export class ModelUtils {
 
         lineItems.forEach(lineItem => {
             const modelPath = lineItem.paths;
-            const elementKey = lineItem.paths.getParentPath('/', true);
-            const partsCount = getModelPaths(modelPath).length;
+            //const elementKey = lineItem.paths.getParentPath('/', true);
+            const modelPaths = getModelPaths(modelPath);
+            const partsCount = modelPaths.length;
             const isResource = partsCount <= 1;
 
             let categoryForNewResource: ICategoryLikeTreeElement = rootModel;
             let newResourceName: string;
 
             if (isResource) {
-                newResourceName = elementKey; //lineItem.elementKey;
+                newResourceName = modelPaths[0];
             } else {
                 const categoryPath = getPath(lineItem, partsCount - 1);
                 let category = categoryCache.has(categoryPath)
@@ -568,7 +548,7 @@ export class ModelUtils {
 
                 if (isNullOrEmpty(category)) {
                     let parentCategory: ICategoryLikeTreeElement = rootModel;
-                    getModelPaths(modelPath).slice(0, partsCount - 1).forEach(categoryName => {
+                    modelPaths.slice(0, partsCount - 1).forEach(categoryName => {
                         parentCategory = parentCategory.find(categoryName, 'category') ?? parentCategory.addCategory(categoryName);
                     });
 
@@ -579,7 +559,14 @@ export class ModelUtils {
                 }
 
                 categoryForNewResource = category ?? rootModel;
-                newResourceName = getModelPaths(modelPath)[partsCount - 1];
+                newResourceName = modelPaths[partsCount - 1];
+            }
+
+            if (ModelUtils.validateElementName(newResourceName, 'none') !== 'valid') {
+                if (throwOnInvalidName) {
+                    throw new Error(`Invalid resource name: '${newResourceName}'.`);
+                }
+                return; // Skip invalid resource names
             }
 
             if (!categoryForNewResource.find(newResourceName, 'resource')) {
@@ -628,6 +615,24 @@ export class ModelUtils {
             result = parentCategory;
         } else {
             result = rootModel.find(pathParts[0], 'category');
+        }
+
+        return result;
+    }
+
+    public static validateElementName(name: string | null | undefined, flags: NameValidatorFlagsType = 'none'): NameValidatorResultType {
+        let result: NameValidatorResultType = 'valid';
+
+        if (isNullOrEmpty(name)) {
+            result = flags === 'allowEmpty' ? 'valid' : 'nameIsEmpty';
+        } else {
+            if (regexStartedWithNumbers.test(name)) {
+                result = 'nameCannotBeginWithNumber';
+            } else if (!regexValidCharacters.test(name)) {
+                result = 'nameCanContainOnlyAlphaNumeric';
+            } else if (name.trim() === '') { // This case seems redundant due to the initial check, but kept for structural similarity
+                result = 'nameIsEmpty';
+            }
         }
 
         return result;

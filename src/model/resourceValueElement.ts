@@ -1,6 +1,8 @@
 import type { LhqModelResourceValue } from '../api/schemas';
 import type { IResourceElement, IResourceValueElement } from '../api/modelTypes';
-import { isNullOrEmpty } from '../utils';
+import { isNullOrEmpty, updateEOL } from '../utils';
+import type { MapToModelOptions } from './types';
+import { ResourceValueValidations } from './modelConst';
 
 export class ResourceValueElement implements IResourceValueElement {
     private _languageName: string;
@@ -57,12 +59,35 @@ export class ResourceValueElement implements IResourceValueElement {
         return changed;
     }
 
-    public mapToModel(): LhqModelResourceValue {
+    public get isAllEmpty(): boolean {
+        return isNullOrEmpty(this._value) && this._locked === undefined && this._auto === undefined;
+    }
+
+    public mapToModel(options?: MapToModelOptions): LhqModelResourceValue {
         return {
-            value: isNullOrEmpty(this._value) ? undefined : this._value,
-            locked: this._locked,
-            auto: this._auto
+            value: this.getSanitizedValue(options),
+            locked: this._locked === true ? true : undefined,
+            auto: this._auto === true ? true : undefined
         };
+    }
+
+    private getSanitizedValue(options?: MapToModelOptions): string | undefined {
+        if (isNullOrEmpty(this._value)) {
+            return undefined;
+        }
+
+        const eol = options?.values?.eol;
+        const sanitize = options?.values?.sanitize ?? false;
+
+        let value = eol ? updateEOL(this._value, eol) : this._value;
+
+        if (sanitize) {
+            value = value
+                .replace(ResourceValueValidations.nonBreakingSpace, ' ')
+                .replace(ResourceValueValidations.noSupportedChars, '');
+        }
+
+        return value;
     }
 
     get languageName(): string {

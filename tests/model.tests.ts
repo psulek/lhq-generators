@@ -96,6 +96,7 @@ setTimeout(async () => {
             testCategory1.description = 'Test category 1 description';
 
             const testResource1 = testCategory1.addResource('TestResource1');
+            expect(testResource1.paths.getParentPath('/', true)).to.equal('/TestRootElement/TestCategory1/TestResource1');
             testResource1.description = 'Test resource 1 description';
             testResource1.addValue('sk', 'Test hodnota 1');
 
@@ -112,6 +113,7 @@ setTimeout(async () => {
 
             expect(testResource1.changeParent(root)).to.be.true;
             expect(testResource1.parent).to.equal(root);
+            expect(testResource1.paths.getParentPath('/', true)).to.equal('/TestRootElement/TestResource1');
 
             expect(testCategory1.changeParent(testCategory1)).to.be.false; // cannot change parent to itself
 
@@ -130,6 +132,46 @@ setTimeout(async () => {
             expect(testCategory.name).to.equal('TestCategory');
             expect(testCategory.description).to.equal('Test category description');
             expect(root.categories).to.include(testCategory);
+        });
+
+        it('add category should respect sorting by asc', () => {
+            const root = ModelUtils.createRootElement();
+            root.addCategory('AWT');
+            root.addCategory('Application');
+
+            expect(root.categories[0].name).to.equal('Application');
+            expect(root.categories[1].name).to.equal('AWT');
+        });
+
+        it('add resource should respect sorting by asc', () => {
+            const root = ModelUtils.createRootElement();
+            root.addResource('AWT');
+            root.addResource('Application');
+
+            expect(root.resources[0].name).to.equal('Application');
+            expect(root.resources[1].name).to.equal('AWT');
+        });
+
+        it('add resource values should respect sorting by asc', () => {
+            const root = ModelUtils.createRootElement();
+            root.addLanguage('sk', true);
+            root.addLanguage('en');
+
+            // order of languages in root should be preserved and will not be sorted on add!
+            expect(root.languages[0]).to.equal('sk');
+            expect(root.languages[1]).to.equal('en');
+
+            const resource = root.addResource('AWT');
+            resource.addValue('sk', 'slovak value');
+            resource.addValue('en', 'english value');
+
+            expect(resource.values[0].languageName).to.equal('en');
+            expect(resource.values[1].languageName).to.equal('sk');
+
+            const appResource = root.addResource('Application');
+            appResource.addValues([{ languageName: 'sk', value: 'sk value' }, { languageName: 'en', value: 'eng value' }]);
+            expect(appResource.values[0].languageName).to.equal('en');
+            expect(appResource.values[1].languageName).to.equal('sk');
         });
 
         it('should add a resource to a category', () => {
@@ -195,6 +237,60 @@ setTimeout(async () => {
             const model2 = ModelUtils.rootElementToModel(root);
             const modelJson2 = ModelUtils.serializeModel(model2, defaultFormatting);
             await verify('model', `serialize01b`, modelJson2, 'text', 'json');
+        });
+
+        it('sould serialize resources values with CRLF', async () => {
+            const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
+            root.addResource('TestResource').addValue('en', 'Test value with CRLF\r\nNew line');
+
+            const model = ModelUtils.rootElementToModel(root);
+            const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
+            await verify('model', `values-eol-01`, modelJson, 'text', 'json');
+        });
+
+        it('sould serialize resources values overwrite with LF', async () => {
+            const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
+            root.addResource('TestResource').addValue('en', 'Test value with CRLF\r\nNew line');
+
+            const model = ModelUtils.rootElementToModel(root, {values: {eol: 'LF'}});
+            const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
+            await verify('model', `values-eol-02`, modelJson, 'text', 'json');
+        });
+
+        it('should serialize resources values overwrite with CRLF', async () => {
+            const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
+            root.addResource('TestResource').addValue('en', 'Test value with CRLF\rNew \nline');
+
+            const model = ModelUtils.rootElementToModel(root, {values: {eol: '\r\n'}});
+            const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
+            await verify('model', `values-eol-03`, modelJson, 'text', 'json');
+        });
+
+        it('should serialize languages in correct order', async () => {
+            const root = ModelUtils.createRootElement();
+            root.addLanguages(['sk', 'en', 'de'], 'en');
+
+            const model = ModelUtils.rootElementToModel(root);
+            const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
+            await verify('model', `languages-order-01`, modelJson, 'text', 'json');
+        });
+
+        it('should remove/replace non-valid unicode chars', async () => {
+            const root = ModelUtils.createRootElement();
+            root.addLanguage('en', true);
+            root.addResource('TestResource').addValue('en', `A\u00A0B\u202FC\uFEFFD\u2007E\u2060F
+G\u007FH\u2000I\u200BI\u200DJ\u200FK
+L\u202AL\u202BM\u202CM\u202DM\u202E
+N\u2060O\u2061P\u2062Q\u2063R\u2064S
+\u2010\u2011\u2012\u2013\u2014\u2015\u2016\u2017\u2018\u2019\u201C\u201D
+`);
+
+            const model = ModelUtils.rootElementToModel(root, { values: { sanitize: true } });
+            const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
+            await verify('model', `values-unicode-01`, modelJson, 'text', 'json');
         });
 
         it('should handle root element without description', async () => {
@@ -490,7 +586,7 @@ setTimeout(async () => {
             const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
             await verify('model', `import02`, resultModelJson, 'text', 'json');
         });
-        
+
         it('import model 03', async function () {
             const model1 = ModelUtils.createRootElement();
             model1.name = 'model1';
@@ -517,11 +613,11 @@ setTimeout(async () => {
             expect(result.error).to.be.undefined;
             expect(result.resultModel).not.undefined;
             expect(result.resultModel).to.be.eq(model1);
-            
+
             const importedParam1 = result.resultModel.find('Buttons', 'category')!.find('Accept', 'resource')!.findParameter('param1')!;
             expect(importedParam1).not.undefined;
             expect(importedParam1.order).to.equal(2);
-            
+
 
             const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
             await verify('model', `import03`, resultModelJson, 'text', 'json');
@@ -531,8 +627,10 @@ setTimeout(async () => {
             const model1 = ModelUtils.createRootElement();
             model1.name = 'model1';
             model1.addLanguage('en', true);
-            // model1.addLanguages(['en', 'sk']);
-            // expect(model1.primaryLanguage).to.equal('en');
+
+            const rootResource1 = model1.addResource('RootResource1');
+            rootResource1.addValue('en', 'Root value 1 en');
+            rootResource1.addValue('sk', 'Root value 1 sk');
 
             const buttons = model1.addCategory('Buttons');
             const btnAccept = buttons.addResource('Accept');
@@ -544,7 +642,6 @@ setTimeout(async () => {
 
             const rows: ImportResourceItem[] = [
                 {
-                    //elementKey: btnCancel.paths.getParentPath('/', false),
                     paths: btnCancel.paths.clone(false),
                     values: [
                         {
@@ -554,7 +651,6 @@ setTimeout(async () => {
                     ]
                 },
                 {
-                    //elementKey: btnAccept.paths.getParentPath('/', false),
                     paths: btnAccept.paths.clone(false),
                     values: [
                         {
@@ -562,9 +658,16 @@ setTimeout(async () => {
                             value: 'Prijať'
                         }
                     ]
+                },
+                {
+                    paths: rootResource1.paths.clone(false),
+                    values: [
+                        { language: 'en', value: 'Root value 1 updated en' },
+                        { language: 'sk', value: 'Root value 1 updated sk' }
+                    ]
                 }
             ];
-            
+
             const result = ModelUtils.importModel(model1, 'merge', { sourceKind: 'rows', source: rows, cloneSource: false, importNewLanguages: true });
             expect(result).not.undefined;
             expect(result.error).to.be.undefined;
