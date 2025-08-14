@@ -15,6 +15,7 @@ import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 import type { FormattingOptions, ImportModelErrorKind, ImportModelMode, ImportModelOptions, ImportModelResult, ImportResourceItem } from './types';
 import { arraySortBy, isNullOrEmpty, serializeJson, strCompare } from './utils';
 import type { Mutable } from './api';
+import { modelConst } from '.';
 
 export type NameValidatorFlagsType = 'none' | 'allowEmpty';
 export type NameValidatorResultType = 'valid' | 'nameIsEmpty' | 'nameCannotBeginWithNumber' | 'nameCanContainOnlyAlphaNumeric';
@@ -620,6 +621,13 @@ export class ModelUtils {
         return result;
     }
 
+    /**
+     * Validates the name of an element (category or resource).
+     * @param name - The name of the element to validate.
+     * @param flags - Flags to control validation behavior, such as allowing empty names.
+     *                Default is 'none', which means empty names are not allowed.
+     * @returns The validation result.
+     */
     public static validateElementName(name: string | null | undefined, flags: NameValidatorFlagsType = 'none'): NameValidatorResultType {
         let result: NameValidatorResultType = 'valid';
 
@@ -636,5 +644,15 @@ export class ModelUtils {
         }
 
         return result;
+    }
+
+    /**
+     * Checks if the given string contains invalid Unicode characters.
+     * @param value - The string value to check for invalid Unicode characters.
+     * @returns `true` if the string contains invalid characters, otherwise `false`.
+     */
+    public static containsInvalidUnicodeChars(value: string): boolean {
+        return modelConst.ResourceValueValidations.noSupportedChars.test(value) ||
+            modelConst.ResourceValueValidations.nonBreakingSpace.test(value);
     }
 }

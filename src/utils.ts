@@ -351,7 +351,7 @@ export function arrayAddSorted<T>(list: T[],item: T, comparer: ValueComparerPred
  * @param predicate - A function that returns the value to sort by.
  * @param sortOrder - The order to sort, either 'asc' for ascending or 'desc' for descending. Default is 'asc'.
  * @param mutate - Whether to mutate the original array or return a new sorted array. Default is `false` - returns a new array.
- * @returns A new array sorted by the predicate function and order.
+ * @returns A array sorted by the predicate function and order.
  */
 export function arraySortBy<T>(source: T[], predicate: (item: T) => number | string, sortOrder: 'asc' | 'desc' = 'asc', mutate: boolean = false): T[] {
     const result = mutate ? source : [...source];
@@ -361,6 +361,30 @@ export function arraySortBy<T>(source: T[], predicate: (item: T) => number | str
         const res = v1 > v2 ? 1 : ((v2 > v1) ? -1 : 0);
         return sortOrder === 'asc' ? res : res * -1;
     });
+}
+
+/**
+ * 
+ * @param source - The array to remove elements from.
+ * @param predicate - A function that returns `true` for items to remove and `false` for items to keep.
+ * @param mutate - Whether to mutate the original array or return a new sorted array. Default is `false` - returns a new array.
+ * @returns A array (original or new) which contains only items that do not match the predicate.
+ */
+export function arrayRemoveAll<T>(source: T[], predicate: (item: T) => boolean, mutate?: boolean): T[] {
+    if (!source || source.length === 0) {
+        return [];
+    }
+
+    if (mutate) {
+        for (let i = source.length - 1; i >= 0; i--) {
+            if (predicate(source[i])) {
+                source.splice(i, 1);
+            }
+        }
+        return source;
+    }
+
+    return source.filter(item => !predicate(item));
 }
 
 /**
