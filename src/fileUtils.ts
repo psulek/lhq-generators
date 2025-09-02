@@ -6,12 +6,10 @@ export type pathExistsCallback = (path: string) => Promise<boolean>;
 export type readFileCallback = (path: string, options?: { encoding: BufferEncoding | null }) => Promise<string | Buffer>;
 
 export async function safeReadFile(fileName: string, pathExists: pathExistsCallback, readFile: readFileCallback): Promise<string> {
-    //if (!(await fse.pathExists(fileName))) {
     if (!(await pathExists(fileName))) {
         throw new Error(`File '${fileName}' not found.`);
     }
 
-    // const content = await fse.readFile(fileName, { encoding: 'utf-8' });
     const content = await readFile(fileName, { encoding: 'utf-8' });
     return isNullOrEmpty(content) ? '' : tryRemoveBOM(content as string);
 }
@@ -66,7 +64,6 @@ export async function readFileInfo(inputPath: string, platformPath: PlatformPath
         }
     }
 
-    //const exist = fse.pathExistsSync(full);
     const exist = await pathExists(full);
     if (!exist && options.fileMustExist === true) {
         throw new Error(`File '${inputPath}' does not exist!`);
@@ -80,7 +77,6 @@ export async function readFileInfo(inputPath: string, platformPath: PlatformPath
     let content: string | Buffer | undefined = undefined;
     if (options.loadContent === true) {
         const encoding = options.encoding ?? null;
-        //content = await fse.readFile(full, { encoding: encoding });
         content = await readFile(full, { encoding: encoding });
         if (typeof content === 'string') {
             content = isNullOrEmpty(content) ? '' : tryRemoveBOM(content);

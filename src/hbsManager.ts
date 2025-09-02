@@ -4,8 +4,8 @@ import { AppError } from './AppError';
 import { getKnownHelpers } from './helpers';
 import type { HbsTemplatesData } from './types';
 import { isNullOrEmpty } from './utils';
-import { templateMetadataDefinitionSchema, type TemplateMetadataDefinition, type TemplatesMetadata } from './api/templates';
-import { getZodError, validateTemplateMetadata } from './generatorUtils';
+import { type TemplateMetadataDefinition, type TemplatesMetadata } from './api/templates';
+import { validateTemplateMetadata } from './generatorUtils';
 
 export class HbsTemplateManager {
     private static _initialized = false;

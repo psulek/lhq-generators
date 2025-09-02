@@ -12,6 +12,3 @@ export * from './types';
 export * from './api/index';
 
 export { HbsTemplateManager } from './hbsManager';
-
-// export { getHbsMetadata } from './hbsMetadata';
-// export {BuildinTemplateId, TemplateSettings, TemplateSettingsType} from './templates';

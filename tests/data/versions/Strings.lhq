@@ -1,0 +1,77 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "Strings1",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en",
+    "sk",
+    "cs"
+  ],
+  "resources": {
+    "ButtonOK": {
+      "state": "New",
+      "values": {
+        "cs": {
+          "value": "Tlačítko O K cesky\r\n"
+        },
+        "en": {
+          "value": "Button O K eng"
+        },
+        "sk": {
+          "value": "\r\nTlačidlo OK svk"
+        }
+      }
+    }
+  },
+  "metadatas": {
+    "childs": [
+      {
+        "name": "metadata",
+        "attrs": {
+          "descriptorUID": "b40c8a1d-23b7-4f78-991b-c24898596dd2"
+        },
+        "childs": [
+          {
+            "name": "content",
+            "attrs": {
+              "templateId": "NetCoreResxCsharp01",
+              "version": "1"
+            },
+            "childs": [
+              {
+                "name": "Settings",
+                "childs": [
+                  {
+                    "name": "CSharp",
+                    "attrs": {
+                      "Enabled": "true",
+                      "OutputFolder": "Resources",
+                      "EncodingWithBOM": "false",
+                      "LineEndings": "LF"
+                    }
+                  },
+                  {
+                    "name": "ResX",
+                    "attrs": {
+                      "Enabled": "true",
+                      "OutputFolder": "Resources",
+                      "EncodingWithBOM": "false",
+                      "LineEndings": "LF"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

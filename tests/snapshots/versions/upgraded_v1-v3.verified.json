@@ -1,0 +1,65 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "description": "1",
+    "options": {
+      "categories": true,
+      "resources": "All"
+    },
+    "name": "v1",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en"
+  ],
+  "metadatas": {
+    "childs": [
+      {
+        "name": "metadata",
+        "attrs": {
+          "descriptorUID": "b40c8a1d-23b7-4f78-991b-c24898596dd2"
+        },
+        "childs": [
+          {
+            "name": "content",
+            "attrs": {
+              "templateId": "WpfResxCsharp01",
+              "version": "1"
+            },
+            "childs": [
+              {
+                "name": "Settings",
+                "childs": [
+                  {
+                    "name": "CSharp",
+                    "attrs": {
+                      "Enabled": "true",
+                      "OutputFolder": "Resources1",
+                      "EncodingWithBOM": "false",
+                      "LineEndings": "LF",
+                      "UseExpressionBodySyntax": "true",
+                      "MissingTranslationFallbackToPrimary": "true",
+                      "Namespace": ""
+                    }
+                  },
+                  {
+                    "name": "ResX",
+                    "attrs": {
+                      "Enabled": "true",
+                      "OutputFolder": "Resources2",
+                      "EncodingWithBOM": "false",
+                      "LineEndings": "LF",
+                      "CultureCodeInFileNameForPrimaryLanguage": "true",
+                      "CompatibleTextEncoding": "true"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

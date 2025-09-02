@@ -12,8 +12,8 @@ import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
 import type { MapToModelOptions } from './model/types';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
-import type { FormattingOptions, ImportModelErrorKind, ImportModelMode, ImportModelOptions, ImportModelResult, ImportResourceItem } from './types';
-import { arraySortBy, isNullOrEmpty, serializeJson, strCompare } from './utils';
+import type { FormattingOptions, ImportModelErrorKind, ImportModelMode, ImportModelOptions, ImportModelResult, ImportResourceItem, LhqValidationResult, UpgradeModelResult } from './types';
+import { arraySortBy, detectFormatting, isNullOrEmpty, serializeJson, strCompare } from './utils';
 import type { Mutable } from './api';
 import { modelConst } from '.';
 
@@ -35,6 +35,50 @@ export class ModelUtils {
     }
 
     /**
+     * Checks if the model upgrade is required.
+     */
+    public static upgradeRequired(rootModel: IRootModelElement): boolean {
+        return rootModel.version < ModelVersions.model;
+    }
+
+    /**
+     * Upgrades the model to the latest version.
+     * @param rootModel - The root model element to be upgraded.
+     * @returns 
+     */
+    public static upgradeModel(rootModel: IRootModelElement): UpgradeModelResult {
+        let error: string | undefined;
+        //let model: LhqModel | undefined;
+        let newRootModel: IRootModelElement | undefined;
+        if (isNullOrEmpty(rootModel)) {
+            error = 'rootModel is empty or invalid.';
+        } else if (rootModel.version > ModelVersions.model) {
+            error = 'Model version is newer than the supported version.';
+        } else if (rootModel.version < ModelVersions.model) {
+            if (isNullOrEmpty(rootModel.codeGenerator)) {
+                error = 'Code generator is not defined.';
+            } else if (isNullOrEmpty(rootModel.codeGenerator.templateId)) {
+                error = 'Code generator template is not defined.';
+            } else {
+                // const templateId = rootModel.codeGenerator.templateId;
+                // const settings = rootModel.codeGenerator.settings;
+                // const defaultSettings = ModelUtils.createCodeGeneratorElement(templateId).settings;
+                // const mergedSettings = ModelUtils.mergeCodeGeneratorSettings(defaultSettings, settings);
+                // rootModel.codeGenerator = ModelUtils.createCodeGeneratorElement(templateId, mergedSettings);
+
+                // const model = ModelUtils.elementToModel<LhqModel>(rootModel);
+                const model = ModelUtils.rootElementToModel(rootModel);
+                model.model.version = ModelVersions.model;
+
+                newRootModel = ModelUtils.createRootElement(model);
+            }
+        }
+
+        const success = isNullOrEmpty(error);
+        return { error, success, rootModel: success ? newRootModel : undefined };
+    }
+
+    /**
      * Creates a new root element for the specified LHQ model data.
      * @param data - The LHQ model data to be used for creating the root element.
      * @returns  The created root element.
@@ -47,6 +91,38 @@ export class ModelUtils {
         }
 
         return new RootModelElement(model, ModelUtils.codeGeneratorSettingsConvertor);
+    }
+
+    /**
+     * Loads the LHQ model from the specified data, converts it to a model, and then serializes it to a string with the specified formatting options.
+     * @param data - The LHQ model data to be loaded, must be a JSON string.
+     * @param options - Options for mapping the model, such as including data.
+     * @param formattingOptions - The formatting options to use for serialization, optional. If not provided, the formatting will be detected from the input data.
+     * @returns The serialized LHQ model as a string.
+     * @remarks This is a convenience method that combines loading, converting, and serializing the model in one step
+     * usually for applying default values for code generator settings and formatting the output.
+     */
+    public static loadAndSerialize(data: string, options?: MapToModelOptions, formattingOptions?: FormattingOptions): string {
+        const root = ModelUtils.createRootElement(data);
+        const model = ModelUtils.rootElementToModel(root, options);
+        formattingOptions = formattingOptions ?? detectFormatting(data);
+        return ModelUtils.serializeModel(model, formattingOptions);
+    }
+
+    private static mergeCodeGeneratorSettings(settings1: CodeGeneratorGroupSettings, settings2: CodeGeneratorGroupSettings): CodeGeneratorGroupSettings {
+        const mergedSettings: CodeGeneratorGroupSettings = { ...settings1 };
+
+        for (const [group, groupSettings] of Object.entries(settings2)) {
+            if (!mergedSettings[group]) {
+                mergedSettings[group] = {};
+            }
+
+            for (const [name, value] of Object.entries(groupSettings)) {
+                mergedSettings[group][name] = value;
+            }
+        }
+
+        return mergedSettings;
     }
 
     /**
@@ -173,14 +249,28 @@ export class ModelUtils {
      * @param options - Options for mapping the model, such as including data.
      * @returns The converted LHQ model.
      * @throws Error if the root element is not an instance of RootModelElement.
+     * @remarks - Property `applyDefaults` in options will apply default values for code generator settings & set model version to latest.
      */
-    public static rootElementToModel(root: IRootModelElement, options?: MapToModelOptions): LhqModel {
+    public static rootElementToModel(root: IRootModelElement, options?: MapToModelOptions & {applyDefaults?: boolean}): LhqModel {
         if (!(root instanceof RootModelElement)) {
             throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
         }
 
-        const str = JSON.stringify(root.mapToModel(options));
-        return JSON.parse(str) as LhqModel;
+        const applyDefaults = options?.applyDefaults ?? true;
+
+        if (applyDefaults && root.codeGenerator && !isNullOrEmpty(root.codeGenerator.templateId)) {
+            const templateId = root.codeGenerator.templateId;
+            const settings = root.codeGenerator.settings ?? {};
+            const defaultSettings = ModelUtils.createCodeGeneratorElement(templateId).settings;
+            const mergedSettings = ModelUtils.mergeCodeGeneratorSettings(defaultSettings, settings);
+            root.codeGenerator = ModelUtils.createCodeGeneratorElement(templateId, mergedSettings);
+        }
+
+        const model = root.mapToModel(options);
+        if (applyDefaults) {
+            model.model.version = ModelVersions.model;
+        }
+        return JSON.parse(JSON.stringify(model)) as LhqModel;
     }
 
     /**
@@ -531,7 +621,6 @@ export class ModelUtils {
 
         lineItems.forEach(lineItem => {
             const modelPath = lineItem.paths;
-            //const elementKey = lineItem.paths.getParentPath('/', true);
             const modelPaths = getModelPaths(modelPath);
             const partsCount = modelPaths.length;
             const isResource = partsCount <= 1;

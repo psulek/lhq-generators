@@ -26,10 +26,17 @@
     },
     {
       "type": "npm",
-      "script": "test",
+      "script": "test2",
       "group": "test",
-      "problemMatcher": ["$tsc"],
-      "label": "npm: test",
+      "problemMatcher": [
+        {
+          "applyTo": "allDocuments",
+          "fileLocation": "autoDetect",
+          "base": "$tsc",
+          "source": "mocha"
+        }
+      ],
+      "label": "npm: test2",
       "presentation": {
         "echo": true,
         "reveal": "always",

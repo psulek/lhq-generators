@@ -5,8 +5,6 @@ import type { LhqModelLineEndings } from '.';
 import detectIndent from 'detect-indent';
 
 
-// merge(`{"UseExpressionBodySyntax": false}`, CSharp)
-
 const regexLF = new RegExp('\\r\\n|\\r', 'g');
 const regexCRLF = new RegExp('(\\r(?!\\n))|((?<!\\r)\\n)', 'g');
 

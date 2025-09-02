@@ -14,7 +14,6 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
         switch (property.type) {
             case 'boolean':
                 {
-                    //return valueType === 'string' ? (value === 'true') : value;
                     switch (valueType) {
                         case 'string':
                             if (value === 'true') {

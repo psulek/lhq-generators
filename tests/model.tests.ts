@@ -9,7 +9,8 @@ import { LhqModel } from '../src/api/schemas';
 import { IResourceElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
-import { FormattingOptions, ImportResourceItem, ModelUtils } from '../src';
+import { FormattingOptions, ImportResourceItem, modelConst, ModelUtils } from '../src';
+import { MapToModelOptions } from '../src/model/types';
 
 setTimeout(async () => {
     await initGenerator();
@@ -18,6 +19,11 @@ setTimeout(async () => {
         indentation: { amount: 2, type: 'space' },
         eol: 'LF',
     };
+
+    function rootElementToModel(root: IRootModelElement, options?: MapToModelOptions): LhqModel {
+        options = options ?? {};
+        return ModelUtils.rootElementToModel(root, { ...options, applyDefaults: false });
+    }
 
     const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
     // const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
@@ -34,7 +40,7 @@ setTimeout(async () => {
                 const model = JSON.parse(content) as LhqModel;
 
                 const root = ModelUtils.createRootElement(model);
-                const serializedModel = ModelUtils.rootElementToModel(root);
+                const serializedModel = rootElementToModel(root);
 
                 expect(model).to.deep.eq(serializedModel);
                 expect(root.isRoot).to.be.true;
@@ -227,14 +233,14 @@ setTimeout(async () => {
             const newCodeGenerator = ModelUtils.createCodeGeneratorElement('NetCoreResxCsharp01', { CSharp: { Enabled: false } })
             root.codeGenerator = newCodeGenerator;
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `serialize01`, modelJson, 'text', 'json');
 
             newCodeGenerator.settings['CSharp']['Enabled'] = true;
             root.codeGenerator = newCodeGenerator;
 
-            const model2 = ModelUtils.rootElementToModel(root);
+            const model2 = rootElementToModel(root);
             const modelJson2 = ModelUtils.serializeModel(model2, defaultFormatting);
             await verify('model', `serialize01b`, modelJson2, 'text', 'json');
         });
@@ -244,7 +250,7 @@ setTimeout(async () => {
             root.addLanguage('en', true);
             root.addResource('TestResource').addValue('en', 'Test value with CRLF\r\nNew line');
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-eol-01`, modelJson, 'text', 'json');
         });
@@ -254,7 +260,7 @@ setTimeout(async () => {
             root.addLanguage('en', true);
             root.addResource('TestResource').addValue('en', 'Test value with CRLF\r\nNew line');
 
-            const model = ModelUtils.rootElementToModel(root, {values: {eol: 'LF'}});
+            const model = rootElementToModel(root, { values: { eol: 'LF' } });
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-eol-02`, modelJson, 'text', 'json');
         });
@@ -264,7 +270,7 @@ setTimeout(async () => {
             root.addLanguage('en', true);
             root.addResource('TestResource').addValue('en', 'Test value with CRLF\rNew \nline');
 
-            const model = ModelUtils.rootElementToModel(root, {values: {eol: '\r\n'}});
+            const model = rootElementToModel(root, { values: { eol: '\r\n' } });
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-eol-03`, modelJson, 'text', 'json');
         });
@@ -273,7 +279,7 @@ setTimeout(async () => {
             const root = ModelUtils.createRootElement();
             root.addLanguages(['sk', 'en', 'de'], 'en');
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `languages-order-01`, modelJson, 'text', 'json');
         });
@@ -288,7 +294,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
 \u2010\u2011\u2012\u2013\u2014\u2015\u2016\u2017\u2018\u2019\u201C\u201D
 `);
 
-            const model = ModelUtils.rootElementToModel(root, { values: { sanitize: true } });
+            const model = rootElementToModel(root, { values: { sanitize: true } });
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-unicode-01`, modelJson, 'text', 'json');
         });
@@ -298,7 +304,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             root.name = 'RootWithoutDescription';
             root.addLanguage('en', true);
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize02`, modelJson, 'text', 'json');
 
@@ -310,7 +316,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             root.name = 'RootWithoutDescription';
             root.addCategory('CategoryWithoutDescription');
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize03`, modelJson, 'text', 'json');
         });
@@ -322,7 +328,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             const category = root.addCategory('Category');
             category.addResource('ResourceWithoutDescription');
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize04`, modelJson, 'text', 'json');
         });
@@ -335,7 +341,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             const resource = category.addResource('Resource');
             resource.addValue('en', 'ValueWithoutDescription');
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize05`, modelJson, 'text', 'json');
         });
@@ -355,7 +361,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             resource2.description = 'Resource2 description';
             resource2.addValue('en', 'resource2').auto = true;
 
-            const model = ModelUtils.rootElementToModel(root);
+            const model = rootElementToModel(root);
             const modelJson = updateEOL(JSON.stringify(model, null, 2), 'LF');
             await verify('model', `serialize06`, modelJson, 'text', 'json');
         });
@@ -621,6 +627,34 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
 
             const resultModelJson = ModelUtils.serializeTreeElement(result.resultModel, defaultFormatting);
             await verify('model', `import03`, resultModelJson, 'text', 'json');
+        });
+
+        const lhqFile_v1 = 'v1.lhq';
+        it(`upgrade ${lhqFile_v1} to latest model version`, async function () {
+
+            const file = path.join(folders().data, 'versions', lhqFile_v1);
+            const content = await safeReadFile(file);
+            const formatting = detectFormatting(content);
+            let root = ModelUtils.createRootElement(content);
+
+            const oldVersion = root.version;
+            expect(oldVersion).to.be.eq(1);
+
+            const upgradeResult = ModelUtils.upgradeModel(root);
+            expect(upgradeResult.success).to.be.true;
+            expect(upgradeResult.error).to.be.undefined;
+            root = upgradeResult.rootModel!;
+            expect(root).not.undefined;
+
+            //root = ModelUtils.createRootElement(model);
+
+            expect(root.version).to.be.eq(modelConst.ModelVersions.model);
+            expect(root.codeGenerator!.version).to.be.eq(modelConst.ModelVersions.codeGenerator);
+            expect(root.codeGenerator?.settings['CSharp']['OutputFolder']).to.be.eq('Resources1');
+            expect(root.codeGenerator?.settings['ResX']['OutputFolder']).to.be.eq('Resources2');
+
+            const modelJson = ModelUtils.serializeTreeElement(root, formatting);
+            await verify('versions', `upgraded_v${oldVersion}-v${root.version}`, modelJson, 'text', 'json');
         });
 
         it('import model rows 01', async function () {

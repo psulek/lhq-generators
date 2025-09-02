@@ -24,7 +24,8 @@
         "webpack.config.js",
         "tsconfig.json",
         "tsconfig.*.json",
-        "testapp"
+        "testapp",
+        "mocha-reporter.js"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {

@@ -7,6 +7,7 @@ import { isNullOrEmpty, updateEOL, tryJsonParse } from './utils';
 import type { LhqValidationResult } from './types';
 import type { GeneratedFile } from './api/types';
 import { type TemplateMetadataValidationResult, templatesMetadataSchema, type TemplatesMetadata } from './api/templates';
+import { ModelVersions } from './model/modelConst';
 
 export function getZodError(error: ZodError): string {
     const messageBuilder = createMessageBuilder({
@@ -38,13 +39,6 @@ export function validateTemplateMetadata(data: TemplatesMetadata | string): Temp
 
     let error: string | undefined = undefined;
     if (!parseResult.success) {
-        // const messageBuilder = createMessageBuilder({
-        //     prefix: '',
-        //     prefixSeparator: '',
-        //     issueSeparator: '\n'
-        // });
-        // const err = fromZodError(parseResult.error, { messageBuilder });
-        // error = err.toString();
         error = getZodError(parseResult.error);
     }
 
@@ -72,7 +66,7 @@ export function validateLhqModel(data: LhqModel | string): LhqValidationResult {
     }
 
     const parseResult = LhqModelSchema.safeParse(data);
-    const success = parseResult.success && !isNullOrEmpty(parseResult.data);
+    let success = parseResult.success && !isNullOrEmpty(parseResult.data);
 
     let error: string | undefined = undefined;
     if (!parseResult.success) {
@@ -85,7 +79,13 @@ export function validateLhqModel(data: LhqModel | string): LhqValidationResult {
         error = err.toString();
     }
 
-    return { success, error, model: success ? parseResult.data : undefined };
+    const model = success ? parseResult.data : undefined;
+    if (success && model && model.model && model.model.version > ModelVersions.model) {
+        success = false;
+        error = 'Model version is newer than the supported version.';
+    }
+
+    return { success, error, model };
 }
 
 /**
@@ -115,145 +115,3 @@ export function generateLhqSchema(): string {
 
     return JSON.stringify(jsonSchema, null, 2);
 }
-
-
-// type StringNullUndef = string | null | undefined;
-
-// function getNamespaceProperties(xpathSelect: XPathSelect, rootNode: Node, msBuildProperties: Record<string, string>) {
-//     const properties: Array<MsBuildProperty> = [];
-
-//     const hasProperty = (propertyName: string, checkExist: boolean) => {
-//         const prop = properties.find(p => stringCompare(p.name, propertyName, false));
-//         return checkExist ? prop !== undefined && prop.exist !== undefined : prop !== undefined;
-//     };
-
-//     iterateObject(msBuildProperties, (value: string, key: string) => {
-//         if (!hasProperty(key, false)) {
-//             properties.push({ name: key, value, exist: true });
-//         }
-//     });
-
-//     function populateProperties(propertyNames: string[], level: number) {
-//         const regexMsBuildProp = /\$\((.*?)(?:\)(?!\)))/g;
-
-//         const propCountBefore = properties.length;
-//         propertyNames.forEach(propertyName => {
-//             if (hasProperty(propertyName, true)) {
-//                 return;
-//             }
-
-//             let propertyValue: StringNullUndef = undefined;
-//             try {
-//                 propertyValue = xpathSelect(`string(//ns:${propertyName})`, rootNode, true) as StringNullUndef;
-//             } catch (error) {
-//                 propertyValue = undefined;
-//             }
-//             const exist = propertyValue !== undefined && propertyValue !== null;
-//             let valueMatch = exist ? [...propertyValue!.matchAll(regexMsBuildProp)] : undefined;
-//             let linkToProperty: string | undefined = undefined;
-
-//             // if property points to another property (itself or another), eg: <MyProp>$(MyProp)</MyProp>
-//             // or <MyProp>$(MyProp2)</MyProp>
-//             if (valueMatch && valueMatch.length > 0) {
-//                 if (valueMatch.length === 1) {
-//                     linkToProperty = valueMatch[0][1];
-
-//                     if (stringCompare(valueMatch[0][0], valueMatch[0].input, false)) {
-//                         valueMatch = undefined;
-//                         // if value contains ref to itself, set value to ''
-//                         if (stringCompare(linkToProperty, propertyName, false)) {
-//                             propertyValue = '';
-//                             linkToProperty = undefined;
-//                         }
-//                     }
-//                 }
-//             } else {
-//                 valueMatch = undefined;
-//             }
-
-//             properties.push({ name: propertyName, value: propertyValue ?? '', exist, valueMatch, linkToProperty });
-//         });
-
-//         const linkedProperties: string[] = [];
-//         properties.slice(propCountBefore).forEach(property => {
-//             if (!isNullOrEmpty(property.linkToProperty) && !hasProperty(property.linkToProperty, true)) {
-//                 linkedProperties.push(property.linkToProperty);
-//             }
-
-//             if (property.valueMatch && property.valueMatch.length > 0) {
-//                 property.valueMatch.forEach(match => {
-//                     let propertyName = match[1];
-//                     // if contains . (dot) it can be expression like: $(MSBuildProjectName.Replace(" ", "_"))
-//                     const dotIndex = propertyName.indexOf('.');
-//                     if (dotIndex > -1) {
-//                         propertyName = propertyName.substring(0, dotIndex);
-//                     }
-
-//                     // if value contains ref to itself, set value to ''
-//                     if (!isNullOrEmpty(propertyName) && !stringCompare(propertyName, property.name, false) && !hasProperty(propertyName, true)) {
-//                         linkedProperties.push(propertyName);
-//                     }
-//                 });
-//             }
-//         });
-
-//         if (linkedProperties.length > 0) {
-//             populateProperties(linkedProperties, level + 1);
-//         }
-
-//         if (level === 0) {
-//             //console.log(properties);
-//             properties.filter(p => !isNullOrEmpty(p.valueMatch))
-//                 .forEach(property => {
-//                     //const replacements: Record<string, string> = {};
-//                     const replacements: string[] = [];
-
-//                     property.valueMatch!.forEach(match => {
-//                         let propertyName = match[1];
-//                         // if contains . (dot) it can be expression like: $(MSBuildProjectName.Replace(" ", "_"))
-//                         const dotIndex = propertyName.indexOf('.');
-//                         const isExpression = dotIndex > -1;
-//                         if (isExpression) {
-//                             propertyName = propertyName.substring(0, dotIndex);
-//                         }
-
-//                         const prop = properties.find(p => stringCompare(p.name, propertyName, false));
-//                         if (prop) {
-//                             if (!isNullOrEmpty(prop.valueMatch) && prop.valueMatch.length > 0) {
-//                                 throw new Error(`Circular reference in value for property "${property.name}"`);
-//                             }
-
-//                             let value = prop.value;
-//                             if (isExpression) {
-//                                 match[1].split('.');
-//                             }
-
-//                             replacements.push(value);
-//                         } else {
-//                             property.value = '';
-//                         }
-//                     });
-
-//                     property.value = property.value.replace(regexMsBuildProp, (match, ...groups) => {
-
-//                         return '';
-//                     });
-
-//                     /* if (objCount(replacements) > 0) {
-//                         //property.value = property.value.replace()
-//                         iterateObject
-//                     } */
-//                 });
-//         }
-//     }
-
-//     populateProperties(['RootNamespace', 'AssemblyName'], 0);
-// }
-
-// type MsBuildProperty = {
-//     name: string;
-//     value: string;
-//     valueMatch?: RegExpExecArray[] | undefined | null;
-//     linkToProperty?: string | undefined;
-//     exist?: boolean | undefined;
-// }

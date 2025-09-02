@@ -57,7 +57,44 @@ export type GeneratorInitialization = {
  * Represents the result of a model validation.
  */
 export type LhqValidationResult = {
-    success: boolean, error: string | undefined, model?: LhqModel;
+    /**
+     * Indicates whether the validation was successful.
+     */
+    success: boolean;
+
+    /**
+     * Represents the error message if the validation failed or
+     * `undefined` if the validation was successful.
+     */
+    error: string | undefined;
+
+    /**
+     * Represents the validated LHQ model if the validation was successful.
+     */
+    model?: LhqModel;
+}
+
+/**
+ * Represents the result of a model upgrade.
+ */
+export type UpgradeModelResult = {
+    /**
+     * Indicates whether the upgrade was successful.
+     */
+    success: boolean;
+
+    /**
+     * Represents the error message if the upgrade failed or
+     * `undefined` if the upgrade was successful.
+     */
+    error: string | undefined;
+
+    /**
+     * Represents the upgraded LHQ model if the upgrade was successful.
+     */
+    // model?: LhqModel;
+
+    rootModel?: IRootModelElement;
 }
 
 export type CSharpNamespaceInfo = {
@@ -196,7 +233,6 @@ export type ImportModelResult = {
 }
 
 export type ImportResourceItem = {
-    //elementKey: string;
     paths: ITreeElementPaths;
     values: Array<{ language: string, value: string }>;
 }

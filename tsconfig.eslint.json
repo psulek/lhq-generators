@@ -9,5 +9,8 @@
     "include": [
         "src/**/*.ts",
         "build.ts"
+    ],
+    "exclude": [
+        "mocha-reporter.js"
     ]
 }
