@@ -60,7 +60,9 @@ export class ResourceValueElement implements IResourceValueElement {
     }
 
     public get isAllEmpty(): boolean {
-        return isNullOrEmpty(this._value) && this._locked === undefined && this._auto === undefined;
+        return isNullOrEmpty(this._value) &&
+            (this._locked === undefined || this._locked === false) &&
+            (this._auto === undefined || this._auto === false);
     }
 
     public mapToModel(options?: MapToModelOptions): LhqModelResourceValue {

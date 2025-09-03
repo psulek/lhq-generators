@@ -35,3 +35,10 @@ export type MapToModelOptions = {
         sanitize?: boolean;
     }
 };
+
+export type ElementToModelOptions = MapToModelOptions & { 
+    /**
+     * If true, default values for code generator settings will be applied and model version will be set to latest.
+     */
+    applyDefaults?: boolean 
+};

@@ -10,7 +10,7 @@ import { ResourceElement } from './model/resourceElement';
 import { RootModelElement } from './model/rootModelElement';
 import { type TreeElement, TreeElementBase } from './model/treeElement';
 import { TreeElementPaths } from './model/treeElementPaths';
-import type { MapToModelOptions } from './model/types';
+import type { ElementToModelOptions, MapToModelOptions } from './model/types';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 import type { FormattingOptions, ImportModelErrorKind, ImportModelMode, ImportModelOptions, ImportModelResult, ImportResourceItem, LhqValidationResult, UpgradeModelResult } from './types';
 import { arraySortBy, detectFormatting, isNullOrEmpty, serializeJson, strCompare } from './utils';
@@ -102,7 +102,7 @@ export class ModelUtils {
      * @remarks This is a convenience method that combines loading, converting, and serializing the model in one step
      * usually for applying default values for code generator settings and formatting the output.
      */
-    public static loadAndSerialize(data: string, options?: MapToModelOptions, formattingOptions?: FormattingOptions): string {
+    public static loadAndSerialize(data: string, options?: ElementToModelOptions, formattingOptions?: FormattingOptions): string {
         const root = ModelUtils.createRootElement(data);
         const model = ModelUtils.rootElementToModel(root, options);
         formattingOptions = formattingOptions ?? detectFormatting(data);
@@ -251,11 +251,12 @@ export class ModelUtils {
      * @throws Error if the root element is not an instance of RootModelElement.
      * @remarks - Property `applyDefaults` in options will apply default values for code generator settings & set model version to latest.
      */
-    public static rootElementToModel(root: IRootModelElement, options?: MapToModelOptions & {applyDefaults?: boolean}): LhqModel {
+    public static rootElementToModel(root: IRootModelElement, options?: ElementToModelOptions): LhqModel {
         if (!(root instanceof RootModelElement)) {
             throw new Error('Invalid root element. Expected an object that was created by calling fn "createRootElement".');
         }
 
+        options = options || {};
         const applyDefaults = options?.applyDefaults ?? true;
 
         if (applyDefaults && root.codeGenerator && !isNullOrEmpty(root.codeGenerator.templateId)) {
@@ -266,7 +267,9 @@ export class ModelUtils {
             root.codeGenerator = ModelUtils.createCodeGeneratorElement(templateId, mergedSettings);
         }
 
-        const model = root.mapToModel(options);
+        const { applyDefaults: __, ...opts } = options;
+
+        const model = root.mapToModel(opts);
         if (applyDefaults) {
             model.model.version = ModelVersions.model;
         }
