@@ -3,6 +3,10 @@ export const AppErrorKinds = Object.freeze({
     templateValidationError: 'templateValidationError',
 });
 
+export const AppErrorCodes = Object.freeze({
+    CsharpNamespaceMissing: 'csharp.namespace.missing'
+});
+
 export class AppError extends Error {
     public name = 'AppError';
 

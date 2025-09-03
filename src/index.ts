@@ -1,4 +1,4 @@
-export { AppError } from './AppError';
+export * from './AppError';
 export { Duration } from './duration';
 export { HostEnvironment } from './hostEnv';
 export { ModelUtils } from './modelUtils';

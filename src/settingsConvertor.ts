@@ -95,6 +95,111 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
         return result;
     }
 
+    public getPropertyValue(templateId: string, settings: CodeGeneratorGroupSettings, group: string, property: string): { value: unknown, isValid: boolean } | undefined {
+        if (isNullOrEmpty(templateId)) {
+            throw new Error('Template id cannot be null or empty.');
+        }
+
+        if (!settings) {
+            throw new Error(`Settings cannot be null.`);
+        }
+
+        if (isNullOrEmpty(group)) {
+            throw new Error('Group cannot be null or empty.');
+        }
+
+        if (isNullOrEmpty(property)) {
+            throw new Error('Property cannot be null or empty.');
+        }
+
+        if (Object.prototype.hasOwnProperty.call(settings, group)) {
+            const groupSettings = settings[group];
+            if (groupSettings && typeof groupSettings === 'object' && Object.prototype.hasOwnProperty.call(groupSettings, property)) {
+                const value = groupSettings[property];
+                const error = this.validateSetting(templateId, group, property, value, false);
+                return { value, isValid: isNullOrEmpty(error) };
+            }
+        }
+
+        return undefined;
+    }
+
+    public setPropertyValue(templateId: string, settings: CodeGeneratorGroupSettings, group: string, property: string, value: unknown): boolean {
+        if (isNullOrEmpty(templateId)) {
+            throw new Error('Template id cannot be null or empty.');
+        }
+
+        if (!settings) {
+            throw new Error(`Settings cannot be null.`);
+        }
+
+        if (isNullOrEmpty(group)) {
+            throw new Error('Group cannot be null or empty.');
+        }
+
+        if (isNullOrEmpty(property)) {
+            throw new Error('Property cannot be null or empty.');
+        }
+
+        const error = this.validateSetting(templateId, group, property, value, false);
+        if (isNullOrEmpty(error)) {
+            if (!Object.prototype.hasOwnProperty.call(settings, group)) {
+                settings[group] = {};
+            }
+
+            const definition = HbsTemplateManager.getTemplateDefinition(templateId)!;
+
+            if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
+                const groupSettings = definition.settings[group];
+                if (Object.prototype.hasOwnProperty.call(groupSettings, property)) {
+                    const propertyDef = groupSettings.find(x => x.name === property);
+                    value = this.convertValueForProperty(value, propertyDef!);
+                }
+            }
+
+            settings[group][property] = value;
+            return true;
+        }
+
+        return false;
+    }
+
+    public validateSetting(templateId: string, group: string, property: string, value: unknown, throwErr?: boolean): string | undefined {
+        throwErr = throwErr ?? true;
+
+        if (isNullOrEmpty(templateId)) {
+            throw new Error('Template id cannot be null or empty.');
+        }
+
+        if (isNullOrEmpty(group)) {
+            throw new Error('Group cannot be null or empty.');
+        }
+
+        if (isNullOrEmpty(property)) {
+            throw new Error('Property cannot be null or empty.');
+        }
+
+        const definition = HbsTemplateManager.getTemplateDefinition(templateId);
+        if (!definition) {
+            if (throwErr) {
+                throw new Error(`Template definition for '${templateId}' not found.`);
+            }
+            return undefined;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
+            const propertyDef = definition.settings[group].find(x => x.name === property);
+
+            return this.validateProperty(group, propertyDef, value);
+        }
+
+        if (throwErr) {
+            throw new Error(`Group '${group}' not found in template '${templateId}' settings.`);
+        }
+
+        return undefined;
+    }
+
     public validateSettings(templateId: string, settings: CodeGeneratorGroupSettings): CodeGeneratorValidateResult {
         if (isNullOrEmpty(templateId)) {
             throw new Error('Template id cannot be null or empty.');
@@ -114,25 +219,9 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                 for (const [name, value] of Object.entries(groupSettings)) {
                     if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
                         const property = definition.settings[group].find(x => x.name === name);
-                        if (property) {
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            if (isNullOrEmpty(value) || (property.type === 'string' && value.toString().trim() === '')) {
-                                if (property.required) {
-                                    const error = `${group} / '${property.name}' value is required.`;
-                                    return { group, error, property: property.name };
-                                }
-                                continue;
-                            }
-
-                            if (property.validators && property.validators.length > 0) {
-                                for (const validator of property.validators) {
-                                    const regex = new RegExp(validator.regex);
-                                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                                    if (!regex.test(value.toString())) {
-                                        return { group, error: validator.error, property: property.name };
-                                    }
-                                }
-                            }
+                        const valRes = this.validateProperty(group, property, value);
+                        if (valRes && !isNullOrEmpty(valRes)) {
+                            return { group, error: valRes, property: property!.name };
                         }
                     }
                 }
@@ -140,6 +229,27 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
         }
 
         return { group: '', property: '', error: undefined };
+    }
+
+    private validateProperty(group: string, property: TemplateMetadataSettings | undefined, value: unknown): string | undefined {
+        if (property) {
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            if (isNullOrEmpty(value) || (property.type === 'string' && value.toString().trim() === '')) {
+                return property.required ? `${group} / '${property.name}' value is required.` : undefined;
+            }
+
+            if (property.validators && property.validators.length > 0) {
+                for (const validator of property.validators) {
+                    const regex = new RegExp(validator.regex);
+                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                    if (!regex.test(value.toString())) {
+                        return validator.error;
+                    }
+                }
+            }
+        }
+
+        return undefined;
     }
 
     public settingsToNode(templateId: string, settings: CodeGeneratorGroupSettings): LhqModelDataNode {

@@ -790,10 +790,70 @@ export type CodeGeneratorValidateResult = {
     error: string | undefined;
 }
 
+/**
+ * Interface for converting between data nodes and code generator settings.
+ */
 export interface ICodeGeneratorSettingsConvertor {
+    /**
+     * Converts a data node to code generator group settings.
+     * @param templateId - Identifier of the code generator template.
+     * @param node - Data node representing the code generator settings.
+     * @returns Code generator group settings.
+     */
     nodeToSettings(templateId: string, node: LhqModelDataNode): CodeGeneratorGroupSettings;
+
+    /**
+     * Converts code generator group settings to a data node.
+     * @param templateId - Identifier of the code generator template.
+     * @param settings - code generator group settings to convert.
+     * @returns Data node representing the code generator settings.
+     */
     settingsToNode(templateId: string, settings: CodeGeneratorGroupSettings): LhqModelDataNode;
 
+    /**
+     * Retrieves the value of a specific property from the code generator settings.
+     * @param templateId - Identifier of the code generator template.
+     * @param settings - code generator settings to retrieve the property value from.
+     * @param group - Name of the settings group.
+     * @param property - Name of the property that belongs to group.
+     * @returns An object containing the property value and a boolean indicating whether the property is valid.
+     */
+    getPropertyValue(templateId: string, settings: CodeGeneratorGroupSettings, group: string, property: string): { value: unknown, isValid: boolean } | undefined;
+
+    /**
+     * Sets the value of a specific property in the code generator settings.
+     * @param templateId - Identifier of the code generator template.
+     * @param settings - code generator settings to set the property value in.
+     * @param group - Name of the settings group.
+     * @param property - Name of the property that belongs to group.
+     * @param value - Value to set.
+     * @returns True if the property value was set successfully, otherwise false (if value validation failed or property/group does not exist).
+     */
+    setPropertyValue(templateId: string, settings: CodeGeneratorGroupSettings, group: string, property: string, value: unknown): boolean;
+
+    /**
+     * Converts a value to the appropriate type based on the property metadata.
+     * @param value - value to convert
+     * @param property - property template metadata
+     */
     convertValueForProperty(value: unknown, property: TemplateMetadataSettings): unknown;
+
+    /**
+     * Validates code generator settings for a specific code generator template.
+     * @param templateId - Identifier of the code generator template.
+     * @param settings - code generator settings to validate.
+     * @returns An object containing details of the first validation error found, or undefined if all settings are valid.
+     */
     validateSettings(templateId: string, settings: CodeGeneratorGroupSettings): CodeGeneratorValidateResult;
+
+    /**
+     * Validates a single setting value for a specific template and settings group.
+     * @param templateId - Identifier of the template.
+     * @param group - Name of the settings group.
+     * @param property - Name of the property that belongs to group to validate.
+     * @param value - Value to validate.
+     * @param throwErr - If true all validation blocks throws error, otherwise only returns validation error or undefined (default/unspecified is true).
+     * @returns An error message if the value is invalid, otherwise undefined.
+     */
+    validateSetting(templateId: string, group: string, property: string, value: unknown, throwErr?: boolean): string | undefined;
 }
