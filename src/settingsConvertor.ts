@@ -1,11 +1,11 @@
 import type { CodeGeneratorGroupSettings, CodeGeneratorValidateResult, ICodeGeneratorSettingsConvertor } from './api/modelTypes';
 import type { LhqModelDataNode } from './api/schemas';
-import type { TemplateMetadataSettings } from './api/templates';
+import type { TemplateMetadataGroupSettings } from './api/templates';
 import { HbsTemplateManager } from './hbsManager';
 import { isNullOrEmpty } from './utils';
 
 export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsConvertor {
-    public convertValueForProperty(value: unknown, property: TemplateMetadataSettings): unknown {
+    public convertValueForProperty(value: unknown, property: TemplateMetadataGroupSettings): unknown {
         if (value === undefined || value === null) {
             return property.default;
         }
@@ -72,7 +72,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                 const groupName = child.name;
                 if (!isNullOrEmpty(groupName) && child.attrs !== undefined) {
                     if (Object.prototype.hasOwnProperty.call(definition.settings, groupName)) {
-                        const groupSettings = definition.settings[groupName];
+                        const groupSettings = definition.settings[groupName].properties;
                         const settings: Record<string, unknown> = {};
 
                         groupSettings.forEach(gs => {
@@ -150,7 +150,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
             const definition = HbsTemplateManager.getTemplateDefinition(templateId)!;
 
             if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
-                const groupSettings = definition.settings[group];
+                const groupSettings = definition.settings[group].properties;
                 if (Object.prototype.hasOwnProperty.call(groupSettings, property)) {
                     const propertyDef = groupSettings.find(x => x.name === property);
                     value = this.convertValueForProperty(value, propertyDef!);
@@ -188,7 +188,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
         }
 
         if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
-            const propertyDef = definition.settings[group].find(x => x.name === property);
+            const propertyDef = definition.settings[group].properties.find(x => x.name === property);
 
             return this.validateProperty(group, propertyDef, value);
         }
@@ -218,7 +218,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
             if (groupSettings && typeof groupSettings === 'object') {
                 for (const [name, value] of Object.entries(groupSettings)) {
                     if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
-                        const property = definition.settings[group].find(x => x.name === name);
+                        const property = definition.settings[group].properties.find(x => x.name === name);
                         const valRes = this.validateProperty(group, property, value);
                         if (valRes && !isNullOrEmpty(valRes)) {
                             return { group, error: valRes, property: property!.name };
@@ -231,7 +231,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
         return { group: '', property: '', error: undefined };
     }
 
-    private validateProperty(group: string, property: TemplateMetadataSettings | undefined, value: unknown): string | undefined {
+    private validateProperty(group: string, property: TemplateMetadataGroupSettings | undefined, value: unknown): string | undefined {
         if (property) {
             // eslint-disable-next-line @typescript-eslint/no-base-to-string
             if (isNullOrEmpty(value) || (property.type === 'string' && value.toString().trim() === '')) {
@@ -281,7 +281,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
 
                 for (const [name, value] of Object.entries(groupSettings)) {
                     if (Object.prototype.hasOwnProperty.call(definition.settings, groupName)) {
-                        const property = definition.settings[groupName].find(x => x.name === name);
+                        const property = definition.settings[groupName].properties.find(x => x.name === name);
                         if (property) {
                             if (value === undefined || value === null) {
                                 if (property.default !== undefined && property.default !== null) {

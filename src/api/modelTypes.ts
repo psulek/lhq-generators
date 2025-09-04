@@ -5,7 +5,7 @@ import type {
     LhqModelLineEndings,
     LhqModelDataNode
 } from './schemas';
-import type { TemplateMetadataSettings } from './templates';
+import type { TemplateMetadataGroup, TemplateMetadataGroupSettings } from './templates';
 
 export type TreeElementType = 'model' | 'category' | 'resource';
 
@@ -836,7 +836,7 @@ export interface ICodeGeneratorSettingsConvertor {
      * @param value - value to convert
      * @param property - property template metadata
      */
-    convertValueForProperty(value: unknown, property: TemplateMetadataSettings): unknown;
+    convertValueForProperty(value: unknown, property: TemplateMetadataGroupSettings): unknown;
 
     /**
      * Validates code generator settings for a specific code generator template.

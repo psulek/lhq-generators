@@ -1,6 +1,6 @@
 import type { CodeGeneratorGroupSettings, ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IResourceElement, IResourceValueElement, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
 import type { ILhqModelType, LhqModel, LhqModelCategory, LhqModelResource } from './api/schemas';
-import type { TemplateMetadataSettings } from './api/templates';
+import type { TemplateMetadataGroup, TemplateMetadataGroupSettings } from './api/templates';
 import { validateLhqModel } from './generatorUtils';
 import { HbsTemplateManager } from './hbsManager';
 import { CategoryElement } from './model/categoryElement';
@@ -142,7 +142,7 @@ export class ModelUtils {
 
         settings = settings || {};
 
-        function validateValue(group: string, name: string, value: unknown, definitionSettings: TemplateMetadataSettings[]): unknown {
+        function validateValue(group: string, name: string, value: unknown, definitionSettings: TemplateMetadataGroupSettings[]): unknown {
             const setting = definitionSettings.find(x => x.name === name);
             if (!setting) {
                 throw new Error(`Setting '${name}' (group: '${group}') not found in template definition for '${templateId}'.`);
@@ -174,7 +174,7 @@ export class ModelUtils {
                 settings[group] = {};
             }
 
-            const groupSettings = definition.settings[group];
+            const groupSettings = definition.settings[group].properties;
             for (const definitionSetting of groupSettings) {
                 if (!Object.prototype.hasOwnProperty.call(settings[group], definitionSetting.name)) {
                     if (definitionSetting.default !== null) {

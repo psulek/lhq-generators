@@ -18,7 +18,7 @@ export const templateMetadataSettingValidatorSchema = z.object({
 /**
  * Represents a single setting option for a generator (CSharp, ResX, Typescript, Json).
  */
-export const templateMetadataSettingsSchema = z.object({
+export const templateMetadataGroupSettingsSchema = z.object({
     /**
      * Name of the setting.
      */
@@ -56,6 +56,20 @@ export const templateMetadataSettingsSchema = z.object({
     })).optional()
 });
 
+export const templateMetadataGroupSchema = z.object({
+    /**
+     * Display name of the template.
+     */
+    displayName: z.string(),
+    /**
+     * Description of the template.
+     */
+    description: z.string(),
+    /**
+     * List of settings groups used by this template.
+     */
+    properties: z.array(templateMetadataGroupSettingsSchema)
+});
 
 export const templateMetadataSchema = z.object({
     /**
@@ -76,7 +90,7 @@ export const templateMetadataSchema = z.object({
  * Generator templates metadata structure containing settings and available templates.
  */
 export const templatesMetadataSchema = z.object({
-    settings: z.record(z.array(templateMetadataSettingsSchema)),
+    settings: z.record(templateMetadataGroupSchema),
     templates: z.record(templateMetadataSchema)
 });
 
@@ -84,13 +98,15 @@ export const templateMetadataDefinitionSchema = templateMetadataSchema
     .omit({ settings: true })
     .extend({
         id: z.string(),
-        settings: z.record(z.array(templateMetadataSettingsSchema))
+        settings: z.record(templateMetadataGroupSchema)
     });
 
 
 // intered types
 
-export type TemplateMetadataSettings = z.infer<typeof templateMetadataSettingsSchema>;
+export type TemplateMetadataGroupSettings = z.infer<typeof templateMetadataGroupSettingsSchema>;
+
+export type TemplateMetadataGroup = z.infer<typeof templateMetadataGroupSchema>;
 
 export type TemplateMetadata = z.infer<typeof templateMetadataSchema>;
 
