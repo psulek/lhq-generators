@@ -1,0 +1,34 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All",
+      "values": {
+        "eol": "LF",
+        "sanitize": true
+      }
+    },
+    "name": ""
+  },
+  "languages": [],
+  "resources": {
+    "TestResource1": {
+      "state": "New",
+      "values": {
+        "en": {
+          "value": "line1\nline2\nline3"
+        }
+      }
+    },
+    "TestResource2": {
+      "state": "New",
+      "values": {
+        "en": {
+          "value": "A B C D E F"
+        }
+      }
+    }
+  }
+}

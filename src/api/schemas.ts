@@ -2,10 +2,6 @@ import { z } from 'zod';
 
 export const LhqModelLineEndingsSchema = z.union([z.literal('LF'), z.literal('CRLF')]);
 
-export const LhqModelOptionsResourcesSchema = z.union([
-    z.literal('All'), z.literal('Categories')
-]);
-
 export const LhqModelResourceParameterSchema = z.object({
     description: z.string().optional(),
     order: z.number()
@@ -68,9 +64,28 @@ export const LhqModelCategoriesCollectionSchema = z.record(LhqModelCategorySchem
 
 export const LhqModelResourcesCollectionSchema = z.record(LhqModelResourceSchema);
 
+export const LhqModelOptionsResourcesSchema = z.union([
+    z.literal('All'), z.literal('Categories')
+]);
+
+export const LhqModelOptionsValuesSchema = z.object({
+    /**
+     * If set, then defined EOL will be used for newlines in elements values in the model.
+     * If not set, element values will be as they are without any EOL conversion.
+     */
+    eol: LhqModelLineEndingsSchema.optional(),
+
+    /**
+     * If set to `true`, the values will be sanitized before serialization.
+     * This means that non-breaking spaces will be replaced with space and unsupported characters will be removed.
+     */
+    sanitize: z.boolean().optional()
+});
+
 export const LhqModelOptionsSchema = z.object({
     categories: z.boolean(),
-    resources: LhqModelOptionsResourcesSchema
+    resources: LhqModelOptionsResourcesSchema,
+    values: LhqModelOptionsValuesSchema.optional()
 });
 
 export const LhqModelMetadataSchema = z.object({
@@ -114,6 +129,8 @@ export type LhqModelVersion = z.infer<typeof LhqModelVersionSchema>;
 export type LhqCodeGenVersion = z.infer<typeof LhqCodeGenVersionSchema>;
 
 export type LhqModelOptions = z.infer<typeof LhqModelOptionsSchema>;
+
+export type LhqModelOptionsValues = z.infer<typeof LhqModelOptionsValuesSchema>;
 
 export type LhqModelOptionsResources = z.infer<typeof LhqModelOptionsResourcesSchema>;
 

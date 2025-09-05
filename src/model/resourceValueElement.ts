@@ -67,19 +67,20 @@ export class ResourceValueElement implements IResourceValueElement {
 
     public mapToModel(options?: MapToModelOptions): LhqModelResourceValue {
         return {
-            value: this.getSanitizedValue(options),
+            value: this.getSanitizedValue(),
             locked: this._locked === true ? true : undefined,
             auto: this._auto === true ? true : undefined
         };
     }
 
-    private getSanitizedValue(options?: MapToModelOptions): string | undefined {
+    private getSanitizedValue(): string | undefined {
         if (isNullOrEmpty(this._value)) {
             return undefined;
         }
 
-        const eol = options?.values?.eol;
-        const sanitize = options?.values?.sanitize ?? false;
+        const values = this.parent.root.options.values;
+        const eol = values?.eol;
+        const sanitize = values?.sanitize ?? false;
 
         let value = eol ? updateEOL(this._value, eol) : this._value;
 

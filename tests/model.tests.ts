@@ -9,7 +9,7 @@ import { LhqModel } from '../src/api/schemas';
 import { IResourceElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
-import { FormattingOptions, ImportResourceItem, modelConst, ModelUtils } from '../src';
+import { FormattingOptions, ImportResourceItem, modelConst, ModelUtils, serializeJson } from '../src';
 import { MapToModelOptions } from '../src/model/types';
 
 setTimeout(async () => {
@@ -27,6 +27,7 @@ setTimeout(async () => {
 
     const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
     // const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
+    //const lhqFiles = ['Misc\\Strings_Values_Sanitize.lhq'];
 
     describe('serialize and deserialize in memory (model)', () => {
         lhqFiles.forEach(lhqFile => {
@@ -41,6 +42,7 @@ setTimeout(async () => {
 
                 const root = ModelUtils.createRootElement(model);
                 const serializedModel = rootElementToModel(root);
+                //const serializedModelJson = serializeJson(serializedModel, formatOptions)
 
                 expect(model).to.deep.eq(serializedModel);
                 expect(root.isRoot).to.be.true;
@@ -260,7 +262,8 @@ setTimeout(async () => {
             root.addLanguage('en', true);
             root.addResource('TestResource').addValue('en', 'Test value with CRLF\r\nNew line');
 
-            const model = rootElementToModel(root, { values: { eol: 'LF' } });
+            root.options.values = { eol: 'LF' };
+            const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-eol-02`, modelJson, 'text', 'json');
         });
@@ -270,7 +273,8 @@ setTimeout(async () => {
             root.addLanguage('en', true);
             root.addResource('TestResource').addValue('en', 'Test value with CRLF\rNew \nline');
 
-            const model = rootElementToModel(root, { values: { eol: '\r\n' } });
+            root.options.values = { eol: 'CRLF' };
+            const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-eol-03`, modelJson, 'text', 'json');
         });
@@ -294,9 +298,37 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
 \u2010\u2011\u2012\u2013\u2014\u2015\u2016\u2017\u2018\u2019\u201C\u201D
 `);
 
-            const model = rootElementToModel(root, { values: { sanitize: true } });
+            root.options.values = { sanitize: true };
+            const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
             await verify('model', `values-unicode-01`, modelJson, 'text', 'json');
+        });
+
+        it('serialize eol and sanitize options', async function () {
+            const root = ModelUtils.createRootElement();
+            root.addResource('TestResource1').addValue('en', 'line1\r\nline2\rline3');
+            root.addResource('TestResource2').addValue('en', 'A\u00A0B\u202FC\uFEFFD\u2007E\u2060F');
+
+            root.options.values = { eol: 'LF', sanitize: true };
+            const model01 = rootElementToModel(root);
+            const model01Json = ModelUtils.serializeModel(model01, defaultFormatting);
+            await verify('model', `values-options-01`, model01Json, 'text', 'json');
+
+            root.options.values = { eol: 'CRLF', sanitize: false };
+            const model02 = rootElementToModel(root);
+            const model02Json = ModelUtils.serializeModel(model02, defaultFormatting);
+            await verify('model', `values-options-02`, model02Json, 'text', 'json');
+        });
+
+        it('verify loadAndSerialize', async function() {
+            //const json =`{"model":{"uid":"6ce4d54c5dbd415c93019d315e278638","version":3,"options":{"categories":true,"resources":"All","values":{"eol":"LF"}},"name":"Strings1","primaryLanguage":"en"},"languages":["cs","en","sk"],"resources":{"ButtonOK":{"state":"New","values":{"cs":{"value":"Tlačítko O K cesky\r\n"},"en":{"value":"Button O K eng"},"sk":{"value":"\r\nTlačidlo OK svk"}}},"Cancel":{"state":"Edited","values":{"en":{"value":"Cancel"},"sk":{"value":"zrusit\ndaco\n1\r\n2"}}}},"metadatas":{"childs":[{"name":"metadata","attrs":{"descriptorUID":"b40c8a1d-23b7-4f78-991b-c24898596dd2"},"childs":[{"name":"content","attrs":{"templateId":"NetCoreResxCsharp01","version":"1"},"childs":[{"name":"Settings","childs":[{"name":"CSharp","attrs":{"OutputFolder":"Resources2","EncodingWithBOM":"false","LineEndings":"LF","UseExpressionBodySyntax":"false","Namespace":"n1","MissingTranslationFallbackToPrimary":"false"}},{"name":"ResX","attrs":{"OutputFolder":"Resources","EncodingWithBOM":"false","LineEndings":"LF","CultureCodeInFileNameForPrimaryLanguage":"true"}}]}]}]}]}}`;
+
+            const file = path.join(folders().data, 'Misc\\Strings_Values_Sanitize.lhq');
+            const content = await safeReadFile(file);
+            const formatting = detectFormatting(content);
+
+            const json2 = ModelUtils.loadAndSerialize(content, undefined, formatting);
+            await verify('model', `load-and-serialize-01`, json2, 'text', 'json');
         });
 
         it('should handle root element without description', async () => {

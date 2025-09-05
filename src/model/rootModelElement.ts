@@ -56,7 +56,11 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
         if (model) {
             this._uid = model.model.uid;
             this._version = model.model.version;
-            this._options = { categories: model.model.options.categories, resources: model.model.options.resources };
+            this._options = {
+                categories: model.model.options.categories,
+                resources: model.model.options.resources,
+                values: model.model.options.values
+            };
             this._languages = model.languages ? [...model.languages.filter(x => !isNullOrEmpty(x))] : [];
             this._primaryLanguage = model.model.primaryLanguage;
             this._hasLanguages = this._languages.length > 0;

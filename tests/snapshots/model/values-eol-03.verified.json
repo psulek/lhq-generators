@@ -4,7 +4,10 @@
     "version": 3,
     "options": {
       "categories": true,
-      "resources": "All"
+      "resources": "All",
+      "values": {
+        "eol": "CRLF"
+      }
     },
     "name": "",
     "primaryLanguage": "en"

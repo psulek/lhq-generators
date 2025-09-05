@@ -78,9 +78,9 @@ export class HbsTemplateManager {
                 // where "CSharpWinForms" is the group name points to "settings.CSharpWinForms" but for whole app it will be aliased as "CSharp" name.
                 if (group.indexOf(':') > -1) {
                     const [groupName, alias] = group.split(':');
-                    definitions[templateId].settings[alias] = metadata.settings[groupName] || [];
+                    definitions[templateId].settings[alias] = metadata.settings[groupName] || {};
                 } else {
-                    definitions[templateId].settings[group] = metadata.settings[group] || [];
+                    definitions[templateId].settings[group] = metadata.settings[group] || {};
                 }
             }
         }

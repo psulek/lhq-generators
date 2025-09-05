@@ -1,5 +1,5 @@
 import type { ITreeElement } from '../api/modelTypes';
-import type { LineEOL } from '../types';
+import type { LhqModelOptionsValues } from '../api/schemas';
 
 export interface ICategoryLikeTreeElementOperations {
     addElement(element: ITreeElement): void;
@@ -21,19 +21,7 @@ export type MapToModelOptions = {
     /**
      * Settins for resource values serialization.
      */
-    values?: {
-        /**
-         * If set, then defined EOL will be used for newlines in elements values in the model.
-         * If not set, element values will be as they are without any EOL conversion.
-         */
-        eol?: LineEOL;
-
-        /**
-         * If set to `true`, the values will be sanitized before serialization.
-         * This means that non-breaking spaces and unsupported characters will be removed or replaced.
-         */
-        sanitize?: boolean;
-    }
+    //values?: LhqModelOptionsValues;
 };
 
 export type ElementToModelOptions = MapToModelOptions & { 
