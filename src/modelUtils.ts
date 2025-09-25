@@ -366,6 +366,14 @@ export class ModelUtils {
         return newElement;
     }
 
+    public static hasAnyResources(model: IRootModelElement): boolean {
+        if (!(model instanceof RootModelElement)) {
+            throw new Error('Invalid model. Expected objects created by calling fn "ModelUtils.createRootElement".');
+        }
+
+        return model.iterateTree(x => x.elementType === 'resource' ? false : undefined, { resources: true }) === false;
+    }
+
     public static importModel(model: IRootModelElement, mode: ImportModelMode, options: ImportModelOptions): ImportModelResult {
         if (!(model instanceof RootModelElement)) {
             throw new Error('Invalid model. Expected objects created by calling fn "ModelUtils.createRootElement".');
@@ -420,7 +428,7 @@ export class ModelUtils {
         }
 
         // deep check for resources
-        const hasResources = modelToImport.iterateTree(x => x.elementType === 'resource' ? false : undefined, { resources: true }) === false;
+        const hasResources = ModelUtils.hasAnyResources(modelToImport);
         if (!hasResources) {
             return returnError('emptyModel', 'The model to import does not contain any resources.');
         }

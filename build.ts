@@ -64,7 +64,7 @@ void (async () => {
             ]);
         }
     } catch (error) {
-        console.error('Build failed: ', error, error.stack);
+        console.error('Build failed: ', error, (error as Error).stack);
         process.exit(1);
     }
 })();

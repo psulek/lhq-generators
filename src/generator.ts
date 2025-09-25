@@ -11,6 +11,7 @@ import { validateLhqModel } from './generatorUtils';
 import type { GeneratorInitialization, IHostEnvironment } from './types';
 import type { LhqModel } from './api';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
+import { ModelUtils } from './modelUtils';
 
 declare let PKG_VERSION: string;
 
@@ -149,6 +150,16 @@ export class Generator {
         if (isNullOrEmpty(rootModel.codeGenerator) || isNullOrEmpty(templateId)) {
             throw new AppError(`LHQ model '${fileName}' missing code generator template information !`);
         }
+
+        // const validateResult = ModelUtils
+        //     .getCodeGeneratorSettingsConvertor()
+        //     .validateSettings(templateId, rootModel.codeGenerator.settings);
+
+        // if (!isNullOrEmpty(validateResult.error)) {
+        //     throw new AppError(validateResult.error ?? `Invalid code generator settings for template '${templateId}' !`, undefined,
+        //          AppErrorKinds.templateValidationError, validateResult.);
+        // }
+
 
         const saveInlineOutputs = (templId: string, inlineOutputs: OutputInlineData[]): void => {
             if (inlineOutputs) {

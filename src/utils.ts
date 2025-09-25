@@ -3,6 +3,7 @@ import type { FormattingOptions, IndentationType, KeysMatching, LineEOL, TextEnc
 import type { LhqModelLineEndings } from '.';
 
 import detectIndent from 'detect-indent';
+import { ResourceValueValidations } from './model/modelConst';
 
 
 const regexLF = new RegExp('\\r\\n|\\r', 'g');
@@ -335,7 +336,7 @@ export function sortBy<T>(source: T[], key: KeysMatching<T, string | number> | u
  * @param comparer - Optional comparer function. Should return negative if `a < b`, zero if a == b, positive if a `> b`.
  * @returns The index at which the item was inserted.
  */
-export function arrayAddSorted<T>(list: T[],item: T, comparer: ValueComparerPredicate<T> = DefaultValueComparer): number {
+export function arrayAddSorted<T>(list: T[], item: T, comparer: ValueComparerPredicate<T> = DefaultValueComparer): number {
     const index = getIndexForSortedAdd(list, item, comparer);
     list.splice(index, 0, item);
     return index;
@@ -596,4 +597,16 @@ export function getIndexForSortedAdd<T>(list: T[], item: T, comparer?: ValueComp
         index++;
     }
     return index;
+}
+
+/**
+ * Sanitizes a string by replacing unsupported Unicode characters with a space or removing them.
+ * @param value - string to sanitize
+ * @returns sanitized string
+ */
+export function sanitizeUnsupportedUnicodeChars(value: string): string {
+    if (isNullOrEmpty(value)) return value;
+
+    return value.replace(ResourceValueValidations.nonBreakingSpace, ' ')
+        .replace(ResourceValueValidations.noSupportedChars, '');
 }

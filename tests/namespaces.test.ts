@@ -84,7 +84,7 @@ setTimeout(async () => {
                     }
                 ] as unknown as FileInfo[];
 
-                const result = findNamespaceForModel(lhqModelFile, csprojs);
+                const result = findNamespaceForModel({ lhqModelFile, csProjectFiles: csprojs });
                 expect(result).to.not.be.undefined;
                 expect(result!.namespace).to.equal('test.localization');
 
@@ -102,8 +102,7 @@ async function getNamespace(csProjectName: string): Promise<CSharpNamespaceInfo>
     const csProjFile = await fileUtils.readFileInfo(csProjectName, { rootFolder: folders().cwd, fileMustExist: true, formatRelative: true, loadContent: true });
     const lhqFile = await fileUtils.readFileInfo('Strings.lhq', { rootFolder: csProjFile.dirname });
 
-    // const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', fileName, csProjectContent);
-    const rootNamespace = findNamespaceForModel(lhqFile, [csProjFile]);
+    const rootNamespace = findNamespaceForModel({ lhqModelFile: lhqFile, csProjectFiles: [csProjFile] });
 
     expect(rootNamespace).to.not.be.undefined;
 

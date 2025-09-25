@@ -47,7 +47,7 @@ async function generateFromLhq(folder: string): Promise<void> {
     const lhqFileName = path.join(testDir, 'Strings.lhq');
     const lhqFile = await fileUtils.readFileInfo(lhqFileName, { encoding: 'utf8', fileMustExist: true, loadContent: true });
 
-    const rootNamespace = findNamespaceForModel(lhqFile, [csProjectFile]);
+    const rootNamespace = findNamespaceForModel({ lhqModelFile: lhqFile, csProjectFiles: [csProjectFile] });
     //const rootNamespace = getRootNamespaceFromCsProj('Strings.lhq', 'Strings.lhq.tt', csProjectFile, csProjectContent)!;
 
     //const lhqFile = await safeReadFile(lhqFileName);

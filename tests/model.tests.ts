@@ -288,7 +288,7 @@ setTimeout(async () => {
             await verify('model', `languages-order-01`, modelJson, 'text', 'json');
         });
 
-        it('should remove/replace non-valid unicode chars', async () => {
+        async function sanitizeUnicode(sanitize: boolean) {
             const root = ModelUtils.createRootElement();
             root.addLanguage('en', true);
             root.addResource('TestResource').addValue('en', `A\u00A0B\u202FC\uFEFFD\u2007E\u2060F
@@ -298,11 +298,21 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
 \u2010\u2011\u2012\u2013\u2014\u2015\u2016\u2017\u2018\u2019\u201C\u201D
 `);
 
-            root.options.values = { sanitize: true };
+            root.options.values = { sanitize };
             const model = rootElementToModel(root);
             const modelJson = ModelUtils.serializeModel(model, defaultFormatting);
-            await verify('model', `values-unicode-01`, modelJson, 'text', 'json');
+            await verify('model', `values-unicode-0` + (sanitize ? 1 : 2), modelJson, 'text', 'json');
+
+        }
+
+        it('should remove/replace non-valid unicode chars', async () => {
+            await sanitizeUnicode(true);
         });
+
+        it('should left non-valid unicode chars', async () => {
+            await sanitizeUnicode(false);
+        });
+
 
         it('serialize eol and sanitize options', async function () {
             const root = ModelUtils.createRootElement();
@@ -320,7 +330,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             await verify('model', `values-options-02`, model02Json, 'text', 'json');
         });
 
-        it('verify loadAndSerialize', async function() {
+        it('verify loadAndSerialize', async function () {
             //const json =`{"model":{"uid":"6ce4d54c5dbd415c93019d315e278638","version":3,"options":{"categories":true,"resources":"All","values":{"eol":"LF"}},"name":"Strings1","primaryLanguage":"en"},"languages":["cs","en","sk"],"resources":{"ButtonOK":{"state":"New","values":{"cs":{"value":"Tlačítko O K cesky\r\n"},"en":{"value":"Button O K eng"},"sk":{"value":"\r\nTlačidlo OK svk"}}},"Cancel":{"state":"Edited","values":{"en":{"value":"Cancel"},"sk":{"value":"zrusit\ndaco\n1\r\n2"}}}},"metadatas":{"childs":[{"name":"metadata","attrs":{"descriptorUID":"b40c8a1d-23b7-4f78-991b-c24898596dd2"},"childs":[{"name":"content","attrs":{"templateId":"NetCoreResxCsharp01","version":"1"},"childs":[{"name":"Settings","childs":[{"name":"CSharp","attrs":{"OutputFolder":"Resources2","EncodingWithBOM":"false","LineEndings":"LF","UseExpressionBodySyntax":"false","Namespace":"n1","MissingTranslationFallbackToPrimary":"false"}},{"name":"ResX","attrs":{"OutputFolder":"Resources","EncodingWithBOM":"false","LineEndings":"LF","CultureCodeInFileNameForPrimaryLanguage":"true"}}]}]}]}]}}`;
 
             const file = path.join(folders().data, 'Misc\\Strings_Values_Sanitize.lhq');

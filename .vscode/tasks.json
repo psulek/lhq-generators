@@ -2,49 +2,69 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "npm",
-      "script": "eslint",
-      "problemMatcher": ["$eslint-stylish"],
-      "label": "npm: eslint"
+        "type": "npm",
+        "script": "eslint",
+        "problemMatcher": [
+            "$eslint-stylish"
+        ],
+        "label": "npm: eslint"
     },
     {
-      "type": "npm",
-      "script": "publish-local",
-      "problemMatcher": ["$esbuild"],
-      "label": "npm: publish-local"
+        "type": "npm",
+        "script": "publish-local",
+        "problemMatcher": [
+            "$esbuild"
+        ],
+        "label": "npm: publish-local"
     },
     {
-      "type": "npm",
-      "script": "compile",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": [],
-      "label": "npm: compile",
-      "detail": "pnpm run build-all --compile"
+        "type": "npm",
+        "script": "compile",
+        "group": {
+            "kind": "build",
+            "isDefault": true
+        },
+        "problemMatcher": [],
+        "label": "npm: compile",
+        "detail": "pnpm run build-all --compile"
     },
     {
-      "type": "npm",
-      "script": "test2",
-      "group": "test",
-      "problemMatcher": [
-        {
-          "applyTo": "allDocuments",
-          "fileLocation": "autoDetect",
-          "base": "$tsc",
-          "source": "mocha"
+        "type": "npm",
+        "script": "test2",
+        "group": "test",
+        "problemMatcher": [
+            {
+                "applyTo": "allDocuments",
+                "fileLocation": "autoDetect",
+                "base": "$tsc",
+                "source": "mocha"
+            }
+        ],
+        "label": "npm: test2",
+        "presentation": {
+            "echo": true,
+            "reveal": "always",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": true
         }
-      ],
-      "label": "npm: test2",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared",
-        "showReuseMessage": true,
-        "clear": true
-      }
+    },
+    {
+        "type": "npm",
+        "script": "publish-local",
+        "problemMatcher": [
+            "$esbuild"
+        ],
+        "label": "npm: publish-local"
+    },
+    {
+        "type": "npm",
+        "script": "publish",
+        "problemMatcher": [
+            "$esbuild"
+        ],
+        "label": "npm: publish"
     }
-  ]
+]
 }

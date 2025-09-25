@@ -1,0 +1,28 @@
+{
+  "model": {
+    "uid": "6ce4d54c5dbd415c93019d315e278638",
+    "version": 3,
+    "options": {
+      "categories": true,
+      "resources": "All",
+      "values": {
+        "sanitize": false
+      }
+    },
+    "name": "",
+    "primaryLanguage": "en"
+  },
+  "languages": [
+    "en"
+  ],
+  "resources": {
+    "TestResource": {
+      "state": "New",
+      "values": {
+        "en": {
+          "value": "A B C﻿D E⁠F\nGH I​I‍J‏K\nL‪L‫M‬M‭M‮\nN⁠O⁡P⁢Q⁣R⁤S\n‐‑‒–—―‖‗‘’“”\n"
+        }
+      }
+    }
+  }
+}

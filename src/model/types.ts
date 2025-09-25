@@ -1,5 +1,4 @@
 import type { ITreeElement } from '../api/modelTypes';
-import type { LhqModelOptionsValues } from '../api/schemas';
 
 export interface ICategoryLikeTreeElementOperations {
     addElement(element: ITreeElement): void;

@@ -1,14 +1,16 @@
 import { DOMParser as xmlDomParser } from '@xmldom/xmldom';
 import * as xpath from 'xpath';
-import type { CSharpNamespaceInfo, FileInfo } from './types';
+import type { CSharpNamespaceInfo, FileInfo, FindNamespaceOptions } from './types';
 import { isNullOrEmpty, tryRemoveBOM } from './utils';
 
 import type { XPathSelect } from 'xpath';
 
 let DOMParser: typeof globalThis.DOMParser;
 
-export function findNamespaceForModel(lhqModelFile: FileInfo, csProjectFiles: FileInfo[]): CSharpNamespaceInfo | undefined {
+export function findNamespaceForModel(options: FindNamespaceOptions): CSharpNamespaceInfo | undefined {
     let namespaceInfo: CSharpNamespaceInfo | undefined = undefined;
+
+    const { lhqModelFile, csProjectFiles, allowFileName = true } = options;
 
     const dir = lhqModelFile.dirname;
     const namespaceResults: Array<CSharpNamespaceInfo> = [];
@@ -51,7 +53,7 @@ export function findNamespaceForModel(lhqModelFile: FileInfo, csProjectFiles: Fi
     const csProjFileName = namespaceInfo?.csProjectFileName?.full ?? '';
     const namespace = namespaceInfo?.namespace ?? '';
 
-    if (isNullOrEmpty(namespace) && namespaceInfo) {
+    if (isNullOrEmpty(namespace) && namespaceInfo && allowFileName) {
         namespaceInfo.namespace = isNullOrEmpty(csProjFileName) ? '' : namespaceInfo.csProjectFileName.extless?.replace(' ', '_') ?? '';
     }
     

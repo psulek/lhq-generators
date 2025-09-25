@@ -236,3 +236,9 @@ export type ImportResourceItem = {
     paths: ITreeElementPaths;
     values: Array<{ language: string, value: string }>;
 }
+
+export type FindNamespaceOptions = {
+    lhqModelFile: FileInfo;
+    csProjectFiles: FileInfo[];
+    allowFileName?: boolean;
+}

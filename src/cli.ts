@@ -224,7 +224,7 @@ async function findNamespaceFromCsProj(csProjectFileName: string, lhqFileName: s
         }
     }
 
-    const namespaceInfo = namespaceUtils.findNamespaceForModel(lhqFile, csProjectFiles);
+    const namespaceInfo = namespaceUtils.findNamespaceForModel({ lhqModelFile: lhqFile, csProjectFiles });
     return namespaceInfo?.namespace ?? '';
 }
 
