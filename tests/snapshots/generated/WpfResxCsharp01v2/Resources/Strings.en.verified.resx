@@ -118,22 +118,22 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Welcome" xml:space="preserve">
-        <value>Welcome {0} in this {1} !</value>
+    <value>Welcome {0} in this {1} !</value>
     <comment>Welcome description</comment>
   </data>
   <data name="CarsDieselOldOld_Kia" xml:space="preserve">
-        <value>Old_ kia EN</value>
+    <value>Old_ kia EN</value>
   </data>
   <data name="CarsDieselMercedes" xml:space="preserve">
-        <value>Mercedes EN</value>
+    <value>Mercedes EN</value>
   </data>
   <data name="CarsDieselSkoda" xml:space="preserve">
-        <value>Skoda EN</value>
+    <value>Skoda EN</value>
   </data>
   <data name="CarsElectricToyotaEV" xml:space="preserve">
-        <value>toyota EN</value>
+    <value>toyota EN</value>
   </data>
   <data name="MessagesTitle" xml:space="preserve">
-        <value>Hi {0}, we're glad you are using {1} at {2} / \ [ ] &lt; &gt; " &amp; car &lt;abc&gt; &lt;/end&gt;</value>
+    <value>Hi {0}, we're glad you are using {1} at {2} / \ [ ] &lt; &gt; " &amp; car &lt;abc&gt; &lt;/end&gt;</value>
   </data>
 </root>

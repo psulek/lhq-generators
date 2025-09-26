@@ -66,6 +66,7 @@
           "validators": [
             {
               "regex": "^(?![\\d\\._])(?!.*\\.$)[A-Za-z0-9._]*$",
+              "flags": "",
               "error": "Value must start with a letter, can only contain letters, digits, and dots (cannot start/end with a dot)."
             }
           ]
@@ -138,6 +139,7 @@
           "validators": [
             {
               "regex": "^(?![\\d\\._])(?!.*\\.$)[A-Za-z0-9._]*$",
+              "flags": "",
               "error": "Value must start with a letter, can only contain letters, digits, and dots (cannot start/end with a dot)."
             }
           ]
@@ -160,6 +162,7 @@
           "validators": [
             {
               "regex": "^(?![\\d])[A-Za-z0-9_]*$",
+              "flags": "",
               "error": "Value cannot start with a digit, can only contain letters, digits, and underscores."
             }
           ]
@@ -274,6 +277,7 @@
           "validators": [
             {
               "regex": "^(?![\\d])[A-Za-z0-9_]*$",
+              "flags": "",
               "error": "Value cannot start with a digit, can only contain letters, digits, and underscores."
             }
           ]
@@ -288,6 +292,7 @@
           "validators": [
             {
               "regex": "^(?![\\d])[A-Za-z0-9_]*$",
+              "flags": "",
               "error": "Value cannot start with a digit, can only contain letters, digits, and underscores."
             }
           ]
@@ -352,6 +357,7 @@
           "validators": [
             {
               "regex": "^(?!.*\\.$)[A-Za-z0-9_.]*$",
+              "flags": "",
               "error": "Value can only contain letters, digits, underscores and dot (which cannot be at the end)."
             }
           ]

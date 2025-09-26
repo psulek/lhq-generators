@@ -10,6 +10,10 @@ export const templateMetadataSettingValidatorSchema = z.object({
     */
     regex: z.string(),
     /**
+     * Optional regex flags (e.g., 'i' for case-insensitive). Default is no flags.
+     */
+    flags: z.string().optional(),
+    /**
      * Error message if validation fails.
      */
     error: z.string()

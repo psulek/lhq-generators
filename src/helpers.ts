@@ -53,7 +53,7 @@ const helpersList: Record<string, HelperDelegate> = {
     'x-objCount': objCountHelper,
     'x-hasItems': hasItemsHelper,
     'x-textEncode': textEncodeHelper,
-    'x-host-webHtmlEncode': hostWebHtmlEncodeHelper,
+    // 'x-host-webHtmlEncode': hostWebHtmlEncodeHelper,
     'x-render': renderHelper,
     'x-test': testHelper,
     'x-isNullOrEmpty': isNullOrEmptyHelper,
@@ -426,15 +426,6 @@ export function textEncodeHelper(input: string, options: HbsDataContext<textEnco
     const quotes = valueOrDefault(options?.hash?.quotes, false);
     const s = textEncode(input, { mode, quotes });
     return new Handlebars.SafeString(s);
-}
-
-function hostWebHtmlEncodeHelper(input: string): Handlebars.SafeString | string {
-    if (isNullOrEmpty(input)) {
-        return input;
-    }
-
-    const encoded = hostEnv.webHtmlEncode(input);
-    return new Handlebars.SafeString(encoded);
 }
 
 type renderHelperArgs = {

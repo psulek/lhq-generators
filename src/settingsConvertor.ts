@@ -240,7 +240,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
 
             if (property.validators && property.validators.length > 0) {
                 for (const validator of property.validators) {
-                    const regex = new RegExp(validator.regex);
+                    const regex = new RegExp(validator.regex, validator.flags);
                     // eslint-disable-next-line @typescript-eslint/no-base-to-string
                     if (!regex.test(value.toString())) {
                         return validator.error;

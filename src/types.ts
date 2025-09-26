@@ -30,9 +30,6 @@ export type KeysMatching<T, V> = { [K in keyof T]-?: T[K] extends V ? K : never 
 
 export interface IHostEnvironment {
     debugLog(msg: string): void;
-    webHtmlEncode(input: string): string;
-    stopwatchStart(): number;
-    stopwatchEnd(start: number): string;
     pathCombine(path1: string, path2: string): string;
 }
 
