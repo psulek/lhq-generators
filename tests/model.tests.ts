@@ -9,7 +9,7 @@ import { LhqModel } from '../src/api/schemas';
 import { IResourceElement, IRootModelElement } from '../src/api';
 import { CategoryElement } from '../src/model/categoryElement';
 import { ResourceElement } from '../src/model/resourceElement';
-import { FormattingOptions, ImportResourceItem, modelConst, ModelUtils, serializeJson } from '../src';
+import { FormattingOptions, ImportResourceItem, modelConst, ModelUtils, sanitizeUnsupportedUnicodeChars, serializeJson } from '../src';
 import { MapToModelOptions } from '../src/model/types';
 
 setTimeout(async () => {
@@ -304,6 +304,15 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             await verify('model', `values-unicode-0` + (sanitize ? 1 : 2), modelJson, 'text', 'json');
 
         }
+
+        it('sanitize non-breaking spaces', async () => {
+            const src = `customer operation  <b>{3}</b>`;
+            expect(ModelUtils.containsInvalidUnicodeChars(src)).to.be.true;
+
+            const sanitized = sanitizeUnsupportedUnicodeChars(src);
+            expect(sanitized).to.equal('customer operation  <b>{3}</b>');
+            expect(sanitized).to.not.equal(src);
+        });
 
         it('should remove/replace non-valid unicode chars', async () => {
             await sanitizeUnicode(true);

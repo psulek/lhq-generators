@@ -16,7 +16,11 @@ export const templateMetadataSettingValidatorSchema = z.object({
     /**
      * Error message if validation fails.
      */
-    error: z.string()
+    error: z.string(),
+    /**
+     * Error code if validation fails (for easier localization and handling).
+     */
+    errorCode: z.string()
 });
 
 /**
@@ -125,3 +129,4 @@ export type TemplateMetadataSettingType = z.infer<typeof templateMetadataSetting
 export type TemplateMetadataDefinition = z.infer<typeof templateMetadataDefinitionSchema>;
 
 export type TemplateMetadataSettingValidator = z.infer<typeof templateMetadataSettingValidatorSchema>;
+export type TemplateMetadataSettingValidationResult = Omit<TemplateMetadataSettingValidator, 'regex' | 'flags'> | undefined;

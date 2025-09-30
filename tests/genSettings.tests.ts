@@ -13,6 +13,7 @@ setTimeout(async () => {
             const result = convertor.validateSettings('NetCoreResxCsharp01', settings);
             expect(result).to.be.an('object');
             expect(isNullOrEmpty(result.error)).to.be.false;
+            expect(result.errorCode).to.equal('csharp.namespace.missing');
             expect(result.group).to.equal('CSharp');
             expect(result.property).to.equal('Namespace');
         });
@@ -27,6 +28,7 @@ setTimeout(async () => {
                 const result = convertor.validateSettings('NetCoreResxCsharp01', settings);
                 expect(result).to.be.an('object');
                 expect(isNullOrEmpty(result.error), `CSharp/Namespace/${value}`).to.be.false;
+                expect(result.errorCode).to.equal('csharp.namespace.invalidformat');
                 expect(result.group).to.equal('CSharp');
                 expect(result.property).to.equal('Namespace');
             });
@@ -34,4 +36,5 @@ setTimeout(async () => {
     });
 
     run();
+
 }, 500);

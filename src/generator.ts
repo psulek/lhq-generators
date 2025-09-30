@@ -151,15 +151,16 @@ export class Generator {
             throw new AppError(`LHQ model '${fileName}' missing code generator template information !`);
         }
 
-        // const validateResult = ModelUtils
-        //     .getCodeGeneratorSettingsConvertor()
-        //     .validateSettings(templateId, rootModel.codeGenerator.settings);
+        const validateResult = ModelUtils
+            .getCodeGeneratorSettingsConvertor()
+            .validateSettings(templateId, rootModel.codeGenerator.settings);
 
-        // if (!isNullOrEmpty(validateResult.error)) {
-        //     throw new AppError(validateResult.error ?? `Invalid code generator settings for template '${templateId}' !`, undefined,
-        //          AppErrorKinds.templateValidationError, validateResult.);
-        // }
-
+        if (!isNullOrEmpty(validateResult.error)) {
+            const errStr = `Validation failed for template ('${templateId}') setting ${validateResult.group}/${validateResult.property}. ` +
+                (validateResult.error ?? ``);
+            throw new AppError(errStr, undefined,
+                AppErrorKinds.templateValidationError, validateResult.errorCode);
+        }
 
         const saveInlineOutputs = (templId: string, inlineOutputs: OutputInlineData[]): void => {
             if (inlineOutputs) {

@@ -83,7 +83,7 @@ export function getKnownHelpers(): KnownHelpers {
     return _knownHelpers;
 }
 
-type AssertTypeCheck = 'isTrue' | 'isFalse' | 'isNullOrEmpty' | 'isNullOrUndefined' | 'isNull' | 'isUndefined';
+type AssertTypeCheck = 'disabled' | 'isTrue' | 'isFalse' | 'isNullOrEmpty' | 'isNullOrUndefined' | 'isNull' | 'isUndefined';
 
 type HbsDataContext<T = Record<string, unknown>> = {
     name?: string;
@@ -559,7 +559,7 @@ function modelDataHelper() {
     }
 
     const check = options.hash?.check;
-    if (!isNullOrEmpty(check) && assertValueCheck(context, check)) {
+    if (!isNullOrEmpty(check) && check !== 'disabled' &&  assertValueCheck(context, check)) {
         const errorCode = options.hash?.errorCode ?? '';
         throw new AppError(options.hash?.error ?? 'Template validation failure !', undefined, AppErrorKinds.templateValidationError, errorCode);
     }

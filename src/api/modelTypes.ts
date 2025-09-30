@@ -5,7 +5,7 @@ import type {
     LhqModelLineEndings,
     LhqModelDataNode
 } from './schemas';
-import type { TemplateMetadataGroup, TemplateMetadataGroupSettings } from './templates';
+import type { TemplateMetadataGroup, TemplateMetadataGroupSettings, TemplateMetadataSettingValidationResult } from './templates';
 
 export type TreeElementType = 'model' | 'category' | 'resource';
 
@@ -788,7 +788,8 @@ export type CodeGeneratorValidateResult = {
     group: string;
     property: string;
     error: string | undefined;
-}
+    errorCode: string | undefined;
+};
 
 /**
  * Interface for converting between data nodes and code generator settings.
@@ -855,5 +856,5 @@ export interface ICodeGeneratorSettingsConvertor {
      * @param throwErr - If true all validation blocks throws error, otherwise only returns validation error or undefined (default/unspecified is true).
      * @returns An error message if the value is invalid, otherwise undefined.
      */
-    validateSetting(templateId: string, group: string, property: string, value: unknown, throwErr?: boolean): string | undefined;
+    validateSetting(templateId: string, group: string, property: string, value: unknown, throwErr?: boolean): TemplateMetadataSettingValidationResult | undefined;
 }

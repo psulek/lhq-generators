@@ -1,6 +1,6 @@
 import type { CodeGeneratorGroupSettings, CodeGeneratorValidateResult, ICodeGeneratorSettingsConvertor } from './api/modelTypes';
 import type { LhqModelDataNode } from './api/schemas';
-import type { TemplateMetadataGroupSettings } from './api/templates';
+import type { TemplateMetadataGroupSettings, TemplateMetadataSettingValidationResult, TemplateMetadataSettingValidator } from './api/templates';
 import { HbsTemplateManager } from './hbsManager';
 import { isNullOrEmpty } from './utils';
 
@@ -164,7 +164,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
         return false;
     }
 
-    public validateSetting(templateId: string, group: string, property: string, value: unknown, throwErr?: boolean): string | undefined {
+    public validateSetting(templateId: string, group: string, property: string, value: unknown, throwErr?: boolean): TemplateMetadataSettingValidationResult | undefined {
         throwErr = throwErr ?? true;
 
         if (isNullOrEmpty(templateId)) {
@@ -220,30 +220,35 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                     if (Object.prototype.hasOwnProperty.call(definition.settings, group)) {
                         const property = definition.settings[group].properties.find(x => x.name === name);
                         const valRes = this.validateProperty(group, property, value);
-                        if (valRes && !isNullOrEmpty(valRes)) {
-                            return { group, error: valRes, property: property!.name };
+                        if (valRes && !isNullOrEmpty(valRes.error)) {
+                            return { group, error: valRes.error, errorCode: valRes.errorCode, property: property!.name };
                         }
                     }
                 }
             }
         }
 
-        return { group: '', property: '', error: undefined };
+        return { group: '', property: '', error: undefined, errorCode: undefined };
     }
 
-    private validateProperty(group: string, property: TemplateMetadataGroupSettings | undefined, value: unknown): string | undefined {
+    private validateProperty(group: string, property: TemplateMetadataGroupSettings | undefined, value: unknown): TemplateMetadataSettingValidationResult {
         if (property) {
             // eslint-disable-next-line @typescript-eslint/no-base-to-string
-            if (isNullOrEmpty(value) || (property.type === 'string' && value.toString().trim() === '')) {
-                return property.required ? `${group} / '${property.name}' value is required.` : undefined;
+            if (property.required && (isNullOrEmpty(value) || (property.type === 'string' && value.toString().trim() === ''))) {
+                return {
+                    error: `${group} / '${property.name}' value is required.`,
+                    errorCode: `${group.toLowerCase()}.${property.name.toLowerCase()}.missing`
+                };
             }
 
             if (property.validators && property.validators.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                const strValue = typeof value === 'string' ? value : (value as any).toString();
                 for (const validator of property.validators) {
                     const regex = new RegExp(validator.regex, validator.flags);
-                    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                    if (!regex.test(value.toString())) {
-                        return validator.error;
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    if (!regex.test(strValue)) {
+                        return validator;
                     }
                 }
             }

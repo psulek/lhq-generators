@@ -95,7 +95,7 @@ export async function verifyFile(fileName: string, value: string | Buffer | Reco
         catch (e) {
             await writeSnapshot();
 
-            if (e.name === 'AssertionError') {
+            if ((e as Error).name === 'AssertionError') {
 
                 const compareLineEndings = () => {
                     const buffer_lf = buffer.reduce((count, byte) => byte === 10 ? count + 1 : count, 0);
@@ -195,6 +195,7 @@ export async function initGenerator() {
         Generator.initialize(generatorInit);
     } catch (error) {
         console.error('Error initializing generator:', error);
+        process.exit(1);
     }
 }
 
