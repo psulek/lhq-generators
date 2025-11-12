@@ -9,6 +9,20 @@ import type { GeneratedFile } from './api/types';
 import { type TemplateMetadataValidationResult, templatesMetadataSchema, type TemplatesMetadata } from './api/templates';
 import { ModelVersions } from './model/modelConst';
 
+declare let PKG_VERSION: string;
+
+/**
+ * Returns the version of the library.
+ * @returns The version of the library.
+ */
+export function getLibraryVersion(): string {
+    if (typeof PKG_VERSION === 'undefined') {
+        return '0.0.0';
+    }
+
+    return PKG_VERSION;
+}
+
 export function getZodError(error: ZodError): string {
     const messageBuilder = createMessageBuilder({
         prefix: '',
@@ -19,7 +33,7 @@ export function getZodError(error: ZodError): string {
     return err.toString();
 }
 
-export function validateTemplateMetadata(data: TemplatesMetadata | string): TemplateMetadataValidationResult { 
+export function validateTemplateMetadata(data: TemplatesMetadata | string): TemplateMetadataValidationResult {
     if (typeof data === 'string') {
         const parseResult = tryJsonParse(data, true);
 

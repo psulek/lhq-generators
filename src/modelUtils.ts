@@ -1,6 +1,6 @@
-import type { CodeGeneratorGroupSettings, ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IResourceElement, IResourceValueElement, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
+import type { ModelVersionsType, CodeGeneratorGroupSettings, ICategoryLikeTreeElement, ICodeGeneratorElement, ICodeGeneratorSettingsConvertor, IResourceElement, IResourceValueElement, IRootModelElement, ITreeElement, ITreeElementPaths } from './api/modelTypes';
 import type { ILhqModelType, LhqModel, LhqModelCategory, LhqModelResource } from './api/schemas';
-import type { TemplateMetadataGroup, TemplateMetadataGroupSettings } from './api/templates';
+import type { TemplateMetadataGroupSettings } from './api/templates';
 import { validateLhqModel } from './generatorUtils';
 import { HbsTemplateManager } from './hbsManager';
 import { CategoryElement } from './model/categoryElement';
@@ -26,6 +26,13 @@ const regexValidCharacters = /^[a-zA-Z]+[a-zA-Z0-9_]*$/;
 
 export class ModelUtils {
     private static codeGeneratorSettingsConvertor = new CodeGeneratorSettingsConvertor();
+
+    /**
+     * Returns the current model versions.
+     */
+    public static getModelVersions(): ModelVersionsType {
+        return modelConst.ModelVersions;
+    }
 
     /**
      * Returns an instance of `ICodeGeneratorSettingsConvertor` for converting code generator settings.

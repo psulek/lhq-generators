@@ -13,6 +13,8 @@ import pc from 'picocolors'
 import { generateLhqSchema, validateTemplateMetadata } from './src/generatorUtils';
 // import type { HbsMetadata } from './src/hbsMetadata';
 //import type { TemplatesMetadata } from './src/api/templates';
+// import {type TemplatesMetadata } from './src/api/templates';
+
 
 const distFolder = path.join(__dirname, 'dist');
 const sourcePackageFile = path.join(__dirname, 'package.json');

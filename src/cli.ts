@@ -13,7 +13,7 @@ import {
     Duration, Generator, GeneratorHostDataKeys,
     generatorUtils, isNullOrEmpty, jsonParseOrDefault,
     HostEnvironment, objCount,
-    getLibraryVersion, namespaceUtils, fileUtils,
+    namespaceUtils, fileUtils,
     detectFormatting, ModelUtils
 } from './index';
 
@@ -34,9 +34,12 @@ const init_cwd = process.env.INIT_CWD!;
 const npm_script_file = path.join(init_cwd, 'node_modules');
 const is_npm_script = __dirname.startsWith(npm_script_file);
 const cwd = is_npm_script ? __dirname : process.cwd();
+const libraryVersion = generatorUtils.getLibraryVersion();
 
-
-const cliToolHeader = (): string => pc.bold(`LHQ Code Template Generator ${pc.gray(`(${getLibraryVersion()})`)}\n`);
+const year = new Date().getFullYear();
+const cliToolHeader = (): string => {
+    return pc.bold(`LHQ Code Template Generator ${pc.gray(`(${libraryVersion})`)} Copyright (c) ${year} ScaleHQ Solutions\n`);
+};
 
 class HostEnvironmentCli extends HostEnvironment {
     public pathCombine(path1: string, path2: string): string {
@@ -287,7 +290,7 @@ async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): P
             .usage('<lhqfile> [command] [options]')
             .description('Run various actions against LHQ files')
             //.argument('<lhqfile>', 'The LHQ project file *.lhq (e.g., Strings.lhq)')
-            .version(getLibraryVersion(), '-v, --version', 'output the version number')
+            .version(libraryVersion, '-v, --version', 'output the version number')
             .option('--verbose', 'enable verbose output', false)
             .option('--no-color', 'disable color output')
             .addHelpText('beforeAll', cliToolHeader())

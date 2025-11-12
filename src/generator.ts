@@ -13,20 +13,11 @@ import type { LhqModel } from './api';
 import { CodeGeneratorSettingsConvertor } from './settingsConvertor';
 import { ModelUtils } from './modelUtils';
 
-declare let PKG_VERSION: string;
 
 export const GeneratorHostDataKeys = Object.freeze({
     namespace: 'namespace',
     fileHeader: 'fileHeader'
 });
-
-export function getLibraryVersion(): string {
-    if (typeof PKG_VERSION === 'undefined') {
-        return '0.0.0';
-    }
-
-    return PKG_VERSION;
-}
 
 /**
  * Generator class that generates code files based on Handlebars templates.

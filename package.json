@@ -1,6 +1,6 @@
 {
   "name": "@lhq/lhq-generators",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.3",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -20,7 +20,8 @@
     "cli-2b": "tsx ./src/cli.ts ./tests/data/templates/NetCoreResxCsharp01/Strings.lhq -o temp/cli --verbose --fixns",
     "cli-3": "tsx ./src/cli.ts C:/Terminal/Localization.Common/StringsCommon.lhq -o temp/cli",
     "cli-4": "tsx ./src/cli.ts c:/dev/github/psulek/lhqeditor/src/Gen.Lib.Tests/TestData/NetCoreResxCsharp01/Strings.lhq -o temp/cli",
-    "cli-5": "tsx ./src/cli.ts ./tests/data/NetCoreResxCsharp01.lhq -o temp/cli -d namespace=Root a=2 xyz=Peter --no-colors",
+    "cli-5": "tsx ./src/cli.ts ./tests/data/templates/NetCoreResxCsharp01/Strings.lhq -o temp/cli -d namespace=Root a=2 xyz=Peter --no-colors",
+    "cli-6": "tsx ./src/cli.ts c:\\Temp\\12nov2025\\lhq\\NetCoreResxCsharp01\\Strings.lhq -o temp/cli -d namespace=Root --no-colors",
     "publish-local": "pnpm run build-all --version && cd dist && pnpm publish --registry http://localhost:4873/ --no-git-checks && rimraf dist",
     "publish": "pnpm run build-all && cd dist && pnpm publish --registry http://localhost:4873/ --no-git-checks && rimraf dist",
     "unpublish-local": "pnpm unpublish @lhq/lhq-generators --registry http://localhost:4873/ --force",
