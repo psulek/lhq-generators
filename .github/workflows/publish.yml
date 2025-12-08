@@ -2,7 +2,7 @@ name: Publish Package
 
 on:
   release:
-    types: [created]
+    types: [published]
   workflow_dispatch:
 
 env:
@@ -45,12 +45,12 @@ jobs:
       - name: Publish to GitHub Packages
         run: |
           cd dist
-          pnpm publish --access public
+          pnpm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update release with package link
-        if: github.event_name == 'release'
+        # if: github.event_name == 'release'
         uses: actions/github-script@v7
         with:
           script: |
