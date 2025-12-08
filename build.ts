@@ -27,7 +27,7 @@ const compileOnly = process.argv.findIndex(arg => arg === '--compile') > -1;
 const incVersion = process.argv.findIndex(arg => arg === '--incversion') > -1;
 
 let exactVersion = '';
-const extVerIdx = process.argv.findIndex(arg => arg === '--version');
+const extVerIdx = process.argv.findIndex(arg => arg.startsWith('--version'));
 if (extVerIdx > -1) {
     const values = process.argv[extVerIdx].split('=');
     if (values.length === 2) {
