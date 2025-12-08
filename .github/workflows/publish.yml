@@ -45,7 +45,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: |
           cd dist
-          pnpm publish
+          pnpm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
