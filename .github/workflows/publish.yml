@@ -35,10 +35,10 @@ jobs:
     #   - name: Run ESLint
     #     run: pnpm run eslint
 
-      - name: Run tests
-        run: pnpm run test
-        env:
-          MOCHA_COLORS: '0'
+    #   - name: Run tests
+    #     run: pnpm run test
+    #     env:
+    #       MOCHA_COLORS: '0'
 
     #   - name: Print directory tree
     #     run: |

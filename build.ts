@@ -284,7 +284,9 @@ export async function runMochaTests(): Promise<void> {
     const mocha = path.join(cwd, 'node_modules', bin);
     const testFile = './tests/index.spec.ts';
 
-    const args = [mocha, '--delay', '-n tsx', '--enable-source-maps', '--colors', testFile];
+    const colorArg = (process.env.MOCHA_COLORS === '0') ? '--no-colors' : '--colors';
+
+    const args = [mocha, '--delay', '-n tsx', '--enable-source-maps', colorArg, testFile];
 
     const { code, stdout, stderr } = await spawnAsync('node', args, { cwd, detached: false }, true);
     if (code !== 0) {
