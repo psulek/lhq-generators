@@ -1,3 +1,5 @@
+gitChecks: false
+
 onlyBuiltDependencies:
   - core-js
   - esbuild
