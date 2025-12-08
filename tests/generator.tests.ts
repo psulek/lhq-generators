@@ -55,7 +55,15 @@ async function generateFromLhq(folder: string): Promise<void> {
     const namespace = rootNamespace?.namespaceDynamicExpression === true ? '' : rootNamespace!.namespace;
     const data = { namespace: namespace };
     const generator = new Generator();
-    const result = await generator.generate(lhqFileName, model, data);
+    const _result = await generator.generate(lhqFileName, model, data);
+    const result: GenerateResultForTest = {
+        generatedFiles: _result.generatedFiles.map(f => ({
+            fileName: splitPath(f.fileName),
+            bom: f.bom,
+            content: f.content,
+            lineEndings: f.lineEndings
+        }))
+    };
 
     const generatedFolder = path.join(folders().snapshots, 'generated', folder);
     await fse.ensureDir(generatedFolder);
@@ -65,16 +73,18 @@ async function generateFromLhq(folder: string): Promise<void> {
         file.content = '';
     }));
 
-    const testResult: GenerateResultForTest = {
-        generatedFiles: result.generatedFiles.map(f => ({
-            fileName: splitPath(f.fileName),
-            bom: f.bom,
-            content: f.content,
-            lineEndings: f.lineEndings
-        }))
-    };
+    await verifyFile(path.join(generatedFolder, 'result.txt'), result, 'text');
 
-    await verifyFile(path.join(generatedFolder, 'result.txt'), testResult, 'text');
+    // const testResult: GenerateResultForTest = {
+    //     generatedFiles: result.generatedFiles.map(f => ({
+    //         fileName: splitPath(f.fileName),
+    //         bom: f.bom,
+    //         content: f.content,
+    //         lineEndings: f.lineEndings
+    //     }))
+    // };
+
+    // await verifyFile(path.join(generatedFolder, 'result.txt'), testResult, 'text');
 }
 
 type GeneratedFileForTest = Omit<GeneratedFile, 'fileName'> & { fileName: string[] };
@@ -82,52 +92,12 @@ type GenerateResultForTest = {
     generatedFiles: GeneratedFileForTest[];
 }
 
-async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): Promise<void> {
-    const content = getGeneratedFileContent(generatedFile, true);
+async function saveGenFile(generatedFile: GeneratedFileForTest, outputPath?: string): Promise<void> {
+    const content = getGeneratedFileContent(generatedFile as unknown as GeneratedFile, true);
     const bom = generatedFile.bom ? '\uFEFF' : '';
     const buffer = Buffer.from(bom + content, 'utf8');
+    let fileName = generatedFile.fileName.join(path.sep);
 
-    const fileName = !outputPath ? generatedFile.fileName : path.join(outputPath, generatedFile.fileName);
+    fileName = outputPath ? path.join(outputPath, fileName) : fileName;
     await verifyFile(fileName, buffer, 'text');
 }
-
-
-// async function initGenerator() {
-//     try {
-//         const hbsTemplatesDir = folders().hbs;
-
-//         const metadataFile = path.join(hbsTemplatesDir, 'metadata.json');
-//         const metadataContent = await fse.readFile(metadataFile, { encoding: 'utf-8' });
-//         const result = validateTemplateMetadata(metadataContent);
-//         if (!result.success) {
-//             throw new Error(`Validation of ${metadataFile} failed: ${result.error}`);
-//         }
-
-//         const generatorInit: GeneratorInitialization = {
-//             hbsTemplates: {},
-//             templatesMetadata: result.metadata!,
-//             hostEnvironment: new HostEnvironmentCli()
-//         };
-
-
-//         const hbsFiles = await glob('*.hbs', { cwd: hbsTemplatesDir, nodir: true });
-
-//         const templateLoaders = hbsFiles.map(async (hbsFile) => {
-//             const templateId = path.basename(hbsFile, path.extname(hbsFile));
-//             const fullFilePath = path.join(hbsTemplatesDir, hbsFile);
-//             generatorInit.hbsTemplates[templateId] = await safeReadFile(fullFilePath);
-//         });
-
-//         await Promise.all(templateLoaders);
-
-//         Generator.initialize(generatorInit);
-//     } catch (error) {
-//         console.error('Error initializing generator:', error);
-//     }
-// }
-
-// class HostEnvironmentCli extends HostEnvironment {
-//     public pathCombine(path1: string, path2: string): string {
-//         return path.join(path1, path2);
-//     }
-// }

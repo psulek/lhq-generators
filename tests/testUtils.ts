@@ -67,7 +67,7 @@ export async function safeReadFile(fileName: string): Promise<string> {
  * @returns Array of directory names.
  */
 export function splitPath(filePath: string): string[] {
-  return filePath.split(path.sep).filter(Boolean);
+  return filePath.split(/[\\/]/).filter(Boolean);
 }
 
 export type FileVerifyType = 'text' | 'binary' | 'json';
