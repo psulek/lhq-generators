@@ -25,6 +25,6 @@
     ".github": true
   },
   "files.associations": {
-      ".github/**/*.yml": "github-actions"
+      ".github/**/*.yml": "github-actions-workflow"
   }
 }

@@ -1,10 +1,14 @@
 {
-  "name": "lhq-generators",
+  "name": "@psulek/lhq-generators",
   "version": "1.0.0-rc.0",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psulek/lhq-generators.git"
+  },
   "scripts": {
     "cli-help": "tsx ./src/cli.ts",
     "cli-help2": "tsx ./src/cli.ts --no-color",
