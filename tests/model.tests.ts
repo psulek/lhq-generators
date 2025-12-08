@@ -55,17 +55,17 @@ setTimeout(async () => {
                     expect(root.resources[0].isRoot).to.be.false;
                 }
 
-                if (ident === 'NetCoreResxCsharp01\\Strings') {
-                    // const rp = root.paths.getPaths(true);
+                // if (ident === 'NetCoreResxCsharp01\\Strings') {
+                //     // const rp = root.paths.getPaths(true);
 
-                    // const paths = ModelUtils.createTreePaths('/Cars/Diesel/Old', '/');
-                    // const f1 = root.getElementByPath(paths, 'resource');
-                    // console.log('f1', f1);
+                //     // const paths = ModelUtils.createTreePaths('/Cars/Diesel/Old', '/');
+                //     // const f1 = root.getElementByPath(paths, 'resource');
+                //     // console.log('f1', f1);
 
-                    // const res = root.resources[0];
-                    // const json1 = (res as ResourceElement).debugSerialize();
-                    // console.log('json1', json1);
-                }
+                //     // const res = root.resources[0];
+                //     // const json1 = (res as ResourceElement).debugSerialize();
+                //     // console.log('json1', json1);
+                // }
 
                 const changedModelJson = ModelUtils.serializeModel(model, formatOptions);
                 const changedModelBuffer = Buffer.from(changedModelJson, 'utf-8');
@@ -342,7 +342,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
         it('verify loadAndSerialize', async function () {
             //const json =`{"model":{"uid":"6ce4d54c5dbd415c93019d315e278638","version":3,"options":{"categories":true,"resources":"All","values":{"eol":"LF"}},"name":"Strings1","primaryLanguage":"en"},"languages":["cs","en","sk"],"resources":{"ButtonOK":{"state":"New","values":{"cs":{"value":"Tlačítko O K cesky\r\n"},"en":{"value":"Button O K eng"},"sk":{"value":"\r\nTlačidlo OK svk"}}},"Cancel":{"state":"Edited","values":{"en":{"value":"Cancel"},"sk":{"value":"zrusit\ndaco\n1\r\n2"}}}},"metadatas":{"childs":[{"name":"metadata","attrs":{"descriptorUID":"b40c8a1d-23b7-4f78-991b-c24898596dd2"},"childs":[{"name":"content","attrs":{"templateId":"NetCoreResxCsharp01","version":"1"},"childs":[{"name":"Settings","childs":[{"name":"CSharp","attrs":{"OutputFolder":"Resources2","EncodingWithBOM":"false","LineEndings":"LF","UseExpressionBodySyntax":"false","Namespace":"n1","MissingTranslationFallbackToPrimary":"false"}},{"name":"ResX","attrs":{"OutputFolder":"Resources","EncodingWithBOM":"false","LineEndings":"LF","CultureCodeInFileNameForPrimaryLanguage":"true"}}]}]}]}]}}`;
 
-            const file = path.join(folders().data, 'Misc\\Strings_Values_Sanitize.lhq');
+            const file = path.join(folders().data, 'Misc', 'Strings_Values_Sanitize.lhq');
             const content = await safeReadFile(file);
             const formatting = detectFormatting(content);
 
@@ -417,7 +417,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             await verify('model', `serialize06`, modelJson, 'text', 'json');
         });
 
-        const lhqFile = 'LhqEditor\\Strings.lhq';
+        const lhqFile = path.join('LhqEditor','Strings.lhq');
         it(`serialize and deserialize file ${lhqFile}`, async function () {
 
             const file = path.join(folders().templates, lhqFile);

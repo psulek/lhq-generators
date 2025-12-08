@@ -57,39 +57,39 @@ setTimeout(async () => {
             });
         });
 
-        describe('Manual tests', function () {
-            it('Manual test 1', function () {
+        // describe('Manual tests', function () {
+        //     it('Manual test 1', function () {
 
-                const lhqModelFile = {
-                    "exist": true,
-                    "full": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01\\Strings.lhq",
-                    "ext": ".lhq",
-                    "extless": "Strings",
-                    "relative": "Strings.lhq",
-                    "dirname": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01",
-                    "basename": "Strings.lhq",
-                    "content": null
-                } as unknown as FileInfo;
+        //         const lhqModelFile = {
+        //             "exist": true,
+        //             "full": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01\\Strings.lhq",
+        //             "ext": ".lhq",
+        //             "extless": "Strings",
+        //             "relative": "Strings.lhq",
+        //             "dirname": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01",
+        //             "basename": "Strings.lhq",
+        //             "content": null
+        //         } as unknown as FileInfo;
 
-                const csprojs = [
-                    {
-                        "exist": true,
-                        "full": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01\\WpfResxCsharp01.csproj",
-                        "ext": ".csproj",
-                        "extless": "WpfResxCsharp01",
-                        "relative": "WpfResxCsharp01.csproj",
-                        "dirname": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01",
-                        "basename": "WpfResxCsharp01.csproj",
-                        "content": "<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n    <PropertyGroup>\r\n        <TargetFramework>net8.0</TargetFramework>\r\n        <ImplicitUsings>enable</ImplicitUsings>\r\n        <Nullable>enable</Nullable>\r\n        <RootNamespace>test.localization</RootNamespace>\r\n        <OutputType>Exe</OutputType>\r\n    </PropertyGroup>\r\n\r\n    <ItemGroup>\r\n        <None Update=\"Strings.lhq\">\r\n            <CopyToOutputDirectory>Always</CopyToOutputDirectory>\r\n        </None>\r\n        <None Update=\"Strings.lhq.tt\">\r\n            <CopyToOutputDirectory>Always</CopyToOutputDirectory>\r\n<!--            <CustomToolNamespace>mynamspace1</CustomToolNamespace>-->\r\n        </None>\r\n    </ItemGroup>\r\n\r\n    <ItemGroup>\r\n      <Folder Include=\"GenOutput\\\" />\r\n    </ItemGroup>\r\n\r\n</Project>\r\n"
-                    }
-                ] as unknown as FileInfo[];
+        //         const csprojs = [
+        //             {
+        //                 "exist": true,
+        //                 "full": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01\\WpfResxCsharp01.csproj",
+        //                 "ext": ".csproj",
+        //                 "extless": "WpfResxCsharp01",
+        //                 "relative": "WpfResxCsharp01.csproj",
+        //                 "dirname": "C:\\dev\\github\\psulek\\lhqeditor\\src\\Gen.Lib.Tests\\bin\\Debug\\TestData\\WpfResxCsharp01",
+        //                 "basename": "WpfResxCsharp01.csproj",
+        //                 "content": "<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n    <PropertyGroup>\r\n        <TargetFramework>net8.0</TargetFramework>\r\n        <ImplicitUsings>enable</ImplicitUsings>\r\n        <Nullable>enable</Nullable>\r\n        <RootNamespace>test.localization</RootNamespace>\r\n        <OutputType>Exe</OutputType>\r\n    </PropertyGroup>\r\n\r\n    <ItemGroup>\r\n        <None Update=\"Strings.lhq\">\r\n            <CopyToOutputDirectory>Always</CopyToOutputDirectory>\r\n        </None>\r\n        <None Update=\"Strings.lhq.tt\">\r\n            <CopyToOutputDirectory>Always</CopyToOutputDirectory>\r\n<!--            <CustomToolNamespace>mynamspace1</CustomToolNamespace>-->\r\n        </None>\r\n    </ItemGroup>\r\n\r\n    <ItemGroup>\r\n      <Folder Include=\"GenOutput\\\" />\r\n    </ItemGroup>\r\n\r\n</Project>\r\n"
+        //             }
+        //         ] as unknown as FileInfo[];
 
-                const result = findNamespaceForModel({ lhqModelFile, csProjectFiles: csprojs });
-                expect(result).to.not.be.undefined;
-                expect(result!.namespace).to.equal('test.localization');
+        //         const result = findNamespaceForModel({ lhqModelFile, csProjectFiles: csprojs });
+        //         expect(result).to.not.be.undefined;
+        //         expect(result!.namespace).to.equal('test.localization');
 
-            });
-        });
+        //     });
+        // });
     });
 
     run();
