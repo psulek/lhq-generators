@@ -1,27 +1,39 @@
 {
   "generatedFiles": [
     {
-      "fileName": "Typescript\\Strings.d.ts",
-      "content": "",
+      "fileName": [
+        "Typescript",
+        "Strings.d.ts"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "LF"
     },
     {
-      "fileName": "Resources\\Strings.en.json",
-      "content": "",
+      "fileName": [
+        "Resources",
+        "Strings.en.json"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "LF"
     },
     {
-      "fileName": "Resources\\Strings.json",
-      "content": "",
+      "fileName": [
+        "Resources",
+        "Strings.json"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "LF"
     },
     {
-      "fileName": "Resources\\Strings-metadata.json",
-      "content": "",
+      "fileName": [
+        "Resources",
+        "Strings-metadata.json"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "LF"
     }
   ]

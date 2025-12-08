@@ -61,7 +61,17 @@ export async function safeReadFile(fileName: string): Promise<string> {
     return isNullOrEmpty(content) ? '' : tryRemoveBOM(content);
 }
 
+/**
+ * Splits a file path into an array of directory names using the platform-specific separator.
+ * @param filePath The file path to split.
+ * @returns Array of directory names.
+ */
+export function splitPath(filePath: string): string[] {
+  return filePath.split(path.sep).filter(Boolean);
+}
+
 export type FileVerifyType = 'text' | 'binary' | 'json';
+
 
 export async function verifyFile(fileName: string, value: string | Buffer | Record<string, unknown>,
     expectFileType: FileVerifyType): Promise<void> {

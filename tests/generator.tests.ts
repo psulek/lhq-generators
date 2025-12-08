@@ -3,9 +3,9 @@ import { glob } from 'glob';
 import fse from 'fs-extra';
 
 import { getGeneratedFileContent } from '../src/generatorUtils.js';
-import { GeneratedFile, LhqModel } from '../src/index.js';
+import { GeneratedFile, GenerateResult, LhqModel } from '../src/index.js';
 import { Generator } from '../src/generator.js';
-import { initGenerator, verifyFile } from './testUtils.js';
+import { initGenerator, splitPath, verifyFile } from './testUtils.js';
 import * as fileUtils from './fileUtils.js';
 
 import { folders } from './testUtils.js';
@@ -65,7 +65,21 @@ async function generateFromLhq(folder: string): Promise<void> {
         file.content = '';
     }));
 
-    await verifyFile(path.join(generatedFolder, 'result.txt'), result, 'text');
+    const testResult: GenerateResultForTest = {
+        generatedFiles: result.generatedFiles.map(f => ({
+            fileName: splitPath(f.fileName),
+            bom: f.bom,
+            content: f.content,
+            lineEndings: f.lineEndings
+        }))
+    };
+
+    await verifyFile(path.join(generatedFolder, 'result.txt'), testResult, 'text');
+}
+
+type GeneratedFileForTest = Omit<GeneratedFile, 'fileName'> & { fileName: string[] };
+type GenerateResultForTest = {
+    generatedFiles: GeneratedFileForTest[];
 }
 
 async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): Promise<void> {

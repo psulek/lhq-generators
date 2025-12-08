@@ -1,21 +1,30 @@
 {
   "generatedFiles": [
     {
-      "fileName": "Resources\\Strings.gen.cs",
-      "content": "",
+      "fileName": [
+        "Resources",
+        "Strings.gen.cs"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "CRLF"
     },
     {
-      "fileName": "Resources\\Strings.en.resx",
-      "content": "",
+      "fileName": [
+        "Resources",
+        "Strings.en.resx"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "LF"
     },
     {
-      "fileName": "Resources\\Strings.sk.resx",
-      "content": "",
+      "fileName": [
+        "Resources",
+        "Strings.sk.resx"
+      ],
       "bom": false,
+      "content": "",
       "lineEndings": "LF"
     }
   ]
