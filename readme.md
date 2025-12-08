@@ -6,7 +6,8 @@ Javascript library used by various LHQ application to parse, validate and run co
 
 - [Installation](#installation)
 - [Library](#library)
-- [LHQ Tempaltes](#lhq-templates)
+- [CLI](#cli)
+- [Code Templates](#code-templates)
 - [Applications](#applications)
 - [Changelog](./CHANGELOG.md)
 
@@ -64,7 +65,7 @@ Package supports these JS module types:
 
   ```ts
   import fs from 'node:fs/promises';
-  import { generatorUtils } from '@lhq/lhq-generators';
+  import { generatorUtils, ModelUtils } from '@lhq/lhq-generators';
   ```
 
 For both ESM & CJS, usage of required/imported module in your code:
@@ -82,7 +83,7 @@ For both ESM & CJS, usage of required/imported module in your code:
   const result = generatorUtils.validateLhqModel(model);
 
   // create 'root element' instance from LHQ model
-  const rootElement = generatorUtils.createRootElement(model);
+  const rootElement = ModelUtils.createRootElement(model);
   // traverse model categories/resources tree
   rootElement.categories.forEach((category) => {
       console.log(category.name);
@@ -113,18 +114,40 @@ For both ESM & CJS, usage of required/imported module in your code:
   ```
 
   > [!Note]
-  > - The `@lhq/lhq-generators` package contains file `browser\index.js` to be included in html page.
+  > - The `@lhq/lhq-generators` package contains file `browser\index.js` (or `browser\index.min.js`) to be included in html page.
   > - Browser script file has no external dependencies
 
-### LHQ Templates
+### CLI
 
-LHQ model files are used to generate custom files using handlebarsjs templates.
+The `@lhq/lhq-generators` package includes command line tool `lhqcmd`.
 
-- Templates are stored in the `hbs` folder of the package.
-- Name part of file name is used as template identifier in the LHQ model file.
-- For example, file `hbs/NetCoreResxCsharp01.hbs` an template id is `NetCoreResxCsharp01`.
-- Then generator loads the LHQ file, it reads the template id and loads the template from the package `hbs` folder.
-- The template is then invoked (by handlebarsjs engine) to generate the custom file(s) from the LHQ model.
+When installed as local package, add this to your `package.json` scripts section:
+
+```json
+  "scripts": {
+    "validate": "lhqcmd Strings.lhq validate",
+    "generate": "lhqcmd Strings.lhq -o ./temp"
+  }
+```
+
+When installed as global package, you can run `lhqcmd` from any folder:
+
+```bash
+  lhqcmd Strings.lhq validate
+  lhqcmd Strings.lhq -o ./temp
+```
+
+### Code Templates
+
+LHQ model files are used as source data for handlebarsjs templates to generate other custom files (currently C# source code files, resx resources, typescript files, json files).
+
+- Templates are stored in the `hbs` folder of the package with `.hbs` file extension
+- 1st line of each template file contains the template id
+  - example: `{{! template-id: NetCoreResxCsharp01 }}`
+- 2nd line contains description of the template
+  - example: `{{! template-name: Template which generates strongly typed C# and resource (*.resx) files }}`
+- Generator loads the LHQ file, it reads the template id and loads the template from the package `hbs` folder
+- The template is then executed (by handlebarsjs engine) to generate the custom file(s) against the LHQ model data
 
 > [!Note]
 >
@@ -133,27 +156,13 @@ LHQ model files are used to generate custom files using handlebarsjs templates.
 
 ### Applications
 
-Currently there are few applications that use the `@lhq/lhq-generators` package, made by LHQ team itself.
+Currently there are few applications that use the `@lhq/lhq-generators` package:
 
-#### Windows
-
-- standalone UI Windows Desktop application `LHQ.App.exe`
-- command line tool for windows `lhqcmd.exe`
-- Visual Studio 2019 /2022 extension
-  - [LHQ Editor](https://marketplace.visualstudio.com/items?itemName=scalehqsolutions.lhqeditor)
-  - [LHQ Editor VS2022](https://marketplace.visualstudio.com/items?itemName=scalehqsolutions.lhqeditorvs2022)
+- standalone Windows Desktop application `LHQ Editor App`
+- Windows command line tool `lhqcmd.exe`
+- Visual Studio extension
+- Visual Studio Code extension (Windows / Linux/ macOS)
 
 > [!Note]
-> Check [Github Releases](https://github.com/psulek/lhqeditor/releases) for the latest version of any of the above applications.
-
-#### Any OS
-
-This NPM package for LHQ model file generation `@lhq/lhq-generators`.
-
-- working with LHQ models (validate, generate) in code (with ts definitions)
-- run cmd line tool within nodejs context `lhqcmd`
-  - installed in `node_modules/.bin`
-  - run with npm: `npm run lhqcmd Strings.lhq validate`
-
-> [!Note]
-> Check npmjs registry for the latest version of this package: [@lhq/lhq-generators](https://www.npmjs.com/package/@lhq/lhq-generators).
+>
+> Read more about [LHQ applications](https://github.com/psulek/lhqeditor/wiki/LHQ-Editor-Applications).

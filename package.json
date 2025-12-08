@@ -1,6 +1,6 @@
 {
-  "name": "@lhq/lhq-generators",
-  "version": "1.0.0-rc.4",
+  "name": "lhq-generators",
+  "version": "1.0.0-rc.0",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -39,7 +39,7 @@
     "commander": "13.1.0",
     "detect-indent": "7.0.1",
     "fs-extra": "11.3.0",
-    "glob": "11.0.1",
+    "glob": "12.0.0",
     "handlebars": "4.7.8",
     "jmespath": "0.16.0",
     "minimist": "1.2.8",
@@ -87,5 +87,5 @@
     "tsx": "4.19.3",
     "typescript": "5.8.3"
   },
-  "packageManager": "pnpm@10.7.0"
+  "packageManager": "pnpm@10.22.0"
 }

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@lhq/lhq-generators':
-        specifier: 1.0.0-rc.16
-        version: 1.0.0-rc.16(typescript@5.8.3)
+        specifier: 1.0.0-rc.4
+        version: 1.0.0-rc.4(typescript@5.8.3)
     devDependencies:
       '@types/fs-extra':
         specifier: ^11.0.4
@@ -195,8 +195,8 @@ packages:
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
     engines: {node: '>=12'}
 
-  '@lhq/lhq-generators@1.0.0-rc.16':
-    resolution: {integrity: sha512-tLZit81uEomkI0fREHqvZzVDfCOPGiafMfTHSrzgspmFpZ3MV6niIregYPC3kXndbl/hhUx0EtDxqFmzMCzydA==}
+  '@lhq/lhq-generators@1.0.0-rc.4':
+    resolution: {integrity: sha512-3VAxwExNrssGqTYMaYUX0wlXqMnjxjWU0Omclbuyd0wfW7BBOd7nD4hiGj+ui84dVUWO9IZpf7HCRvNHGLW3mQ==}
     hasBin: true
     peerDependencies:
       typescript: ^5.0.2
@@ -378,6 +378,10 @@ packages:
   define-property@2.0.2:
     resolution: {integrity: sha512-jwK2UV4cnPpbcG7+VRARKTZPUWowwXA8bzH5NP6ud0oeAxyYPuGZUAC7hMugpCdz4BeSZl2Dl9k66CHJ/46ZYQ==}
     engines: {node: '>=0.10.0'}
+
+  detect-indent@7.0.1:
+    resolution: {integrity: sha512-Mc7QhQ8s+cLrnUfU/Ji94vG/r8M26m8f++vyres4ZoojaRDpZ1eSIh/EpzLNwlWuvzSZ3UbDFspjFvTDXe6e/g==}
+    engines: {node: '>=12.20'}
 
   duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
@@ -1126,11 +1130,12 @@ snapshots:
       wrap-ansi: 8.1.0
       wrap-ansi-cjs: wrap-ansi@7.0.0
 
-  '@lhq/lhq-generators@1.0.0-rc.16(typescript@5.8.3)':
+  '@lhq/lhq-generators@1.0.0-rc.4(typescript@5.8.3)':
     dependencies:
       '@commander-js/extra-typings': 13.1.0(commander@13.1.0)
       '@xmldom/xmldom': 0.9.8
       commander: 13.1.0
+      detect-indent: 7.0.1
       fs-extra: 11.3.0
       glob: 11.0.1
       handlebars: 4.7.8
@@ -1351,6 +1356,8 @@ snapshots:
     dependencies:
       is-descriptor: 1.0.3
       isobject: 3.0.1
+
+  detect-indent@7.0.1: {}
 
   duplexer@0.1.2: {}
 
