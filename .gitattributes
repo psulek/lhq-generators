@@ -1,2 +1,2 @@
-tests/snapshots/* binary
-tests/snapshots/**/* binary
+tests/data/** -text
+tests/snapshots/** binary
