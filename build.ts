@@ -288,6 +288,7 @@ export async function runMochaTests(): Promise<void> {
 
     const args = [mocha, '--delay', '-n tsx', '--enable-source-maps', colorArg, testFile];
 
+    console.log(`Running mocha tests... [${colorArg}]`);
     const { code, stdout, stderr } = await spawnAsync('node', args, { cwd, detached: false }, true);
     if (code !== 0) {
         throw new Error(`Some mocha tests failed (path '${cwd}')\n (code: ${code}) ${stdout || ''} ${stderr || ''}`);
