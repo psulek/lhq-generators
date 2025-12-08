@@ -39,8 +39,16 @@ jobs:
       #     tree -a -L 5 tests/snapshots/generated/TypescriptJson01v3/
       #   shell: bash
 
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build package
-        run: pnpm run build-all
+        run: pnpm run build-all --version=${{ steps.extract_version.outputs.version }}
 
       - name: Publish to GitHub Packages
         run: |
@@ -50,7 +58,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update release with package link
-        # if: github.event_name == 'release'
         uses: actions/github-script@v7
         with:
           script: |

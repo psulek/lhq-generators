@@ -24,7 +24,20 @@ let packageJson: Mutable<IPackageJson>;
 type EsBuildOptions = Parameters<NonNullable<Options['esbuildOptions']>>[0];
 
 const compileOnly = process.argv.findIndex(arg => arg === '--compile') > -1;
-const incVersion = process.argv.findIndex(arg => arg === '--version') > -1;
+const incVersion = process.argv.findIndex(arg => arg === '--incversion') > -1;
+
+let exactVersion = '';
+const extVerIdx = process.argv.findIndex(arg => arg === '--version');
+if (extVerIdx > -1) {
+    const values = process.argv[extVerIdx].split('=');
+    if (values.length === 2) {
+        exactVersion = values[1].trim();
+    }
+}
+
+if (exactVersion.length > 0 && incVersion) {
+    throw new Error(`Cannot use both --version and --incversion options together.`);
+}
 
 // const hbsMetadata: HbsMetadata = {
 //     templates: []
@@ -86,16 +99,9 @@ async function readPackageJson() {
 }
 
 async function preparePackageVersion() {
-    // const sourcePackageFile = path.join(__dirname, 'package.json');
-    // packageJson = await fse.readJson(sourcePackageFile, { encoding: 'utf-8' }) as Mutable<IPackageJson>;
+    const oldVersion = packageJson.version ?? '1.0.0';
 
     if (incVersion) {
-        // const args = 'version patch';
-        // const { code } = await spawnAsync('pnpm', args.split(' '), { cwd: __dirname, detached: false }, true);
-        // if (code !== 0) {
-        //     throw new Error(`Failed to update package version (code: ${code})`);
-        // }
-
         let release = 'prerelease';
         let identifier = 'rc';
 
@@ -112,15 +118,16 @@ async function preparePackageVersion() {
         const newVersion = semver.inc(currentVersion, release as ReleaseType, identifier);
         if (newVersion) {
             packageJson.version = newVersion;
-
-            //await savePackageJson(pkg, packageJsonFile);
-            await fse.writeJson(sourcePackageFile, packageJson, { encoding: 'utf-8', spaces: 2 });
         }
-
-
-        console.log(newVersion);
+    }
+    
+    if (exactVersion.length > 0) {
+        packageJson.version = exactVersion;
     }
 
+    if (oldVersion !== packageJson.version) {
+        await fse.writeJson(sourcePackageFile, packageJson, { encoding: 'utf-8', spaces: 2 });
+    }
 
     console.log('Updated local version to ' + pc.blueBright(packageJson.version));
 }
