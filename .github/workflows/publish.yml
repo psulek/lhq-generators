@@ -41,10 +41,10 @@ jobs:
     #     env:
     #       MOCHA_COLORS: '0'
 
-    #   - name: Print directory tree
-    #     run: |
-    #       tree -a -L 5
-    #     shell: bash
+      - name: Print directory tree
+        run: |
+          tree -a -L 5 tests/snapshots/generated/TypescriptJson01v3/
+        shell: bash
 
       - name: Build package
         run: pnpm run build-all

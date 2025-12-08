@@ -344,11 +344,11 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
             const file = path.join(folders().data, 'misc', 'Strings_Values_Sanitize.lhq');
             const content = await safeReadFile(file);
             const formatting = detectFormatting(content);
-            console.log(' loadAndSerialize> detected formatting: ', formatting);
+            //console.log(' loadAndSerialize> detected formatting: ', formatting);
 
             const json2 = ModelUtils.loadAndSerialize(content, undefined, formatting);
-            const formatting2 = detectFormatting(json2);
-            console.log(' loadAndSerialize> re-serialized formatting: ', formatting2);
+            // const formatting2 = detectFormatting(json2);
+            // console.log(' loadAndSerialize> re-serialized formatting: ', formatting2);
             await verify('model', `load-and-serialize-01`, json2, 'text', 'json');
         });
 
