@@ -26,8 +26,7 @@ setTimeout(async () => {
     }
 
     const lhqFiles = await glob('**/*.lhq', { cwd: folders().templates, nodir: true });
-    // const lhqFiles = ['NetCoreResxCsharp01\\Strings.lhq'];
-    //const lhqFiles = ['Misc\\Strings_Values_Sanitize.lhq'];
+    // const lhqFiles = [path.join('Misc','Strings_Values_Sanitize.lhq')];
 
     describe('serialize and deserialize in memory (model)', () => {
         lhqFiles.forEach(lhqFile => {
@@ -442,7 +441,7 @@ N\u2060O\u2061P\u2062Q\u2063R\u2064S
 
     describe('LHQ Model operations', () => {
         it('get tree paths', async function () {
-            const lhqFile = 'NetCoreResxCsharp01\\Strings.lhq';
+            const lhqFile = path.join('NetCoreResxCsharp01','Strings.lhq');
             const file = path.join(folders().templates, lhqFile);
             const content = await safeReadFile(file);
             const model = JSON.parse(content) as LhqModel;
