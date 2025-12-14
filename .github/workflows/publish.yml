@@ -3,7 +3,6 @@ name: Publish Package
 on:
   release:
     types: [published]
-  workflow_dispatch:
 
 env:
   NODE_VERSION: '20.x'
@@ -23,6 +22,9 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v4
@@ -35,21 +37,50 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # - name: Print directory tree
-      #   run: |
-      #     tree -a -L 5 tests/snapshots/generated/TypescriptJson01v3/
-      #   shell: bash
+    #   - name: Extract version from tag
+    #     id: extract_version
+    #     run: |
+    #       TAG="${{ github.event.release.tag_name }}"
+    #       VERSION=${TAG#v}
+    #       echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+    #     shell: bash
 
-      - name: Extract version from tag
-        id: extract_version
+      - name: Validate release tag value
+        id: validate_tag
+        uses: ./.github/actions/validate-tag
+        with:
+          tag: ${{ github.event.release.tag_name }}
+          compare_package_version: 'false'
+
+      - name: Update tag environment variables
+        run: | 
+          echo "PACKAGE_NAME=${{ steps.validate_tag.outputs.package_name }}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=${{ steps.validate_tag.outputs.package_version }}" >> $GITHUB_ENV
+          echo "TAG_VALID=${{ steps.validate_tag.outputs.tag_valid }}" >> $GITHUB_ENV
+
+      - name: Check for existing published version on registry
+        if: env.TAG_VALID == '1'
+        id: check_published
         run: |
-          TAG="${{ github.event.release.tag_name }}"
-          VERSION=${TAG#v}
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        shell: bash
+          echo "::notice::Checking if version $PACKAGE_VERSION of package $PACKAGE_NAME is already published."
+
+          PUBLISHED=$(pnpm view $PACKAGE_NAME@$PACKAGE_VERSION --registry ${{ env.REGISTRY_URL }} version 2>/dev/null || echo "")
+
+          if [ "$PUBLISHED" != "" ]; then
+            echo "::error::Version $PACKAGE_VERSION of package $PACKAGE_NAME is already published."
+            echo "TAG_VALID=0" >> $GITHUB_ENV
+          else
+            echo "::notice::Version $PACKAGE_VERSION of package $PACKAGE_NAME is not published yet. Proceeding..."
+          fi
+
+      - name: Mark release as draft on invalid release tag
+        if: env.TAG_VALID == '0'
+        uses: ./.github/actions/mark-draft
+        with:
+          reason: "Invalid tag format"
 
       - name: Build package
-        run: pnpm run build-all --version=${{ steps.extract_version.outputs.version }}
+        run: pnpm run build-all --version=$PACKAGE_VERSION
 
       - name: Publish to GitHub Packages
         run: |
