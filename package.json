@@ -1,6 +1,6 @@
 {
   "name": "@psulek/lhq-generators",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -83,7 +83,6 @@
     "eslint-plugin-jsdoc": "50.6.9",
     "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-tsdoc": "0.4.0",
-    "get-npm-tarball-url": "2.1.0",
     "mocha": "11.1.0",
     "package-json-type": "1.0.3",
     "rimraf": "6.0.1",
