@@ -38,6 +38,21 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm add -g vsce semver
 
+      - name: Update release with package link
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pkgversion = process.env.PACKAGE_VERSION;
+            const info = github.rest.packages.getPackageVersionForOrganization({
+              package_type: 'npm',
+              package_name: 'lhq-generators',
+              org: 'psulek',
+              package_version_id: pkgversion,
+            });
+
+            core.info(`Package info: ${JSON.stringify(info.data)}`);
+            process.exit(1);
+
       - name: Validate release tag value
         id: validate_tag
         uses: ./.github/actions/validate-tag
