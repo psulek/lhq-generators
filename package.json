@@ -1,6 +1,6 @@
 {
   "name": "@psulek/lhq-generators",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Peter Šulek",
   "description": "LHQ generators library",
   "keywords": [],
@@ -35,7 +35,8 @@
     "check-tests": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./tests/index.spec.ts",
     "check-src": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./src/index.ts ./src/cli.ts",
     "test": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts",
-    "test2": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts  --reporter mocha-reporter.js"
+    "test2": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts  --reporter mocha-reporter.js",
+    "test1": "tsx test1.ts"
   },
   "dependencies": {
     "@commander-js/extra-typings": "13.1.0",
@@ -82,6 +83,7 @@
     "eslint-plugin-jsdoc": "50.6.9",
     "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-tsdoc": "0.4.0",
+    "get-npm-tarball-url": "2.1.0",
     "mocha": "11.1.0",
     "package-json-type": "1.0.3",
     "rimraf": "6.0.1",

@@ -39,20 +39,6 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm add -g vsce semver
 
-      - name: Update release with package link
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const pkgversion = process.env.PACKAGE_VERSION;
-            const info = github.rest.packages.getPackageForOrganization({
-              package_type: 'npm',
-              package_name: 'lhq-generators',
-              org: 'psulek'
-            });
-
-            core.info(`Package info: ${JSON.stringify(info.data)}`);
-            process.exit(1);
-
       - name: Validate release tag value
         id: validate_tag
         uses: ./.github/actions/validate-tag
@@ -92,16 +78,54 @@ jobs:
         run: pnpm run build-all --version=$PACKAGE_VERSION
 
       - name: Publish to GitHub Packages
-        run: |
-          set -e
-          cd dist
-          if pnpm publish --access public --provenance --no-git-checks; then
-            echo "PUBLISH_SUCCESS=1" >> $GITHUB_ENV
-          else
-            echo "PUBLISH_SUCCESS=0" >> $GITHUB_ENV
-          fi
+        uses: actions/github-script@v7
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            try {
+              const fs = require('fs');
+              const path = require('path');
+  
+              const version = process.env.PACKAGE_VERSION;
+              const packageName = process.env.PACKAGE_NAME;
+              
+              // Move to dist directory
+              process.chdir('dist');
+
+              core.info(`Creating package for '${packageName}' version '${version}' ...`);
+              let exitCode = await exec.exec('pnpm', ['pack']);
+              
+              if (exitCode !== 0) {
+                  throw new Error(`Creating package failed with exit code ${exitCode}`);
+              }
+
+              const packageTar = `psulek-lhq-generators-${version}.tgz`;
+
+              if (!fs.existsSync(packageTar)) {
+                throw new Error(`Package file '${packageTar}' not found after pack.`);
+              }
+    
+              let exitCode = await exec.exec('pnpm', `publish --access public --provenance --no-git-checks`);
+              if (exitCode !== 0) {
+                  throw new Error(`Package publishing failed with exit code ${exitCode}`);
+              }
+  
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: context.payload.release.id,
+                name: path.basename(packageTar),
+                data: await fs.promises.readFile(packageTar)
+              });
+
+              core.notice(`File '${packageTar}' was attached to the release successfully.`);
+              
+              core.exportVariable('PUBLISH_SUCCESS', '1');
+            } catch (error) {
+              core.error(`Error during package publishing: ${err}`);
+              core.exportVariable('PUBLISH_SUCCESS', '0');
+            }
 
       - name: Mark release as draft on package publish failure
         if: env.PUBLISH_SUCCESS == '0'
@@ -113,15 +137,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const info = github.rest.packages.getPackageVersionForOrganization({
-              package_type: 'npm',
-              package_name: 'lhq-generators',
-              org: 'psulek',
-              package_version_id: $PACKAGE_VERSION,
-            });
-
-            core.info(`Package info: ${JSON.stringify(info.data)}`);
-
             const package_url = `https://github.com/${context.repo.owner}/${context.repo.repo}/pkgs/npm/lhq-generators`;
             const release = await github.rest.repos.getRelease({
               owner: context.repo.owner,
