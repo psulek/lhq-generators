@@ -106,7 +106,7 @@ jobs:
                 throw new Error(`Package file '${packageTar}' not found after pack.`);
               }
     
-              let exitCode = await exec.exec('pnpm', `publish --access public --provenance --no-git-checks`);
+              exitCode = await exec.exec('pnpm', `publish --access public --provenance --no-git-checks`);
               if (exitCode !== 0) {
                   throw new Error(`Package publishing failed with exit code ${exitCode}`);
               }
