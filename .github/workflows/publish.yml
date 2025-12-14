@@ -78,10 +78,21 @@ jobs:
 
       - name: Publish to GitHub Packages
         run: |
+          set -e
           cd dist
-          pnpm publish --access public --provenance --no-git-checks
+          if pnpm publish --access public --provenance --no-git-checks; then
+            echo "PUBLISH_SUCCESS=1" >> $GITHUB_ENV
+          else
+            echo "PUBLISH_SUCCESS=0" >> $GITHUB_ENV
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mark release as draft on package publish failure
+        if: env.PUBLISH_SUCCESS == '0'
+        uses: ./.github/actions/mark-draft
+        with:
+          reason: "Package publish failed"
 
       - name: Update release with package link
         uses: actions/github-script@v7
