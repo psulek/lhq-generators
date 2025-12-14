@@ -106,7 +106,7 @@ jobs:
                 throw new Error(`Package file '${packageTar}' not found after pack.`);
               }
     
-              exitCode = await exec.exec('pnpm', `publish --access public --provenance --no-git-checks`);
+              exitCode = await exec.exec('pnpm', ['publish','--access','public','--provenance','--no-git-checks']);
               if (exitCode !== 0) {
                   throw new Error(`Package publishing failed with exit code ${exitCode}`);
               }
@@ -122,7 +122,7 @@ jobs:
               core.notice(`File '${packageTar}' was attached to the release successfully.`);
               
               core.exportVariable('PUBLISH_SUCCESS', '1');
-            } catch (error) {
+            } catch (err) {
               core.error(`Error during package publishing: ${err}`);
               core.exportVariable('PUBLISH_SUCCESS', '0');
             }
