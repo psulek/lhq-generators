@@ -36,8 +36,6 @@ runs:
         allow_prerelease="${{ inputs.allow_prerelease }}"
         compare_package_version="${{ inputs.compare_package_version }}"
         
-        echo "::notice::TAG: $TAG"
-
         # Check if TAG starts with "v" and length is more than 1
         if [[ "${allow_prerelease}" == "true" && ( "${TAG:0:1}" != "v" || "${#TAG}" -le 1 ) ]]; then
           echo "::error::Release tag '$TAG' must start with 'v' and be longer than 1 character"
@@ -52,8 +50,7 @@ runs:
         fi
 
         TAG_VERSION=${TAG#v}
-        echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
-        
+        echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT       
 
         if ! semver "$TAG_VERSION" &> /dev/null; then
           echo "::error::Release tag version '$TAG_VERSION' is not a valid semantic version."

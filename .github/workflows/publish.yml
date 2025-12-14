@@ -57,7 +57,7 @@ jobs:
       - name: Update tag environment variables
         run: | 
           echo "PACKAGE_NAME=${{ steps.validate_tag.outputs.package_name }}" >> $GITHUB_ENV
-          echo "PACKAGE_VERSION=${{ steps.validate_tag.outputs.package_version }}" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=${{ steps.validate_tag.outputs.tag_version }}" >> $GITHUB_ENV
           echo "TAG_VALID=${{ steps.validate_tag.outputs.tag_valid }}" >> $GITHUB_ENV
 
       - name: Check for existing published version on registry
