@@ -3,6 +3,7 @@ name: Publish Package
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20.x'
@@ -43,11 +44,10 @@ jobs:
         with:
           script: |
             const pkgversion = process.env.PACKAGE_VERSION;
-            const info = github.rest.packages.getPackageVersionForOrganization({
+            const info = github.rest.packages.getPackageForOrganization({
               package_type: 'npm',
               package_name: 'lhq-generators',
-              org: 'psulek',
-              package_version_id: pkgversion,
+              org: 'psulek'
             });
 
             core.info(`Package info: ${JSON.stringify(info.data)}`);
