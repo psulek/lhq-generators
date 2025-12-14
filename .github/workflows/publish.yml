@@ -35,7 +35,9 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm add -g vsce semver
 
     #   - name: Extract version from tag
     #     id: extract_version
@@ -50,6 +52,7 @@ jobs:
         uses: ./.github/actions/validate-tag
         with:
           tag: ${{ github.event.release.tag_name }}
+          allow_prerelease: 'true'
           compare_package_version: 'false'
 
       - name: Update tag environment variables

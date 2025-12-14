@@ -5,6 +5,10 @@ inputs:
     description: Release tag (e.g. v1.2.3)
     required: true
     default: ''
+  allow_prerelease:
+    description: Whether to allow prerelease versions
+    required: true
+    default: 'false'
   compare_package_version:
     description: Whether to compare with package.json version
     required: false
@@ -29,9 +33,19 @@ runs:
       id: validate
       run: |
         TAG="${{ inputs.tag }}"
+        allow_prerelease="${{ inputs.allow_prerelease }}"
+        compare_package_version="${{ inputs.compare_package_version }}"
+        
         echo "::notice::TAG: $TAG"
 
-        if [[ ! "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        # Check if TAG starts with "v" and length is more than 1
+        if [[ "${allow_prerelease}" == "true" && ( "${TAG:0:1}" != "v" || "${#TAG}" -le 1 ) ]]; then
+          echo "::error::Release tag '$TAG' must start with 'v' and be longer than 1 character"
+          echo "tag_valid=0" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        if [[ "${allow_prerelease}" != "true" && (! "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ) ]]; then
           echo "::error::Release tag '$TAG' is not in the format vX.Y.Z"
           echo "tag_valid=0" >> $GITHUB_OUTPUT
           exit 0
@@ -39,6 +53,7 @@ runs:
 
         TAG_VERSION=${TAG#v}
         echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+        
 
         if ! semver "$TAG_VERSION" &> /dev/null; then
           echo "::error::Release tag version '$TAG_VERSION' is not a valid semantic version."
@@ -49,8 +64,6 @@ runs:
         eval $(jq -r '"PACKAGE_VERSION=\(.version)\nPACKAGE_NAME=\(.name)"' package.json)
         echo "package_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
         echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
-
-        compare_package_version="${{ inputs.compare_package_version }}"
 
         if [[ "$compare_package_version" == "true" && "$TAG_VERSION" != "$PACKAGE_VERSION" ]]; then
           echo "::error::Release tag version '$TAG_VERSION' does not match package.json version '$PACKAGE_VERSION'."
