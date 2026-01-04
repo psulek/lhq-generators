@@ -81,7 +81,7 @@ jobs:
         run: pnpm test
 
       - name: Build package
-        run: pnpm run build-all --compile --version=$PACKAGE_VERSION
+        run: pnpm run build-all --notests --version=$PACKAGE_VERSION
 
       - name: Publish to GitHub Packages
         uses: actions/github-script@v7

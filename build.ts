@@ -21,6 +21,7 @@ type EsBuildOptions = Parameters<NonNullable<Options['esbuildOptions']>>[0];
 
 const compileOnly = process.argv.findIndex(arg => arg === '--compile') > -1;
 const incVersion = process.argv.findIndex(arg => arg === '--incversion') > -1;
+const noTests = process.argv.findIndex(arg => arg === '--notests') > -1;
 
 let exactVersion = '';
 const extVerIdx = process.argv.findIndex(arg => arg.startsWith('--version'));
@@ -52,7 +53,9 @@ void (async () => {
                 buildDts(),
             ]);
         } else {
-            await runMochaTests();
+            if (!noTests) {
+                await runMochaTests();
+            }
             await preparePackageVersion();
 
             await Promise.all([
