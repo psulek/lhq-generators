@@ -13,29 +13,47 @@ Javascript library used by various LHQ application to parse, validate and run co
 
 ### Installation
 
-To install the `@lhq/lhq-generators` package, use the following command:
+To install the `@psulek/lhq-generators` package, you need:
+
+#### Create Github PAT token
+
+Create PAT (Personal Access Token) with permissions "read:packages" in your GitHub account settings -> [Personal Access Tokens (classic)](https://github.com/settings/tokens).
+
+#### Update npm configuration
+
+Add the following lines to your npm configuration file `.npmrc` (in your user home folder or in your project folder):
+
+```ini
+registry=https://registry.npmjs.org/
+@psulek:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_PERSONAL_ACCESS_TOKEN
+```
+
+#### Install package
+
+use the following command:
 
 **npm:**
 
 ```bash
-npm install @lhq/lhq-generators
+npm install @psulek/lhq-generators
 ```
 
 **yarn:**
 
 ```bash
-yarn add @lhq/lhq-generators
+yarn add @psulek/lhq-generators
 ```
 
 **pnpm:**
 
 ```bash
-pnpm install @lhq/lhq-generators
+pnpm install @psulek/lhq-generators
 ```
 
 ### Library
 
-The `@lhq/lhq-generators` library package includes the following features:
+The `@psulek/lhq-generators` library package includes the following features:
 
 - **LHQ model API**
   - validation of LHQ model files `*.lhq` against the LHQ schema
@@ -52,20 +70,20 @@ Package supports these JS module types:
 
 - CommonJS (CJS)
   
-  require `@lhq/lhq-generators` package in your code:
+  require `@psulek/lhq-generators` package in your code:
 
   ```js
   const fs = require('fs/promises');
-  const generatorUtils = require('@lhq/lhq-generators').generatorUtils;
+  const generatorUtils = require('@psulek/lhq-generators').generatorUtils;
   ```
 
 - ES Module (ESM)
   
-  import `@lhq/lhq-generators` package in your code:
+  import `@psulek/lhq-generators` package in your code:
 
   ```ts
   import fs from 'node:fs/promises';
-  import { generatorUtils, ModelUtils } from '@lhq/lhq-generators';
+  import { generatorUtils, ModelUtils } from '@psulek/lhq-generators';
   ```
 
 For both ESM & CJS, usage of required/imported module in your code:
@@ -114,12 +132,12 @@ For both ESM & CJS, usage of required/imported module in your code:
   ```
 
   > [!Note]
-  > - The `@lhq/lhq-generators` package contains file `browser\index.js` (or `browser\index.min.js`) to be included in html page.
+  > - The `@psulek/lhq-generators` package contains file `browser\index.js` (or `browser\index.min.js`) to be included in html page.
   > - Browser script file has no external dependencies
 
 ### CLI
 
-The `@lhq/lhq-generators` package includes command line tool `lhqcmd`.
+The `@psulek/lhq-generators` package includes command line tool `lhqcmd`.
 
 When installed as local package, add this to your `package.json` scripts section:
 
@@ -156,7 +174,7 @@ LHQ model files are used as source data for handlebarsjs templates to generate o
 
 ### Applications
 
-Currently there are few applications that use the `@lhq/lhq-generators` package:
+Currently there are few applications that use the `@psulek/lhq-generators` package:
 
 - standalone Windows Desktop application `LHQ Editor App`
 - Windows command line tool `lhqcmd.exe`
