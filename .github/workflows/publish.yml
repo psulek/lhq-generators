@@ -141,7 +141,7 @@ jobs:
       - name: Add CLI tools assets to the release
         uses: softprops/action-gh-release@v2
         with:
-          body: '\n\n---\n\n📦 **Package:** [View on GitHub Packages](${{ env.PACKAGE_URL }})'
+          body: '📦 **Package:** [View on GitHub Packages](${{ env.PACKAGE_URL }})'
           append_body: true
           tag_name: ${{ github.event.release.tag_name }}
           files: ${{ env.PACKAGE_PATH }}
