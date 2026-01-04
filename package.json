@@ -34,8 +34,8 @@
     "eslint": "eslint",
     "check-tests": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./tests/index.spec.ts",
     "check-src": "pnpm exec tsc --noEmit --moduleResolution nodenext --module nodenext ./src/index.ts ./src/cli.ts",
-    "test": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts",
-    "test2": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts  --reporter mocha-reporter.js",
+    "test0": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts",
+    "test": "pnpm run check-tests && mocha --delay ./tests/index.spec.ts  --reporter mocha-reporter.js",
     "test1": "tsx test1.ts"
   },
   "dependencies": {

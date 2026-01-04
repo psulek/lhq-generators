@@ -1,19 +1,15 @@
 import path from 'node:path';
-import { exec, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { glob } from 'glob';
 import semver, { type ReleaseType } from 'semver';
 
 import { build, type Options } from 'tsup';
-//type TsupBuildOptions = Parameters<typeof build>[0];
 
 import fse from 'fs-extra';
 import type { IPackageJson } from 'package-json-type';
 import pc from 'picocolors'
 
 import { generateLhqSchema, validateTemplateMetadata } from './src/generatorUtils';
-// import type { HbsMetadata } from './src/hbsMetadata';
-//import type { TemplatesMetadata } from './src/api/templates';
-// import {type TemplatesMetadata } from './src/api/templates';
 
 
 const distFolder = path.join(__dirname, 'dist');
@@ -39,12 +35,6 @@ if (exactVersion.length > 0 && incVersion) {
     throw new Error(`Cannot use both --version and --incversion options together.`);
 }
 
-// const hbsMetadata: HbsMetadata = {
-//     templates: []
-// };
-
-// let templatesMetadata: TemplatesMetadata | undefined;
-
 void (async () => {
     try {
         await fse.ensureDir(distFolder);
@@ -55,8 +45,6 @@ void (async () => {
 
         if (compileOnly) {
             await Promise.all([
-                // buildLib('cjs'),
-                // buildLib('esm')
                 buildLib('browser'),
                 buildLib('cjs'),
                 buildLib('esm'),
@@ -86,9 +74,7 @@ void (async () => {
 
 function updateBuildOptions(opts: EsBuildOptions): void {
     opts.define = {
-        'PKG_VERSION': `'${packageJson.version}'`,
-        // 'HBS_METADATA': JSON.stringify(hbsMetadata)
-        //'TEMPLATES_METADATA': JSON.stringify(templatesMetadata)
+        'PKG_VERSION': `'${packageJson.version}'`
     };
 }
 
@@ -219,7 +205,6 @@ async function buildCli() {
         sourcemap: false,
         dts: false,
         clean: false,
-        //tsconfig: 'tsconfig.build.json',
         esbuildOptions(esOpts) {
             esOpts.outfile = outfile;
             esOpts.platform = 'node';
@@ -271,8 +256,6 @@ async function copyExtraFiles() {
         const targetFile = path.join(__dirname, 'dist', file);
         await fse.copy(srcFile, targetFile);
     }));
-
-
 }
 
 async function genLhqSchema() {
@@ -282,7 +265,6 @@ async function genLhqSchema() {
     const lhqSchemaFile = path.join(__dirname, 'dist', schenameFileName);
     const schemaJson = generateLhqSchema();
     await fse.writeFile(lhqSchemaFile, schemaJson);
-    //await fse.copy(lhqSchemaFile, path.join(__dirname, schenameFileName));
 }
 
 export async function runMochaTests(): Promise<void> {
@@ -377,41 +359,4 @@ async function readHbsMetadata() {
     if (!result.success) {
         throw new Error(`Validation of ${metadataFile} failed: ${result.error}`);
     }
-
-    // templatesMetadata = result.metadata;
-
-    //templatesMetadata;
-
-    // const hbsFiles = await glob('*.hbs', { cwd: path.join(__dirname, 'hbs'), nodir: true });
-
-    // // regex match for string: {{! template-id: NetCoreResxCsharp01 }}, result text is eg: NetCoreResxCsharp01
-    // const templateIdRegex = /{{!\s*template-id:\s*([a-zA-Z0-9_-]+)\s*}}/;
-    
-    // // regex match for string: {{! template-name: Description }}, result text is eg: Description
-    // const templateNameRegex = /{{!\s*template-name:\s*([\s\S]+?)\s*}}/;
-
-    // // regex match for string: {{! template-type: child }}, result text is eg: child
-    // const templateTypeRegex = /{{!\s*template-type:\s*([a-zA-Z0-9_-]+)\s*}}/;
-
-    // await Promise.all(hbsFiles.map(async (file) => {
-    //     const filePath = path.join(__dirname, 'hbs', file);
-    //     const content = await fse.readFile(filePath, { encoding: 'utf-8' });
-    //     const matchId = content.match(templateIdRegex);
-    //     const templateId = matchId ? matchId[1] : undefined;
-
-    //     const matchName = content.match(templateNameRegex);
-    //     const templateName = matchName ? matchName[1] : undefined;
-
-    //     if (!templateId || !templateName) {
-    //         throw new Error(`Template file ${file} is missing template-id or template-name comment.`);
-    //     }
-
-    //     const matchType = content.match(templateTypeRegex);
-    //     const type = matchType ? matchType[1] : 'root';
-    //     if (type !== 'root' && type !== 'child') {
-    //         throw new Error(`Template file ${file} has invalid template-type: ${type}. Expected 'root' or 'child'.`);
-    //     }
-
-    //     hbsMetadata.templates.push({ id: templateId, name: templateName, type: type});
-    // }));
 }
