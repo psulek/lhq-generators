@@ -145,7 +145,8 @@ jobs:
         with:
           reason: "Package publish failed"
 
-      - name: Add CLI tools assets to the release
+      - name: Add published package to the release
+        if: env.PUBLISH_SUCCESS == '1'
         uses: softprops/action-gh-release@v2
         with:
           body: '📦 **Package:** [View on GitHub Packages](${{ env.PACKAGE_URL }})'
