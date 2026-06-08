@@ -33,7 +33,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                     break;
                 }
             case 'string':
-                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                // oxlint-disable-next-line typescript/no-base-to-string
                 return valueType === 'string' ? value : String(value);
             case 'list':
                 {
@@ -233,7 +233,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
 
     private validateProperty(group: string, property: TemplateMetadataGroupSettings | undefined, value: unknown): TemplateMetadataSettingValidationResult {
         if (property) {
-            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            // oxlint-disable-next-line @typescript-eslint/no-base-to-string
             if (property.required && (isNullOrEmpty(value) || (property.type === 'string' && value.toString().trim() === ''))) {
                 return {
                     error: `${group} / '${property.name}' value is required.`,
@@ -242,11 +242,11 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
             }
 
             if (property.validators && property.validators.length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                 const strValue = typeof value === 'string' ? value : (value as any).toString();
                 for (const validator of property.validators) {
                     const regex = new RegExp(validator.regex, validator.flags);
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    // oxlint-disable-next-line @typescript-eslint/no-unsafe-argument
                     if (!regex.test(strValue)) {
                         return validator;
                     }
@@ -293,7 +293,7 @@ export class CodeGeneratorSettingsConvertor implements ICodeGeneratorSettingsCon
                                     groupNode.attrs![name] = property.default.toString();
                                 }
                             } else {
-                                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                                // oxlint-disable-next-line @typescript-eslint/no-base-to-string
                                 groupNode.attrs![name] = value.toString();
                             }
                         }

@@ -405,7 +405,7 @@ export class ModelUtils {
         const throwOnInvalidName = options.throwOnInvalidName ?? false;
 
         if (mode !== 'merge' && mode !== 'importAsNew') {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            // oxlint-disable-next-line typescript/restrict-template-expressions
             throw new Error(`Invalid mode: ${mode}. Expected 'merge' or 'importAsNew'.`);
         }
 

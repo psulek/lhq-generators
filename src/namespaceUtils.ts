@@ -99,7 +99,7 @@ export function getRootNamespaceFromCsProj(lhqModelFileName: FileInfo, t4FileNam
             // Running in a browser, use built-in DOMParser
             DOMParser = window.DOMParser;
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line typescript/no-unsafe-assignment, typescript/no-explicit-any
             DOMParser = xmlDomParser as any;
         }
 

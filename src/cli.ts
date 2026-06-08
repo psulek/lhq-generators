@@ -250,7 +250,7 @@ async function saveGenFile(generatedFile: GeneratedFile, outputPath?: string): P
 //     await Promise.all(fixWorks);
 // }
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
+// oxlint-disable-next-line typescript/no-floating-promises
 (async () => {
     try {
 
@@ -400,7 +400,7 @@ ${pc.bold('Examples:')}
             await program.parseAsync([rootCmd, ...args], { from: 'user' });
         }
     } catch (error) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         console.error(pc.redBright((error as any).toString()));
     }
 })();

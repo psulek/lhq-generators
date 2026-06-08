@@ -84,12 +84,12 @@ export abstract class TreeElement<TModel extends ILhqModelType> extends TreeElem
 
         if (keepData === true && !isNullOrEmpty(this._data)) {
             const dataKeys = keepDataKeys ?? Object.keys(this._data);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            // oxlint-disable-next-line typescript/no-explicit-any, typescript/no-unsafe-member-access
             (model as any)._data = {};
             
             for (const [key, value] of Object.entries(this._data)) {
                 if (dataKeys.includes(key)) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+                    // oxlint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
                     (model as any)._data[key] = value;
                 }
             }

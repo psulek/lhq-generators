@@ -223,9 +223,9 @@ type defaultValuesHelperArgs = {
 type valueHelperArgs = defaultValuesHelperArgs & queryObjType;
 
 function valueHelper() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line typescript/ban-ts-comment
     //@ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<valueHelperArgs>(this, ...arguments);
     const defaultValue = options.hash?.default;
     const defaultOnEmpty = options.hash?.defaultOnEmpty ?? false;
@@ -235,7 +235,7 @@ function valueHelper() {
 
 // function selectValueHelper(items: unknown[]) {
 function selectValueHelper() {
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const items: unknown[] = [...arguments];
     while (items.length > 0) {
         const item = items.shift();
@@ -253,9 +253,9 @@ function selectValueHelper() {
 type splitHelperArgs = { sep?: string };
 
 function splitHelper() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<splitHelperArgs>(this, ...arguments);
     if (typeof context !== 'string') return context;
 
@@ -281,7 +281,7 @@ function joinHelper(items: unknown[], options: HbsDataContext<joinHelperArgs>) {
 
     if (end > len) end = len;
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    // oxlint-disable-next-line @typescript-eslint/restrict-template-expressions
     return items.map(x => `${decorator}${x}${decorator}`).slice(start, end).join(separator);
 }
 
@@ -372,7 +372,7 @@ function logicalHelper(input: unknown, value: unknown, options: HbsDataContext<l
 
 function mergeHelper(...args: unknown[]): unknown {
     const options = args.pop() as HbsDataContext;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     const context = (args.length === 0 ? this : args.shift()) as object;
 
@@ -386,7 +386,7 @@ function mergeHelper(...args: unknown[]): unknown {
         try {
             result = options.fn(context);
         } finally {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             removeProperties(context, ...args, options.hash ?? {});
         }
@@ -443,9 +443,9 @@ type testHelperArgs = {
 }
 
 function testHelper(): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<testHelperArgs>(this, ...arguments);
     const condition = context;
 
@@ -467,14 +467,14 @@ function isNotNullOrEmptyHelper(input: unknown): boolean {
     return !isNullOrEmpty(input);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+// oxlint-disable-next-line @typescript-eslint/no-unsafe-function-type
 function callFunctionHelper(fn: Function, ...args: unknown[]): unknown {
     let fnArgs: unknown[] = [];
     if (arguments.length > 0) {
         fnArgs = args.slice(0, -1);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-call
     return fnArgs.length === 0 ? fn() : fn(...fnArgs);
 }
 
@@ -496,9 +496,9 @@ type stringifyHelperArgs = {
 }
 
 function stringifyHelper() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<stringifyHelperArgs>(this, ...arguments);
     let space = options.hash?.space ?? undefined;
 
@@ -528,7 +528,7 @@ function typeOfHelper(context: unknown) {
     if (typeof context === 'object') {
         return context.constructor ? context.constructor.name : 'object';
     } else {
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
+        // oxlint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
         return context === undefined ? 'undefined' : `${context}[${typeof context}]`;
     }
 }
@@ -542,9 +542,9 @@ type modalDataHelperArgs = {
 } & defaultValuesHelperArgs & queryObjType;
 
 function modelDataHelper() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<modalDataHelperArgs>(this, ...arguments);
 
 
@@ -564,7 +564,7 @@ function modelDataHelper() {
         throw new AppError(options.hash?.error ?? 'Template validation failure !', undefined, AppErrorKinds.templateValidationError, errorCode);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     setCustomData(this, options, value, forceToRoot);
 }
@@ -597,9 +597,9 @@ type modelOutputArgs = {
 const modelOutputFlags: queryObjFlags = { undefinedForDefault: true, allowHash: false };
 
 function modelOutputHelper() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<modelOutputArgs>(this, ...arguments);
 
     if (!(context instanceof TemplateRootModel)) {
@@ -690,9 +690,9 @@ type modelOutputInlineArgs = modelOutputArgs;
 const modelOutputInlineFlags: queryObjFlags = { undefinedForDefault: true, allowHash: true, allowFn: false };
 
 function modelOutputInlineHelper() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    // eslint-disable-next-line prefer-rest-params
+    // oxlint-disable-next-line prefer-rest-params
     const { context, options } = getContextAndOptions<modelOutputInlineArgs>(this, ...arguments);
 
     if (!(context instanceof TemplateRootModel)) {

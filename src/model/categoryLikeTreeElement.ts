@@ -106,7 +106,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
     }
 
     public contains(name: string, elementType: CategoryOrResourceType): boolean {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line typescript/no-unsafe-argument, typescript/no-explicit-any
         return this.find(name, elementType as any) !== undefined;
     }
 
@@ -117,7 +117,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
             throw new Error('Element name cannot be null or undefined.');
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (elementType === 'model') {
             throw new Error('Model element cannot be retrieved by name.');
@@ -133,7 +133,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
             throw new Error('Element paths cannot be null or undefined.');
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (elementType === 'model') {
             throw new Error('Model element cannot be retrieved by path.');
@@ -152,7 +152,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
             currentElement = currentElement ?? this;
             if (isLast) {
                 currentElement = currentElement instanceof CategoryLikeTreeElement
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+                    // oxlint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
                     ? currentElement.find(path, elementType as any)
                     : undefined;
             } else {
@@ -273,7 +273,7 @@ export abstract class CategoryLikeTreeElement<TModel extends ILhqCategoryLikeMod
         } else if (elementType === 'resource') {
             return this._resources?.length ?? 0;
         } else {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            // oxlint-disable-next-line @typescript-eslint/restrict-template-expressions
             throw new Error(`Invalid element type: ${elementType}`);
         }
     }

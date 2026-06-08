@@ -24,7 +24,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
     private _codeGenSettingsConvertor: ICodeGeneratorSettingsConvertor;
 
     constructor(model: LhqModel | undefined, codeGenSettingsConvertor: ICodeGeneratorSettingsConvertor) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // oxlint-disable-next-line typescript/ban-ts-comment
         // @ts-ignore
         super(undefined, 'model', model?.model?.name ?? '', undefined);
 
@@ -177,7 +177,7 @@ export class RootModelElement extends CategoryLikeTreeElement<LhqModel> implemen
                 for (const key of Object.keys(node.attrs)) {
                     const value = node.attrs[key] as unknown;
                     if (value !== undefined && value !== null && typeof value !== 'string') {
-                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                        // oxlint-disable-next-line @typescript-eslint/no-base-to-string
                         node.attrs[key] = value.toString()?.toLowerCase();
                     }
                 }

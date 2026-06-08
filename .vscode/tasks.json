@@ -3,11 +3,11 @@
   "tasks": [
     {
         "type": "npm",
-        "script": "eslint",
+        "script": "lint",
         "problemMatcher": [
             "$eslint-stylish"
         ],
-        "label": "npm: eslint"
+        "label": "npm: lint"
     },
     {
         "type": "npm",
