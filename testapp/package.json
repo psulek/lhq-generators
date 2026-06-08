@@ -10,7 +10,7 @@
     "version": "lhqcmd --version",
     "validate": "lhqcmd ../tests/data/templates/NetCoreResxCsharp01/Strings.lhq validate",
     "generate": "lhqcmd ../tests/data/templates/NetCoreResxCsharp01/Strings.lhq -o ../temp --data namespace=test123q",
-    "postinstall": "cpx ./node_modules/@lhq/lhq-generators/browser/index.js ./web/"
+    "postinstall": "node ./scripts/postinstall-copy.cjs"
   },
   "keywords": [],
   "author": "",
@@ -18,7 +18,6 @@
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^18.18.0",
-    "cpx": "^1.5.0",
     "fs-extra": "^11.3.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",

@@ -182,7 +182,7 @@ export function tryJsonParse<T>(value: string, removeBOM: boolean = false): { su
             success = !isNullOrEmpty(result);
         } catch (e) {
             if (!isNullOrEmpty(e)) {
-                // eslint-disable-next-line @typescript-eslint/no-base-to-string
+                // oxlint-disable-next-line typescript/no-base-to-string
                 error = e instanceof Error ? e.message : String(e);
             } else {
                 error = 'Unknown error occurred';
@@ -450,7 +450,7 @@ export function textEncode(str: string, encoder: TextEncodeOptions): string {
  * @param defaultOnEmptyString - whether to return `defaultValue` if `value` is an empty string
  * @returns the value of `value` or `defaultValue`.
  */
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+// oxlint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export function valueOrDefault<T>(value: T | null | undefined | '' | unknown, defaultValue: T, defaultOnEmptyString: boolean = false): T {
     defaultOnEmptyString = defaultOnEmptyString ?? false;
     return defaultOnEmptyString
@@ -540,11 +540,11 @@ export function removeProperties<T>(obj: T | undefined, ...propertiesToRemove: o
     if (isNullOrUndefined(obj)) return obj;
 
     propertiesToRemove.forEach(propObj => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         for (const key in propObj) {
             if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 delete obj[key];
             }

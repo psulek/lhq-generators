@@ -1,4 +1,4 @@
-/* eslint-disable no-prototype-builtins */
+/* oxlint-disable no-prototype-builtins */
 import Handlebars from 'handlebars';
 import { AppError } from './AppError';
 import { getKnownHelpers } from './helpers';
@@ -149,4 +149,4 @@ export class HbsTemplateManager {
         return result;
     }
 }
-/* eslint-enable no-prototype-builtins */
+/* oxlint-enable no-prototype-builtins */

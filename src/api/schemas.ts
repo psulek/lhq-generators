@@ -113,7 +113,7 @@ export const LhqModelSchema = z.object({
  * Marker interface for some LHQ model types, used for:
  * root, category, and resource element, resource parameter, and resource value.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// oxlint-disable-next-line typescript/no-empty-object-type
 export interface ILhqModelType { }
 
 export interface ILhqCategoryLikeModelType extends ILhqModelType {
