@@ -3,6 +3,7 @@ name: Publish Package
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20.x'
@@ -39,6 +40,7 @@ jobs:
           pnpm add -g vsce semver
 
       - name: Validate release tag value
+        if: github.event_name == 'release'
         id: validate_tag
         uses: ./.github/actions/validate-tag
         with:
@@ -46,11 +48,21 @@ jobs:
           allow_prerelease: 'true'
           compare_package_version: 'false'
 
-      - name: Update tag environment variables
-        run: | 
+      - name: Set version from release tag
+        if: github.event_name == 'release'
+        run: |
           echo "PACKAGE_NAME=${{ steps.validate_tag.outputs.package_name }}" >> $GITHUB_ENV
           echo "PACKAGE_VERSION=${{ steps.validate_tag.outputs.tag_version }}" >> $GITHUB_ENV
           echo "TAG_VALID=${{ steps.validate_tag.outputs.tag_valid }}" >> $GITHUB_ENV
+
+      - name: Set version from package.json
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "TAG_VALID=1" >> $GITHUB_ENV
 
       - name: Check for existing published version on registry
         if: env.TAG_VALID == '1'
@@ -68,7 +80,7 @@ jobs:
           fi
 
       - name: Mark release as draft on invalid release tag
-        if: env.TAG_VALID == '0'
+        if: env.TAG_VALID == '0' && github.event_name == 'release'
         uses: ./.github/actions/mark-draft
         with:
           reason: "Invalid tag format"
@@ -140,13 +152,17 @@ jobs:
             }
 
       - name: Mark release as draft on package publish failure
-        if: env.PUBLISH_SUCCESS == '0'
+        if: env.PUBLISH_SUCCESS == '0' && github.event_name == 'release'
         uses: ./.github/actions/mark-draft
         with:
           reason: "Package publish failed"
 
+      - name: Stop workflow on package publish failure
+        if: env.PUBLISH_SUCCESS == '0'
+        run: exit 1
+
       - name: Add published package to the release
-        if: env.PUBLISH_SUCCESS == '1'
+        if: env.PUBLISH_SUCCESS == '1' && github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           body: '📦 **Package:** [View on GitHub Packages](${{ env.PACKAGE_URL }})'
